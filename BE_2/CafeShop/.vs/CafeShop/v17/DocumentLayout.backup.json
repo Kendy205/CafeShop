@@ -1,0 +1,582 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Migrations\\20260908100720_addInfinitiveProductTopping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CafeShop.Data\\Migrations\\20260908100720_addInfinitiveProductTopping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop\\controllers\\user\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|solutionrelative:cafeshop\\controllers\\user\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.service\\service\\users\\orderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|solutionrelative:cafeshop.service\\service\\users\\orderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.model\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|solutionrelative:cafeshop.model\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.model\\topping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|solutionrelative:cafeshop.model\\topping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7F1B6081-807A-4BAF-9444-5CF89B63437F}|CafeShop.DTO\\CafeShop.DTO.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.dto\\topping\\toppingdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7F1B6081-807A-4BAF-9444-5CF89B63437F}|CafeShop.DTO\\CafeShop.DTO.csproj|solutionrelative:cafeshop.dto\\topping\\toppingdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7F1B6081-807A-4BAF-9444-5CF89B63437F}|CafeShop.DTO\\CafeShop.DTO.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.dto\\product\\productresponsedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7F1B6081-807A-4BAF-9444-5CF89B63437F}|CafeShop.DTO\\CafeShop.DTO.csproj|solutionrelative:cafeshop.dto\\product\\productresponsedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.model\\productsize.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|solutionrelative:cafeshop.model\\productsize.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop\\controllers\\user\\cartcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|solutionrelative:cafeshop\\controllers\\user\\cartcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|solutionrelative:cafeshop\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop\\controllers\\user\\addresscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|solutionrelative:cafeshop\\controllers\\user\\addresscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.service\\service\\users\\uservoucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|solutionrelative:cafeshop.service\\service\\users\\uservoucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.service\\service\\users\\voucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|solutionrelative:cafeshop.service\\service\\users\\voucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.service\\iservice\\users\\iuservoucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|solutionrelative:cafeshop.service\\iservice\\users\\iuservoucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7F1B6081-807A-4BAF-9444-5CF89B63437F}|CafeShop.DTO\\CafeShop.DTO.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.dto\\voucher\\voucherdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7F1B6081-807A-4BAF-9444-5CF89B63437F}|CafeShop.DTO\\CafeShop.DTO.csproj|solutionrelative:cafeshop.dto\\voucher\\voucherdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.model\\voucher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|solutionrelative:cafeshop.model\\voucher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.model\\uservoucher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BC35CAAE-081B-4776-B4BB-3EB1147846C8}|CafeShop.Model\\CafeShop.Model.csproj|solutionrelative:cafeshop.model\\uservoucher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.data\\repository\\imp\\uservoucherrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|solutionrelative:cafeshop.data\\repository\\imp\\uservoucherrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop\\controllers\\user\\vouchercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|solutionrelative:cafeshop\\controllers\\user\\vouchercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.data\\repository\\imp\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|solutionrelative:cafeshop.data\\repository\\imp\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.data\\repository\\irepository\\iuservoucherrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|solutionrelative:cafeshop.data\\repository\\irepository\\iuservoucherrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.service\\iservice\\users\\ivoucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|solutionrelative:cafeshop.service\\iservice\\users\\ivoucherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop\\mapper\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D8BBDF74-EA12-4306-9F41-B64251A16B6F}|CafeShop\\CafeShop.csproj|solutionrelative:cafeshop\\mapper\\mappingprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A9F30B4-AC3E-4EF0-BE3C-7B13BCCBF332}|CafeShop.Uitls\\CafeShop.Uitls.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.uitls\\vouchertypetarget.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A9F30B4-AC3E-4EF0-BE3C-7B13BCCBF332}|CafeShop.Uitls\\CafeShop.Uitls.csproj|solutionrelative:cafeshop.uitls\\vouchertypetarget.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A9F30B4-AC3E-4EF0-BE3C-7B13BCCBF332}|CafeShop.Uitls\\CafeShop.Uitls.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.uitls\\voucherapplytype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A9F30B4-AC3E-4EF0-BE3C-7B13BCCBF332}|CafeShop.Uitls\\CafeShop.Uitls.csproj|solutionrelative:cafeshop.uitls\\voucherapplytype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9A9F30B4-AC3E-4EF0-BE3C-7B13BCCBF332}|CafeShop.Uitls\\CafeShop.Uitls.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.uitls\\discountapplytype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9A9F30B4-AC3E-4EF0-BE3C-7B13BCCBF332}|CafeShop.Uitls\\CafeShop.Uitls.csproj|solutionrelative:cafeshop.uitls\\discountapplytype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|solutionrelative:cafeshop.data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.data\\repository\\irepository\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|solutionrelative:cafeshop.data\\repository\\irepository\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.service\\iservice\\users\\iuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3CF2EA6-2794-43F2-B416-2898D9AC568D}|CafeShop.Service\\CafeShop.Service.csproj|solutionrelative:cafeshop.service\\iservice\\users\\iuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|d:\\hoc tap\\ptpmmnm\\be_2\\cafeshop\\cafeshop.data\\migrations\\20260908020541_adduservoucher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{702902DC-F64C-40AD-B194-F5E2A1B106E4}|CafeShop.Data\\CafeShop.Data.csproj|solutionrelative:cafeshop.data\\migrations\\20260908020541_adduservoucher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 318,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{74946827-37a0-11d2-a273-00c04f8ef4ff}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "20260908100720_addInfinitiveProductTopping.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Migrations\\20260908100720_addInfinitiveProductTopping.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\Migrations\\20260908100720_addInfinitiveProductTopping.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Migrations\\20260908100720_addInfinitiveProductTopping.cs",
+              "RelativeToolTip": "CafeShop.Data\\Migrations\\20260908100720_addInfinitiveProductTopping.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T10:07:20.691Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ToppingDto.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.DTO\\Topping\\ToppingDto.cs",
+              "RelativeDocumentMoniker": "CafeShop.DTO\\Topping\\ToppingDto.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.DTO\\Topping\\ToppingDto.cs",
+              "RelativeToolTip": "CafeShop.DTO\\Topping\\ToppingDto.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABoAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:56:22.951Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Topping.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\Topping.cs",
+              "RelativeDocumentMoniker": "CafeShop.Model\\Topping.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\Topping.cs",
+              "RelativeToolTip": "CafeShop.Model\\Topping.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:55:24.389Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Product.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\Product.cs",
+              "RelativeDocumentMoniker": "CafeShop.Model\\Product.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\Product.cs",
+              "RelativeToolTip": "CafeShop.Model\\Product.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwBoAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:50:04.965Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "OrderService.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\Service\\Users\\OrderService.cs",
+              "RelativeDocumentMoniker": "CafeShop.Service\\Service\\Users\\OrderService.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\Service\\Users\\OrderService.cs",
+              "RelativeToolTip": "CafeShop.Service\\Service\\Users\\OrderService.cs",
+              "ViewState": "AgIAAFMAAAAAAAAAAAAYwDgAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:19:27.313Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "OrderController.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\OrderController.cs",
+              "RelativeDocumentMoniker": "CafeShop\\Controllers\\User\\OrderController.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\OrderController.cs",
+              "RelativeToolTip": "CafeShop\\Controllers\\User\\OrderController.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAYwDgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:05:35.223Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ProductResponseDto.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.DTO\\Product\\ProductResponseDto.cs",
+              "RelativeDocumentMoniker": "CafeShop.DTO\\Product\\ProductResponseDto.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.DTO\\Product\\ProductResponseDto.cs",
+              "RelativeToolTip": "CafeShop.DTO\\Product\\ProductResponseDto.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAACMAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:55:48.264Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ProductSize.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\ProductSize.cs",
+              "RelativeDocumentMoniker": "CafeShop.Model\\ProductSize.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\ProductSize.cs",
+              "RelativeToolTip": "CafeShop.Model\\ProductSize.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:50:09.388Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "CartController.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\CartController.cs",
+              "RelativeDocumentMoniker": "CafeShop\\Controllers\\User\\CartController.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\CartController.cs",
+              "RelativeToolTip": "CafeShop\\Controllers\\User\\CartController.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAQwCoAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:46:34.598Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "AddressController.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\AddressController.cs",
+              "RelativeDocumentMoniker": "CafeShop\\Controllers\\User\\AddressController.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\AddressController.cs",
+              "RelativeToolTip": "CafeShop\\Controllers\\User\\AddressController.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAzwCQAAABIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T09:10:17.266Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "VoucherService.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\Service\\Users\\VoucherService.cs",
+              "RelativeDocumentMoniker": "CafeShop.Service\\Service\\Users\\VoucherService.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\Service\\Users\\VoucherService.cs",
+              "RelativeToolTip": "CafeShop.Service\\Service\\Users\\VoucherService.cs",
+              "ViewState": "AgIAAE0AAAAAAAAAAAAEwG0AAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:14:23.481Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "IUserVoucherService.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\IService\\Users\\IUserVoucherService.cs",
+              "RelativeDocumentMoniker": "CafeShop.Service\\IService\\Users\\IUserVoucherService.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\IService\\Users\\IUserVoucherService.cs",
+              "RelativeToolTip": "CafeShop.Service\\IService\\Users\\IUserVoucherService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAsAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:49:20.282Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Program.cs",
+              "RelativeDocumentMoniker": "CafeShop\\Program.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Program.cs",
+              "RelativeToolTip": "CafeShop\\Program.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAADYAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:06:15.869Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "UserVoucher.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\UserVoucher.cs",
+              "RelativeDocumentMoniker": "CafeShop.Model\\UserVoucher.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\UserVoucher.cs",
+              "RelativeToolTip": "CafeShop.Model\\UserVoucher.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T02:03:53.564Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "UserVoucherService.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\Service\\Users\\UserVoucherService.cs",
+              "RelativeDocumentMoniker": "CafeShop.Service\\Service\\Users\\UserVoucherService.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\Service\\Users\\UserVoucherService.cs",
+              "RelativeToolTip": "CafeShop.Service\\Service\\Users\\UserVoucherService.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAAACcAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:49:42.667Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Voucher.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\Voucher.cs",
+              "RelativeDocumentMoniker": "CafeShop.Model\\Voucher.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Model\\Voucher.cs",
+              "RelativeToolTip": "CafeShop.Model\\Voucher.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABoAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:09:40.226Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "VoucherDto.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.DTO\\Voucher\\VoucherDto.cs",
+              "RelativeDocumentMoniker": "CafeShop.DTO\\Voucher\\VoucherDto.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.DTO\\Voucher\\VoucherDto.cs",
+              "RelativeToolTip": "CafeShop.DTO\\Voucher\\VoucherDto.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAMwCsAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T03:17:18.686Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "UserVoucherRepository.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IMP\\UserVoucherRepository.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\Repository\\IMP\\UserVoucherRepository.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IMP\\UserVoucherRepository.cs",
+              "RelativeToolTip": "CafeShop.Data\\Repository\\IMP\\UserVoucherRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:53:03.203Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Repository.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IMP\\Repository.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\Repository\\IMP\\Repository.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IMP\\Repository.cs",
+              "RelativeToolTip": "CafeShop.Data\\Repository\\IMP\\Repository.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAvwCwAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:57:13.073Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "VoucherController.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\VoucherController.cs",
+              "RelativeDocumentMoniker": "CafeShop\\Controllers\\User\\VoucherController.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Controllers\\User\\VoucherController.cs",
+              "RelativeToolTip": "CafeShop\\Controllers\\User\\VoucherController.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAvwCMAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:05:39.639Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "IUserVoucherRepository.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IRepository\\IUserVoucherRepository.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\Repository\\IRepository\\IUserVoucherRepository.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IRepository\\IUserVoucherRepository.cs",
+              "RelativeToolTip": "CafeShop.Data\\Repository\\IRepository\\IUserVoucherRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:51:34.509Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "MappingProfile.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Mapper\\MappingProfile.cs",
+              "RelativeDocumentMoniker": "CafeShop\\Mapper\\MappingProfile.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop\\Mapper\\MappingProfile.cs",
+              "RelativeToolTip": "CafeShop\\Mapper\\MappingProfile.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAAQwDYAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T03:16:59.769Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "IVoucherService.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\IService\\Users\\IVoucherService.cs",
+              "RelativeDocumentMoniker": "CafeShop.Service\\IService\\Users\\IVoucherService.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\IService\\Users\\IVoucherService.cs",
+              "RelativeToolTip": "CafeShop.Service\\IService\\Users\\IVoucherService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAwAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:51:19.751Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "20260908020541_addUservoucher.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Migrations\\20260908020541_addUservoucher.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\Migrations\\20260908020541_addUservoucher.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Migrations\\20260908020541_addUservoucher.cs",
+              "RelativeToolTip": "CafeShop.Data\\Migrations\\20260908020541_addUservoucher.cs",
+              "ViewState": "AgIAACgAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-08T02:05:41.423Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "DiscountApplyType.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Uitls\\DiscountApplyType.cs",
+              "RelativeDocumentMoniker": "CafeShop.Uitls\\DiscountApplyType.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Uitls\\DiscountApplyType.cs",
+              "RelativeToolTip": "CafeShop.Uitls\\DiscountApplyType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:16:37.285Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "VoucherTypeTarget.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Uitls\\VoucherTypeTarget.cs",
+              "RelativeDocumentMoniker": "CafeShop.Uitls\\VoucherTypeTarget.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Uitls\\VoucherTypeTarget.cs",
+              "RelativeToolTip": "CafeShop.Uitls\\VoucherTypeTarget.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:16:51.794Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "VoucherApplyType.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Uitls\\VoucherApplyType.cs",
+              "RelativeDocumentMoniker": "CafeShop.Uitls\\VoucherApplyType.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Uitls\\VoucherApplyType.cs",
+              "RelativeToolTip": "CafeShop.Uitls\\VoucherApplyType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T13:16:35.696Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\ApplicationDbContext.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "CafeShop.Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:54:46.758Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "IRepository.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IRepository\\IRepository.cs",
+              "RelativeDocumentMoniker": "CafeShop.Data\\Repository\\IRepository\\IRepository.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Data\\Repository\\IRepository\\IRepository.cs",
+              "RelativeToolTip": "CafeShop.Data\\Repository\\IRepository\\IRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:51:39.376Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "IUserService.cs",
+              "DocumentMoniker": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\IService\\Users\\IUserService.cs",
+              "RelativeDocumentMoniker": "CafeShop.Service\\IService\\Users\\IUserService.cs",
+              "ToolTip": "D:\\hoc tap\\PTPMMNM\\BE_2\\CafeShop\\CafeShop.Service\\IService\\Users\\IUserService.cs",
+              "RelativeToolTip": "CafeShop.Service\\IService\\Users\\IUserService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-07T12:51:17.293Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 318,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{25f7e850-ffa1-11d0-b63f-00a0c922e851}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 318,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{4a9b7e51-aa16-11d0-a8c5-00a0c921a4d2}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
