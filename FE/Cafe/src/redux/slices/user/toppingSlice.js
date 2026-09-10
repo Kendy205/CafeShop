@@ -18,7 +18,7 @@ const toppingSlice = createSlice({
             })
             .addCase(getAvailableToppings.fulfilled, (state, action) => {
                 state.loading = false
-                state.items = asList(action.payload).filter((t) => t.isAvailable !== false)
+                state.items = asList(action.payload)
             })
             .addCase(getAvailableToppings.rejected, (state, action) => {
                 state.loading = false

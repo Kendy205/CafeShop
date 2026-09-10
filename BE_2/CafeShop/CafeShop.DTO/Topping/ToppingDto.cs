@@ -14,6 +14,7 @@ namespace CafeShop.DTO.Topping
         public string Unit { get; set; } = string.Empty;
         public bool IsAvailable { get; set; }
         public int StockQuantity { get; set; } = 0;
+        public bool IsOutOfStock => StockQuantity <= 0 || !IsAvailable;
         public string? ImageUrl { get; set; }
     }
 

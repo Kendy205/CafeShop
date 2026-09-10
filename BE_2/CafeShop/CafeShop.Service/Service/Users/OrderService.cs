@@ -43,21 +43,42 @@ namespace CafeShop.Services.Services
                 int finalAddressId = await ResolveAddressIdAsync(userId, request.AddressId, request.NewAddressString, request.RecipientName, request.Phone);
                 decimal shippingFee = CalculateShippingFee(request.DistanceKm);
 
-                // 2. Tính tổng tiền hàng
+                // 2. Tính tổng tiền hàng & Xử lý trừ kho
                 var orderDetails = new List<OrderDetail>();
                 decimal orderTotal = 0;
 
                 foreach (var cartItem in cart.CartItems)
                 {
-                    // 1. Kiểm tra tồn kho Sản phẩm
-                    if (cartItem.Product.StockQuantity < cartItem.Quantity)
-                        throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' chỉ còn {cartItem.Product.StockQuantity} phần trong kho!");
+                    // 1. KIỂM TRA VÀ TRỪ KHO SẢN PHẨM / SIZE
+                    if (cartItem.SizeId.HasValue && cartItem.SizeId.Value > 0)
+                    {
+                        // Truy vấn tồn kho của Size cụ thể
+                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                            ps => ps.ProductId == cartItem.ProductId && ps.SizeId == cartItem.SizeId.Value,
+                            includeProperties: "Size"
+                        );
 
-                    // Trừ kho Sản phẩm
-                    cartItem.Product.StockQuantity -= cartItem.Quantity;
-                    _unitOfWork.Product.Update(cartItem.Product);
+                        if (productSize == null)
+                            throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' không hỗ trợ kích cỡ này!");
 
-                    // 2. Xử lý và kiểm tra tồn kho Topping
+                        if (productSize.StockQuantity < cartItem.Quantity)
+                            throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' (Size {productSize.Size.Name}) chỉ còn {productSize.StockQuantity} ly trong kho!");
+
+                        // Trừ kho ProductSize
+                        productSize.StockQuantity -= cartItem.Quantity;
+                        _unitOfWork.ProductSize.Update(productSize);
+                    }
+                    else
+                    {
+                        // Nếu không có Size (vd: Bánh) -> Trừ kho Product gốc
+                        if (cartItem.Product.StockQuantity < cartItem.Quantity)
+                            throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' chỉ còn {cartItem.Product.StockQuantity} phần trong kho!");
+
+                        cartItem.Product.StockQuantity -= cartItem.Quantity;
+                        _unitOfWork.Product.Update(cartItem.Product);
+                    }
+
+                    // 2. KIỂM TRA VÀ TRỪ KHO TOPPING
                     foreach (var cartTopping in cartItem.CartItemToppings)
                     {
                         int totalToppingNeeded = cartTopping.Quantity * cartItem.Quantity;
@@ -68,6 +89,7 @@ namespace CafeShop.Services.Services
                         cartTopping.Topping.StockQuantity -= totalToppingNeeded;
                         _unitOfWork.Topping.Update(cartTopping.Topping);
                     }
+
                     var orderDetail = new OrderDetail
                     {
                         ProductId = cartItem.ProductId,
@@ -134,17 +156,18 @@ namespace CafeShop.Services.Services
             if (request.Items == null || !request.Items.Any())
                 throw new ArgumentException("Vui lòng chọn ít nhất 1 sản phẩm để mua!");
 
-            // 1. Tính toán trước ngoài Transaction
-            var (orderDetails, orderTotal) = await BuildOrderDetailsFromItemsAsync(request.Items);
-
+            // 1. Mở Transaction NGAY TỪ ĐẦU vì cần khóa kho (lock data)
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // 2. Xử lý địa chỉ & phí ship
+                // 2. Xử lý món & Trừ kho (Gọi hàm BuildOrderDetails)
+                var (orderDetails, orderTotal) = await BuildOrderDetailsFromItemsAsync(request.Items);
+
+                // 3. Xử lý địa chỉ & phí ship
                 int finalAddressId = await ResolveAddressIdAsync(userId, request.AddressId, request.NewAddressString, request.RecipientName, request.Phone);
                 decimal shippingFee = CalculateShippingFee(request.DistanceKm);
 
-                // 3. Xử lý Voucher qua VoucherService
+                // 4. Xử lý Voucher qua VoucherService
                 decimal discountAmount = 0;
                 int? voucherId = null;
 
@@ -155,7 +178,7 @@ namespace CafeShop.Services.Services
                     discountAmount = voucherResult.DiscountAmount;
                 }
 
-                // 4. Lưu đơn hàng
+                // 5. Lưu đơn hàng
                 var order = new Order
                 {
                     CustomerId = userId,
@@ -227,6 +250,8 @@ namespace CafeShop.Services.Services
 
             order.CurrentStatus = "Cancelled";
 
+            // Có thể bổ sung Logic Tăng lại số lượng Tồn kho tại đây nếu cần thiết
+
             _unitOfWork.Order.Update(order);
             await _unitOfWork.SaveAsync();
         }
@@ -268,6 +293,7 @@ namespace CafeShop.Services.Services
             throw new ArgumentException("Vui lòng chọn hoặc nhập địa chỉ giao hàng!");
         }
 
+        // Hàm này bắt buộc phải gọi khi ĐÃ MỞ TRANSACTION (Như trong BuyNowAsync)
         private async Task<(List<OrderDetail> details, decimal total)> BuildOrderDetailsFromItemsAsync(List<CreateOrderDetailDto> items)
         {
             decimal total = 0;
@@ -276,20 +302,46 @@ namespace CafeShop.Services.Services
             foreach (var item in items)
             {
                 int qty = item.Quantity > 0 ? item.Quantity : 1;
+                decimal unitPrice = 0;
+
                 var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == item.ProductId);
                 if (product == null || !product.IsAvailable)
                     throw new ArgumentException($"Sản phẩm có ID {item.ProductId} không tồn tại hoặc đã ngừng bán!");
-                if (product.StockQuantity < qty)
-                    throw new ArgumentException($"Sản phẩm '{product.Name}' chỉ còn {product.StockQuantity} phần, không đủ số lượng bạn đặt!");
-                decimal unitPrice = product.BasePrice;
 
-                if (item.SizeId.HasValue)
+                unitPrice = product.BasePrice;
+
+                // 1. KIỂM TRA VÀ TRỪ KHO SẢN PHẨM / SIZE
+                if (item.SizeId.HasValue && item.SizeId.Value > 0)
                 {
-                    var sizeInfo = await _unitOfWork.Size.GetFirstOrDefaultAsync(s => s.SizeId == item.SizeId.Value);
-                    if (sizeInfo != null && sizeInfo.PercentIncrease > 0)
-                        unitPrice += product.BasePrice * (sizeInfo.PercentIncrease / 100m);
+                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                        ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value,
+                        includeProperties: "Size"
+                    );
+
+                    if (productSize == null)
+                        throw new ArgumentException($"Sản phẩm '{product.Name}' không hỗ trợ kích cỡ này!");
+
+                    if (productSize.StockQuantity < qty)
+                        throw new ArgumentException($"Sản phẩm '{product.Name}' (Size {productSize.Size.Name}) chỉ còn {productSize.StockQuantity} ly, không đủ số lượng bạn đặt!");
+
+                    if (productSize.Size.PercentIncrease > 0)
+                        unitPrice += product.BasePrice * (productSize.Size.PercentIncrease / 100m);
+
+                    // Trừ kho ProductSize
+                    productSize.StockQuantity -= qty;
+                    _unitOfWork.ProductSize.Update(productSize);
+                }
+                else
+                {
+                    if (product.StockQuantity < qty)
+                        throw new ArgumentException($"Sản phẩm '{product.Name}' chỉ còn {product.StockQuantity} phần, không đủ số lượng bạn đặt!");
+
+                    // Trừ kho Product gốc
+                    product.StockQuantity -= qty;
+                    _unitOfWork.Product.Update(product);
                 }
 
+                // 2. KIỂM TRA VÀ TRỪ KHO TOPPING
                 var orderDetailToppings = new List<OrderDetailTopping>();
                 if (item.Toppings != null && item.Toppings.Any())
                 {
@@ -299,10 +351,16 @@ namespace CafeShop.Services.Services
                         if (toppingInfo != null && toppingInfo.IsAvailable)
                         {
                             int totalToppingNeeded = top.Quantity * qty;
+
                             if (toppingInfo.StockQuantity < totalToppingNeeded)
                                 throw new ArgumentException($"Topping '{toppingInfo.Name}' chỉ còn {toppingInfo.StockQuantity} phần, không đủ cho đơn của bạn!");
+
                             decimal toppingPrice = (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
                             unitPrice += toppingPrice;
+
+                            // Trừ kho Topping
+                            toppingInfo.StockQuantity -= totalToppingNeeded;
+                            _unitOfWork.Topping.Update(toppingInfo);
 
                             orderDetailToppings.Add(new OrderDetailTopping
                             {
@@ -314,7 +372,6 @@ namespace CafeShop.Services.Services
                     }
                 }
 
-                //int qty = item.Quantity > 0 ? item.Quantity : 1;
                 details.Add(new OrderDetail
                 {
                     ProductId = item.ProductId,

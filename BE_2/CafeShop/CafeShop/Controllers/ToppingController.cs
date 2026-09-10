@@ -20,7 +20,7 @@ namespace CafeShop.Controllers
         }
 
         // Dành cho Client lấy danh sách Topping đang mở bán
-        [HttpGet("available")]
+        [HttpGet]
         public async Task<IActionResult> GetAvailableToppings()
         {
             try
@@ -35,19 +35,19 @@ namespace CafeShop.Controllers
         }
 
         // Dành cho Admin lấy tất cả
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                var result = await _toppingService.GetAllToppingsAsync(onlyAvailable: false);
-                return Ok(ApiResponse<List<ToppingDto>>.Succeeded(result, 200, "Thành công"));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
-            }
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    try
+        //    {
+        //        var result = await _toppingService.GetAllToppingsAsync(onlyAvailable: false);
+        //        return Ok(ApiResponse<List<ToppingDto>>.Succeeded(result, 200, "Thành công"));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
+        //    }
+        //}
 
         // Tương tự, có thể thêm [HttpPost], [HttpPut], [HttpPatch("toggle")] cho Admin
     }

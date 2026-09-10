@@ -31,10 +31,11 @@ namespace CafeShop.Services.Services
             throw new NotImplementedException();
         }
 
-        public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword=null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int pageNumber=1, int pageSize=10)
+        public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)
         {
             // 1. Lấy toàn bộ dữ liệu (nếu hệ thống lớn, bạn nên tối ưu lại hàm này trong Repository để trả về IQueryable)
-            var products = await _unitOfWork.Product.GetAllAsync(includeProperties:"Category");
+            var products = await _unitOfWork.Product.GetAllAsync(
+                            includeProperties: "Category,ProductSizes,ProductSizes.Size");
             var query = products.AsQueryable();
 
             // 2. Lọc theo từ khóa (Tên đồ uống)
@@ -98,28 +99,15 @@ namespace CafeShop.Services.Services
                 return null;
 
             // 2. Map các thông tin cơ bản bằng AutoMapper (Tên, BasePrice, CategoryName...)
-            var mappedProduct = _mapper.Map<ProductResponseDto>(product);
+            
 
-            // 3. Tính toán giá thực tế cho từng Size hiển thị ra Frontend
-            if (product.ProductSizes != null && product.ProductSizes.Any())
-            {
-                // Ghi đè danh sách Size trong DTO bằng danh sách đã tính toán lại giá
-                mappedProduct.Sizes = product.ProductSizes
-                    .Where(ps => ps.Size != null)
-                    .Select(ps => new ProductSizeDto
-                    {
-                        SizeId = ps.SizeId,
-                        Name = ps.Size.Name,
-                        // Công thức tính: Giá hiển thị = Giá gốc + (Giá gốc * PercentIncrease / 100)
-                        Price = product.BasePrice + (product.BasePrice * (ps.Size.PercentIncrease / 100m))
-                    }).ToList();
-            }
+            var mappedProduct = _mapper.Map<ProductResponseDto>(product);
 
             return mappedProduct;
         }
 
 
-       
+
 
         public Task UpdateAsync(Product entity)
         {

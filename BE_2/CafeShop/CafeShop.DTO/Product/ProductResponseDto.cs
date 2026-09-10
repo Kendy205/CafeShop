@@ -16,10 +16,16 @@ namespace CafeShop.DTO.Product
         public string? ImagePublicId { get; set; }
         public string? CategoryName { get; set; }
         public bool IsAvailable { get; set; }
-        
-       
+        public int StockQuantity { get; set; }
+        public string? Description { get; set; }
 
-        public List<ProductSizeDto> Sizes { get; set; } = new List<ProductSizeDto>();
+        public List<ProductSizeDto> ProductSizes { get; set; } = new List<ProductSizeDto>();
+        public int TotalStock => ProductSizes != null && ProductSizes.Any()
+            ? ProductSizes.Sum(s => s.StockQuantity)
+            : StockQuantity;
+
+        // Cờ cho Frontend hiển thị chữ "Hết Hàng" đè lên ảnh
+        public bool IsOutOfStock => TotalStock <= 0 || !IsAvailable;
     }
     public class ProductSizeDto
     {
