@@ -2,6 +2,7 @@
 using CafeShop.DTO.Address;
 using CafeShop.DTO.Auth;
 using CafeShop.DTO.Cart;
+using CafeShop.DTO.Feedback;
 using CafeShop.DTO.Order;
 using CafeShop.DTO.Product;
 using CafeShop.DTO.Size;
@@ -21,53 +22,42 @@ namespace CafeShop.Mapper
             CreateMap<Product, ProductResponseDto>()
                 .ForMember(dest => dest.ProductSizes, opt => opt.MapFrom(src => src.ProductSizes))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : ""));
-
             //Ánh xạ bảng trung gian ProductSize sang DTO
             CreateMap<ProductSize, ProductSizeDto>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : ""))
-                // Tính giá trị Price (Giá BasePrice + % tăng thêm của Size) cho Frontend hiển thị
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
-                    src.Product != null && src.Size != null
-                    ? src.Product.BasePrice + (src.Product.BasePrice * (src.Size.PercentIncrease / 100m))
-                    : 0));
-
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : ""))
+            // Logic mới: Nếu Price có giá trị thì lấy Price, nếu null thì lấy BasePrice
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
+                src.Price.HasValue ? src.Price.Value : (src.Product != null ? src.Product.BasePrice : 0)));
             CreateMap<CreateProductDto, Product>();
-
 
             // ==========================================
             // 2. USER
             // ==========================================
             CreateMap<User, UserResponseDto>();
 
-
-            // ==========================================
-            // 3. CART
-            // ==========================================
-            CreateMap<CartItemTopping, CartItemToppingDto>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Topping.Name))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Topping.Price));
-
-            CreateMap<CartItem, CartItemResponseDto>()
-                .ForMember(dest => dest.Toppings, opt => opt.MapFrom(src => src.CartItemToppings));
-
-
             // ==========================================
             // 4. ORDER
             // ==========================================
             CreateMap<Order, OrderResponseDto>()
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetails));
-
             CreateMap<OrderDetail, OrderDetailDto>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : ""))
+                // Ánh xạ ImageUrl từ Product sang
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product != null ? src.Product.ImageUrl : ""))
+                // Nếu SizeId lưu trong DB = 0 
+                .ForMember(dest => dest.SizeId, opt => opt.MapFrom(src => src.SizeId == 0 ? (int?)null : src.SizeId))
                 .ForMember(dest => dest.SizeName, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : null))
-                .ForMember(dest => dest.Toppings, opt => opt.MapFrom(src => src.OrderDetailToppings));
-
+                .ForMember(dest => dest.Toppings, opt => opt.MapFrom(src => src.OrderDetailToppings))
+                .ForMember(dest => dest.IsReviewed, opt => opt.MapFrom(src =>
+                    src.Feedbacks != null && src.Feedbacks.Any(f => f.OrderDetailId == src.OrderDetailId)));
             CreateMap<OrderDetailTopping, OrderItemToppingDto>()
+                .ForMember(dest => dest.ToppingId, opt => opt.MapFrom(src => src.ToppingId))
                 .ForMember(dest => dest.ToppingName, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.Name : ""))
                 .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.Unit : ""))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.ImageUrl : ""))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice));
-
 
             // ==========================================
             // 5. ADDRESS, SIZE, TOPPING
@@ -75,14 +65,10 @@ namespace CafeShop.Mapper
             CreateMap<Address, AddressResponseDto>();
             CreateMap<CreateAddressDto, Address>();
             CreateMap<UpdateAddressDto, Address>();
-
             CreateMap<Size, SizeDto>();
             CreateMap<CreateUpdateSizeDto, Size>();
-
             CreateMap<Topping, ToppingDto>();
             CreateMap<CreateUpdateToppingDto, Topping>();
-
-
             // ==========================================
             // 6. VOUCHER
             // ==========================================
@@ -90,6 +76,17 @@ namespace CafeShop.Mapper
                 .ForMember(dest => dest.TargetType, opt => opt.MapFrom(src => src.TargetType.ToString()))
                 .ForMember(dest => dest.ApplyType, opt => opt.MapFrom(src => src.ApplyType.ToString()))
                 .ForMember(dest => dest.DiscountType, opt => opt.MapFrom(src => src.DiscountType.ToString()));
+
+            // ==========================================
+            // 7. Feedback
+            // ==========================================
+            CreateMap<Feedback, FeedbackResponseDto>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                    src.User != null ? src.User.FullName : "Người dùng ẩn danh"));
+            CreateMap<Feedback, FeedbackResponseDto>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName));
+
+
         }
     }
 }

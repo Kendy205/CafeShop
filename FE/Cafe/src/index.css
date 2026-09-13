@@ -1,1 +1,10 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
+
+/* Ẩn scrollbar xấu trên trình duyệt nhưng vẫn giữ trải nghiệm cuộn nếu có */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

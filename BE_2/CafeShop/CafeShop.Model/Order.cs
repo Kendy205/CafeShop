@@ -35,6 +35,7 @@ namespace CafeShop.Model
         public decimal ShippingFee { get; set; } // Phí ship
         public double DistanceKm { get; set; }   // Khoảng cách giao hàng
         public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
+      
         public virtual ICollection<OrderStatusHistory>? StatusHistories { get; set; }
     }
 }

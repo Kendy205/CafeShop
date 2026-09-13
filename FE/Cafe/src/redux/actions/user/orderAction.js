@@ -28,9 +28,9 @@ export const checkoutOrder = createAsyncThunk(
 
 export const getMyOrders = createAsyncThunk(
     'order/getMyOrders',
-    async ({ pageNumber = 1, pageSize = 10 } = {}, { rejectWithValue }) => {
+    async ({ pageNumber = 1, pageSize = 10, status } = {}, { rejectWithValue }) => {
         try {
-            const res = await orderService.getMyOrders({ pageNumber, pageSize })
+            const res = await orderService.getMyOrders({ pageNumber, pageSize, status })
             return unwrapApi(res) // trả về PagedResult: { items, total, page, pageSize }
         } catch (e) {
             return rejectWithValue(pickErrorMessage(e, 'Không thể tải lịch sử đơn hàng'))

@@ -30,6 +30,8 @@ namespace CafeShop.Data.Repository.UnitOfWork
 
         public IProductSizeRepository ProductSize { get; private set; }
         public IUserVoucherRepository UserVoucher { get; private set; }
+        public IFeedbackRepository Feedback { get; private set; }
+        public IShippingConfigRepository ShippingConfig { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -50,6 +52,8 @@ namespace CafeShop.Data.Repository.UnitOfWork
             CartItemTopping = new CartItemToppingRepository(_context);
             ProductSize = new ProductSizeRepository(_context);
             UserVoucher = new UserVoucherRepository(_context);
+            Feedback = new FeedbackRepository(_context);
+            ShippingConfig = new ShippingConfigRepository(_context);
         }
 
         public async Task<int> SaveAsync()

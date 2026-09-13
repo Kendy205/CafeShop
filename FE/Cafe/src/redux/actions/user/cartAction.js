@@ -7,6 +7,10 @@ export const getCart = createAsyncThunk('cart/getCart', async (_, { rejectWithVa
         const res = await cartService.getCart()
         return unwrapApi(res)
     } catch (e) {
+        const statusCode = e?.response?.status || e?.response?.data?.statusCode
+        if (statusCode === 400) {
+            return { items: [], totalPrice: 0, cartId: null }
+        }
         return rejectWithValue(pickErrorMessage(e, 'Không tải được giỏ hàng'))
     }
 })

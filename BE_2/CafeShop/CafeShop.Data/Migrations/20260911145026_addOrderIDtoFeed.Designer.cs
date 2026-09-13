@@ -4,6 +4,7 @@ using CafeShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeShop.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260911145026_addOrderIDtoFeed")]
+    partial class addOrderIDtoFeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,12 +46,6 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<double>("Latitude")
-                        .HasColumnType("double");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("double");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -215,7 +212,7 @@ namespace CafeShop.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("OrderDetailId")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
@@ -229,7 +226,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("FeedbackId");
 
-                    b.HasIndex("OrderDetailId");
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("ProductId");
 
@@ -482,52 +479,6 @@ namespace CafeShop.Data.Migrations
                     b.HasIndex("SizeId");
 
                     b.ToTable("ProductSizes");
-                });
-
-            modelBuilder.Entity("CafeShop.Model.ShippingConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("BaseDistanceKm")
-                        .HasColumnType("double");
-
-                    b.Property<decimal>("BaseFee")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("ExtraFeePerKm")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<double>("MaxDistanceKm")
-                        .HasColumnType("double");
-
-                    b.Property<int>("NightHourEnd")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NightHourStart")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("NightSurcharge")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<int>("PeakHourEnd")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PeakHourStart")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PeakHourSurcharge")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("WeekendSurcharge")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ShippingConfigs");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Size", b =>
@@ -786,9 +737,9 @@ namespace CafeShop.Data.Migrations
 
             modelBuilder.Entity("CafeShop.Model.Feedback", b =>
                 {
-                    b.HasOne("CafeShop.Model.OrderDetail", "OrderDetail")
+                    b.HasOne("CafeShop.Model.Order", "Order")
                         .WithMany("Feedbacks")
-                        .HasForeignKey("OrderDetailId")
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -804,7 +755,7 @@ namespace CafeShop.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("OrderDetail");
+                    b.Navigation("Order");
 
                     b.Navigation("Product");
 
@@ -975,6 +926,8 @@ namespace CafeShop.Data.Migrations
 
             modelBuilder.Entity("CafeShop.Model.Order", b =>
                 {
+                    b.Navigation("Feedbacks");
+
                     b.Navigation("OrderDetails");
 
                     b.Navigation("StatusHistories");
@@ -982,8 +935,6 @@ namespace CafeShop.Data.Migrations
 
             modelBuilder.Entity("CafeShop.Model.OrderDetail", b =>
                 {
-                    b.Navigation("Feedbacks");
-
                     b.Navigation("OrderDetailToppings");
                 });
 

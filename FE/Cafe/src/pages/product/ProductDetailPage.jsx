@@ -7,8 +7,10 @@ import { addToCart } from '../../redux/actions/user/cartAction'
 import { clearProductDetail } from '../../redux/slices/user/productSlice'
 import { formatVnd } from '../../utils/helpers/format'
 import Skeleton from '../../components/loading/Skeleton'
+import ProductFeedbackSection from '../../components/feedback/ProductFeedbackSection'
+import { feedbackService } from '../../services/user/FeedbackService'
 
-function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, productId }) {
+function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, productId, summary }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const cartSubmitting = useSelector((s) => s.cart.submitting)
@@ -165,7 +167,27 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                 )}
             </div>
 
-            <p className="mt-1 text-sm text-stone-500">
+            {/* Badge Đánh giá (API Summary) */}
+            <div className="mt-2 flex items-center gap-2">
+                {summary && Number(summary.totalReviews) > 0 ? (
+                    <a
+                        href="#product-reviews"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            document.getElementById('product-reviews')?.scrollIntoView({ behavior: 'smooth' })
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-900 border border-amber-200/80 hover:bg-amber-100 hover:border-amber-300 transition shadow-2xs"
+                    >
+                        <span className="text-amber-500 font-extrabold">★</span>
+                        <span>{Number(summary.averageRating).toFixed(1)}</span>
+                        <span className="text-stone-400 font-medium">({summary.totalReviews} đánh giá)</span>
+                    </a>
+                ) : (
+                    <span className="text-xs text-stone-400">★ Chưa có đánh giá</span>
+                )}
+            </div>
+
+            <p className="mt-2 text-sm text-stone-500">
                 Giá size đang chọn:{' '}
                 {formatVnd(selectedSize?.price ?? detail.basePrice)}
             </p>
@@ -204,13 +226,12 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                     type="button"
                                     disabled={isSizeOOS}
                                     onClick={() => setSizeId(s.sizeId)}
-                                    className={`rounded-full border px-4 py-2 text-sm transition-all ${
-                                        isSizeOOS
+                                    className={`rounded-full border px-4 py-2 text-sm transition-all ${isSizeOOS
                                             ? 'cursor-not-allowed border-stone-200 bg-stone-100 text-stone-400 opacity-60'
                                             : isSelected
-                                            ? 'border-amber-800 bg-amber-800 text-white shadow-sm'
-                                            : 'border-stone-200 bg-white hover:border-amber-700'
-                                    }`}
+                                                ? 'border-amber-800 bg-amber-800 text-white shadow-sm'
+                                                : 'border-stone-200 bg-white hover:border-amber-700'
+                                        }`}
                                 >
                                     {s.name} · {formatVnd(s.price)} {isSizeOOS && '(Hết hàng)'}
                                 </button>
@@ -245,11 +266,10 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                     <button
                         type="button"
                         onClick={() => setShowToppingList((prev) => !prev)}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-                            showToppingList
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${showToppingList
                                 ? 'bg-stone-200 text-stone-700 hover:bg-stone-300'
                                 : 'bg-amber-800 text-white shadow-sm hover:bg-amber-900'
-                        }`}
+                            }`}
                     >
                         {showToppingList ? (
                             <>
@@ -328,13 +348,12 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                 onClick={() => {
                                                     if (!active && !isToppingOOS) changeTopping(t.toppingId, Math.min(step, maxToppingStock))
                                                 }}
-                                                className={`relative flex flex-col overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
-                                                    isToppingOOS
+                                                className={`relative flex flex-col overflow-hidden rounded-2xl border-2 transition-all duration-200 ${isToppingOOS
                                                         ? 'cursor-not-allowed border-stone-200 bg-stone-100/70 opacity-60'
                                                         : active
-                                                        ? 'border-amber-700 bg-amber-50/40 shadow-md shadow-amber-100'
-                                                        : 'cursor-pointer border-stone-200/80 bg-white hover:border-amber-400 hover:shadow-sm'
-                                                }`}
+                                                            ? 'border-amber-700 bg-amber-50/40 shadow-md shadow-amber-100'
+                                                            : 'cursor-pointer border-stone-200/80 bg-white hover:border-amber-400 hover:shadow-sm'
+                                                    }`}
                                             >
                                                 {/* Hình ảnh topping */}
                                                 <div className="relative h-24 w-full overflow-hidden bg-amber-50">
@@ -342,9 +361,8 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                         <img
                                                             src={t.imageUrl}
                                                             alt={t.name}
-                                                            className={`h-full w-full object-cover transition-transform duration-300 ${
-                                                                isToppingOOS ? 'grayscale-40' : 'hover:scale-105'
-                                                            }`}
+                                                            className={`h-full w-full object-cover transition-transform duration-300 ${isToppingOOS ? 'grayscale-40' : 'hover:scale-105'
+                                                                }`}
                                                         />
                                                     ) : (
                                                         <div className="flex h-full w-full items-center justify-center text-3xl">
@@ -424,11 +442,10 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                             type="button"
                                                             disabled={!canIncrease}
                                                             title={!canIncrease ? 'Đã đạt giới hạn tồn kho topping' : 'Thêm'}
-                                                            className={`flex h-7 w-7 items-center justify-center rounded-lg bg-amber-800 text-base font-bold text-white shadow-xs transition-colors ${
-                                                                !canIncrease
+                                                            className={`flex h-7 w-7 items-center justify-center rounded-lg bg-amber-800 text-base font-bold text-white shadow-xs transition-colors ${!canIncrease
                                                                     ? 'opacity-40 cursor-not-allowed'
                                                                     : 'hover:bg-amber-900'
-                                                            }`}
+                                                                }`}
                                                             onClick={() => canIncrease && changeTopping(t.toppingId, qty + step)}
                                                         >
                                                             +
@@ -533,11 +550,26 @@ export default function ProductDetailPage() {
     const masterToppings = useSelector((s) => s.topping.items)
     const toppingError = useSelector((s) => s.topping.error)
     const isAuthenticated = useSelector((s) => s.auth.isAuthenticated)
+    const [summary, setSummary] = useState(null)
 
     useEffect(() => {
         dispatch(clearProductDetail())
         dispatch(getProductDetail(id))
         dispatch(getAvailableToppings())
+
+        // Lấy thống kê đánh giá của sản phẩm: GET /api/Feedback/product/{productId}/summary
+        if (id) {
+            feedbackService
+                .getProductSummary(id)
+                .then((data) => {
+                    if (data && typeof data === 'object') {
+                        setSummary(data)
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error loading product feedback summary:', err)
+                })
+        }
     }, [dispatch, id])
 
     const sizes = Array.isArray(detail?.productSizes)
@@ -565,34 +597,40 @@ export default function ProductDetailPage() {
     }
 
     return (
-        <div className="grid gap-8 md:grid-cols-2">
-            <div className="relative overflow-hidden rounded-3xl bg-stone-100">
-                {detail.imageUrl ? (
-                    <img
-                        src={detail.imageUrl}
-                        alt={detail.name}
-                        className={`h-80 w-full object-cover ${detail.isOutOfStock ? 'grayscale-30' : ''}`}
-                    />
-                ) : (
-                    <div className="flex h-80 items-center justify-center text-stone-400">Chưa có ảnh</div>
-                )}
-                {detail.isOutOfStock && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">
-                        <span className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-bold text-white shadow-lg">
-                            Tạm hết hàng
-                        </span>
-                    </div>
-                )}
+        <div className="space-y-8">
+            <div className="grid gap-8 md:grid-cols-2">
+                <div className="relative overflow-hidden rounded-3xl bg-stone-100">
+                    {detail.imageUrl ? (
+                        <img
+                            src={detail.imageUrl}
+                            alt={detail.name}
+                            className={`h-80 w-full object-cover ${detail.isOutOfStock ? 'grayscale-30' : ''}`}
+                        />
+                    ) : (
+                        <div className="flex h-80 items-center justify-center text-stone-400">Chưa có ảnh</div>
+                    )}
+                    {detail.isOutOfStock && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">
+                            <span className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-bold text-white shadow-lg">
+                                Tạm hết hàng
+                            </span>
+                        </div>
+                    )}
+                </div>
+                <ProductCustomize
+                    key={detail.productId}
+                    detail={detail}
+                    sizes={sizes}
+                    toppings={toppings}
+                    error={error || toppingError}
+                    isAuthenticated={isAuthenticated}
+                    productId={id}
+                    summary={summary}
+                />
             </div>
-            <ProductCustomize
-                key={detail.productId}
-                detail={detail}
-                sizes={sizes}
-                toppings={toppings}
-                error={error || toppingError}
-                isAuthenticated={isAuthenticated}
-                productId={id}
-            />
+
+            {/* Khối Thống kê & Danh sách đánh giá món (Feedback) */}
+            <ProductFeedbackSection productId={id || detail?.productId} summary={summary} />
         </div>
     )
 }

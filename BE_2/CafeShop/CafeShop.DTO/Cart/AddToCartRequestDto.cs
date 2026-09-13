@@ -30,20 +30,39 @@ namespace CafeShop.DTO.Cart
     }
     public class CartItemToppingDto
     {
+        public int ToppingId { get; set; } // Bổ sung ID để Frontend dễ map
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public int Quantity { get; set; }
-        public string Unit { get; set; } = string.Empty;
+        public string? Unit { get; set; }
         public string? ImageUrl { get; set; }
+
+        // Bổ sung tồn kho của Topping
+        public int StockQuantity { get; set; }
     }
     public class CartItemResponseDto
     {
         public int CartItemId { get; set; }
+
+        // 1. Bổ sung thông tin Product
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
+
+        // 2. Bổ sung thông tin Size
+        public int? SizeId { get; set; }
         public string? SizeName { get; set; }
+
         public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; } // Giá 1 ly (đã bao gồm size + topping)
-        public decimal TotalItemPrice { get; set; } // Quantity * UnitPrice
-        public List<CartItemToppingDto> Toppings { get; set; } = new List<CartItemToppingDto>();
+        public decimal UnitPrice { get; set; }
+        public decimal TotalItemPrice { get; set; }
+
+        // 3. Tồn kho của Size (hoặc của Product gốc nếu không có Size)
+        public int StockQuantity { get; set; }
+
+        // Trợ thủ cho Frontend: Báo đỏ nếu khách nhét vào giỏ nhiều hơn số ly còn lại
+        public bool IsExceedStock => Quantity > StockQuantity;
+
+        public List<CartItemToppingDto> Toppings { get; set; } = new();
     }
 }

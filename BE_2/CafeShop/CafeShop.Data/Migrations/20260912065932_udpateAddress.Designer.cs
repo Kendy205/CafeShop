@@ -4,6 +4,7 @@ using CafeShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeShop.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260912065932_udpateAddress")]
+    partial class udpateAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -482,52 +485,6 @@ namespace CafeShop.Data.Migrations
                     b.HasIndex("SizeId");
 
                     b.ToTable("ProductSizes");
-                });
-
-            modelBuilder.Entity("CafeShop.Model.ShippingConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("BaseDistanceKm")
-                        .HasColumnType("double");
-
-                    b.Property<decimal>("BaseFee")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("ExtraFeePerKm")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<double>("MaxDistanceKm")
-                        .HasColumnType("double");
-
-                    b.Property<int>("NightHourEnd")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NightHourStart")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("NightSurcharge")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<int>("PeakHourEnd")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PeakHourStart")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PeakHourSurcharge")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("WeekendSurcharge")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ShippingConfigs");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Size", b =>

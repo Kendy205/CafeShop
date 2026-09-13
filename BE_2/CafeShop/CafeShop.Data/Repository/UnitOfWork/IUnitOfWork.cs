@@ -27,6 +27,8 @@ namespace CafeShop.Data.Repository.UnitOfWork
         ICartRepository Cart { get; }
         ICartItemRepository CartItem { get; }
         IUserVoucherRepository UserVoucher { get; }
+        IFeedbackRepository Feedback { get; }
+        IShippingConfigRepository ShippingConfig { get; }
         Task<int> SaveAsync();
         Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync();
     }

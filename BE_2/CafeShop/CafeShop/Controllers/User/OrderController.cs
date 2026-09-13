@@ -1,5 +1,6 @@
 ﻿using CafeShop.DTO.Order;
 using CafeShop.Service.Helpers;
+using CafeShop.Service.IService;
 using CafeShop.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +17,12 @@ namespace CafeShop.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IShippingService _shippingService;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService,IShippingService shippingService)
         {
             _orderService = orderService;
+            _shippingService = shippingService;
         }
 
         // ==========================================
@@ -66,43 +69,13 @@ namespace CafeShop.Controllers
             }
         }
 
-        // 2. API Xem trước giảm giá (Check Voucher)
-        //[HttpPost("check-voucher")]
-        //public async Task<IActionResult> CheckVoucher([FromBody] CheckVoucherRequestDto request)
-        //{
-        //    try
-        //    {
-        //        if (string.IsNullOrWhiteSpace(request.VoucherCode))
-        //            return BadRequest(new ApiResponse<object> { Success = false, Message = "Mã giảm giá không được để trống!" });
-
-           
-
-        //        int userId = GetUserId();
-
-        //        // Gọi Service (đoạn code CheckVoucherAsync vừa nãy)
-        //        var result = await _orderService.CheckVoucherAsync(userId, request);
-
-        //        return Ok(ApiResponse<VoucherResponseDto>.Succeeded(result, 200, "Áp dụng mã giảm giá thành công!"));
-        //    }
-        //    catch (ArgumentException ex)
-        //    {
-        //        // Fail-fast nếu mã lỗi, hết hạn, hoặc không đủ điều kiện
-        //        return BadRequest(ApiResponse<object>.Failed(ex.Message, 400));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
-        //    }
-        //}
-
-        // 3. API Lấy danh sách lịch sử đơn hàng của tôi
         [HttpGet("my-orders")]
-        public async Task<IActionResult> GetMyOrders([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetMyOrders([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? status = null)
         {
             try
             {
                 int userId = GetUserId();
-                var result = await _orderService.GetMyOrdersAsync(userId, pageNumber, pageSize);
+                var result = await _orderService.GetMyOrdersAsync(userId, pageNumber, pageSize,status);
 
                 return Ok(new ApiResponse<PagedResult<OrderResponseDto>>
                 {
@@ -142,28 +115,59 @@ namespace CafeShop.Controllers
             }
         }
         //5 Buy now
-        [HttpPost("buy-now")]
-        public async Task<IActionResult> BuyNow([FromBody] CreateOrderDto request)
+        //[HttpPost("buy-now")]
+        //public async Task<IActionResult> BuyNow([FromBody] CreateOrderDto request)
+        //{
+        //    try
+        //    {
+        //        int userId = GetUserId();
+        //        var result = await _orderService.BuyNowAsync(userId, request);
+
+        //        return Ok(new ApiResponse<OrderResponseDto>
+        //        {
+        //            Success = true,
+        //            Message = "Mua ngay thành công!",
+        //            Data = result
+        //        });
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Lỗi hệ thống: {ex.Message}" });
+        //    }
+        //}
+        [HttpPost("calculate-fee")]
+        public async Task<IActionResult> CalculateShippingFee([FromBody] double distanceKm)
         {
             try
             {
-                int userId = GetUserId();
-                var result = await _orderService.BuyNowAsync(userId, request);
+                // Controller gọi Service, không chứa bất kỳ logic tính toán nào
+                decimal fee = await _shippingService.CalculateFeeAsync(distanceKm);
 
-                return Ok(new ApiResponse<OrderResponseDto>
+                return Ok(new ApiResponse<decimal>
                 {
                     Success = true,
-                    Message = "Mua ngay thành công!",
-                    Data = result
+                    StatusCode = 200,
+                    Message = "Tính phí ship thành công",
+                    Data = fee
                 });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });
+                // Bắt lỗi bán kính quá xa do Service ném ra
+                return BadRequest(new ApiResponse<decimal>
+                {
+                    Success = false,
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Lỗi hệ thống: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<decimal> { Success = false, Message = $"Lỗi hệ thống: {ex.Message}" });
             }
         }
     }

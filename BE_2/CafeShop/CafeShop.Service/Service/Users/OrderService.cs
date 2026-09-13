@@ -4,8 +4,10 @@ using CafeShop.DTO.Order;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.Helpers;
+using CafeShop.Service.IService;
 using CafeShop.Service.IService.Users;
 using CafeShop.Services.IServices;
+using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,17 +19,19 @@ namespace CafeShop.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IVoucherService _voucherService;
+        private readonly IShippingService _shippingService;
         private readonly IMapper _mapper;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IVoucherService voucherService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IVoucherService voucherService,IShippingService shippingService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _voucherService = voucherService;
+            _shippingService = shippingService;
         }
 
         // ================= XỬ LÝ ĐẶT HÀNG TỪ GIỎ HÀNG =================
-        public async Task<OrderResponseDto> CheckoutAsync(int userId, CheckoutRequestDto request)
+        public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request)
         {
             var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(
                 c => c.UserId == userId && c.Status == "active",
@@ -40,8 +44,15 @@ namespace CafeShop.Services.Services
             try
             {
                 // 1. Xử lý địa chỉ & phí ship
-                int finalAddressId = await ResolveAddressIdAsync(userId, request.AddressId, request.NewAddressString, request.RecipientName, request.Phone);
-                decimal shippingFee = CalculateShippingFee(request.DistanceKm);
+                int finalAddressId = await ResolveAddressIdAsync(
+                    userId,
+                    request.AddressId,
+                    request.NewAddressString,
+                    request.RecipientName,
+                    request.Phone,
+                    request.Latitude,
+                    request.Longitude);
+                decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm);
 
                 // 2. Tính tổng tiền hàng & Xử lý trừ kho
                 var orderDetails = new List<OrderDetail>();
@@ -126,7 +137,7 @@ namespace CafeShop.Services.Services
                     DistanceKm = request.DistanceKm,
                     ShippingFee = shippingFee,
                     OrderDate = DateTime.UtcNow,
-                    CurrentStatus = "Pending",
+                    CurrentStatus = OrderStatus.Pending,
                     PaymentMethod = request.PaymentMethod ?? "COD",
                     Note = request.Note,
                     VoucherId = voucherId,
@@ -164,8 +175,15 @@ namespace CafeShop.Services.Services
                 var (orderDetails, orderTotal) = await BuildOrderDetailsFromItemsAsync(request.Items);
 
                 // 3. Xử lý địa chỉ & phí ship
-                int finalAddressId = await ResolveAddressIdAsync(userId, request.AddressId, request.NewAddressString, request.RecipientName, request.Phone);
-                decimal shippingFee = CalculateShippingFee(request.DistanceKm);
+                int finalAddressId = await ResolveAddressIdAsync(
+                    userId,
+                    request.AddressId,
+                    request.NewAddressString,
+                    request.RecipientName,
+                    request.Phone,
+                    request.Latitude,
+                    request.Longitude);
+                decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm);
 
                 // 4. Xử lý Voucher qua VoucherService
                 decimal discountAmount = 0;
@@ -186,7 +204,7 @@ namespace CafeShop.Services.Services
                     DistanceKm = request.DistanceKm,
                     ShippingFee = shippingFee,
                     OrderDate = DateTime.UtcNow,
-                    CurrentStatus = "Pending",
+                    CurrentStatus = OrderStatus.Pending,
                     PaymentMethod = request.PaymentMethod ?? "COD",
                     Note = request.Note,
                     VoucherId = voucherId,
@@ -209,20 +227,22 @@ namespace CafeShop.Services.Services
         }
 
         // ================= LẤY LỊCH SỬ ĐƠN HÀNG =================
-        public async Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize)
+        public async Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize, string? status = null)
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
-
+            System.Linq.Expressions.Expression<Func<Order, bool>> filter = x =>
+                x.CustomerId == userId &&
+                (string.IsNullOrEmpty(status) || x.CurrentStatus == status);
             var orders = await _unitOfWork.Order.GetAllAsync(
-                filter: x => x.CustomerId == userId,
-                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping",
+                filter: filter,
+                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks",
                 pageSize: pageSize,
                 pageNumber: pageNumber,
                 orderBy: q => q.OrderByDescending(o => o.OrderDate)
             );
 
-            var totalCount = await _unitOfWork.Order.CountAsync(x => x.CustomerId == userId);
+            var totalCount = await _unitOfWork.Order.CountAsync(filter);
             var items = _mapper.Map<List<OrderResponseDto>>(orders);
 
             return new PagedResult<OrderResponseDto>
@@ -242,13 +262,13 @@ namespace CafeShop.Services.Services
             if (order == null)
                 throw new ArgumentException("Không tìm thấy đơn hàng!");
 
-            if (order.CurrentStatus?.ToLower() == "cancelled")
+            if (order.CurrentStatus == OrderStatus.Cancelled)
                 throw new ArgumentException("Đơn hàng này đã được hủy trước đó.");
 
-            if (order.CurrentStatus?.ToLower() != "pending")
+            if (order.CurrentStatus!= OrderStatus.Pending)
                 throw new ArgumentException("Quán đã bắt đầu pha chế món của bạn, không thể hủy đơn!");
 
-            order.CurrentStatus = "Cancelled";
+            order.CurrentStatus = OrderStatus.Cancelled;
 
             // Có thể bổ sung Logic Tăng lại số lượng Tồn kho tại đây nếu cần thiết
 
@@ -257,17 +277,10 @@ namespace CafeShop.Services.Services
         }
 
         // ================= CÁC HÀM HELPER DÙNG CHUNG =================
-        private decimal CalculateShippingFee(double distanceKm)
-        {
-            if (distanceKm <= 0) return 0;
-            if (distanceKm <= 3) return 15000;
 
-            decimal extraKm = (decimal)Math.Ceiling(distanceKm - 3);
-            return 15000 + (extraKm * 5000);
-        }
-
-        private async Task<int> ResolveAddressIdAsync(int userId, int? addressId, string? newAddressString, string? recipientName, string? phone)
+        private async Task<int> ResolveAddressIdAsync(int userId,int? addressId,string? newAddressString,string? recipientName,string? phone,double? latitude,double? longitude)    
         {
+            // 1. Trường hợp dùng địa chỉ đã lưu (AddressId)
             if (addressId.HasValue && addressId.Value > 0)
             {
                 var address = await _unitOfWork.Address.GetFirstOrDefaultAsync(a => a.AddressId == addressId.Value && a.UserId == userId);
@@ -275,14 +288,21 @@ namespace CafeShop.Services.Services
                 return address.AddressId;
             }
 
+            // 2. Trường hợp tạo địa chỉ mới
             if (!string.IsNullOrEmpty(newAddressString))
             {
+                // RÀNG BUỘC MỚI: Bắt buộc FE phải truyền tọa độ từ Mapbox
+                if (latitude == null || longitude == null)
+                    throw new ArgumentException("Hệ thống không nhận diện được tọa độ (Vĩ độ/Kinh độ) của địa chỉ mới này trên bản đồ!");
+
                 var newAddress = new Address
                 {
                     UserId = userId,
                     FullAddress = newAddressString,
                     RecipientName = recipientName ?? "Khách hàng",
                     Phone = phone ?? "",
+                    Latitude = latitude.Value,   // LƯU VĨ ĐỘ
+                    Longitude = longitude.Value, // LƯU KINH ĐỘ
                     IsDefault = false
                 };
                 await _unitOfWork.Address.AddAsync(newAddress);
@@ -324,8 +344,10 @@ namespace CafeShop.Services.Services
                     if (productSize.StockQuantity < qty)
                         throw new ArgumentException($"Sản phẩm '{product.Name}' (Size {productSize.Size.Name}) chỉ còn {productSize.StockQuantity} ly, không đủ số lượng bạn đặt!");
 
-                    if (productSize.Size.PercentIncrease > 0)
-                        unitPrice += product.BasePrice * (productSize.Size.PercentIncrease / 100m);
+                    if (productSize.Price.HasValue)
+                    {
+                        unitPrice = productSize.Price.Value;
+                    }
 
                     // Trừ kho ProductSize
                     productSize.StockQuantity -= qty;

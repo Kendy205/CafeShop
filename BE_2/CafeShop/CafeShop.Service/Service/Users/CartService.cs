@@ -21,15 +21,13 @@ namespace CafeShop.Service.Service
 
         public async Task<CartResponseDto> GetCartAsync(int userId)
         {
-            // Lấy giỏ hàng kèm theo Product, Size và Toppings
             var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(
                 c => c.UserId == userId && c.Status == "active",
-                includeProperties: "CartItems.Product,CartItems.Size,CartItems.CartItemToppings.Topping");
+                includeProperties: "CartItems.Product.ProductSizes,CartItems.Size,CartItems.CartItemToppings.Topping");
 
             if (cart == null)
                 throw new ArgumentException("Không tìm thấy giỏ hàng của người dùng!");
 
-            // KHỞI TẠO DANH SÁCH: Tránh lỗi NullReferenceException khi dùng .Add()
             var response = new CartResponseDto
             {
                 CartId = cart.CartId,
@@ -43,28 +41,42 @@ namespace CafeShop.Service.Service
             {
                 foreach (var item in cart.CartItems)
                 {
-                    // Tính giá gốc tại thời điểm thêm vào giỏ (bao gồm Product + Size + Toppings)
                     var itemTotal = item.UnitPrice * item.Quantity;
                     cartTotal += itemTotal;
+
+                    int currentStock = 0;
+                    if (item.SizeId.HasValue && item.SizeId > 0 && item.Product?.ProductSizes != null)
+                    {
+                        var productSize = item.Product.ProductSizes.FirstOrDefault(ps => ps.SizeId == item.SizeId.Value);
+                        currentStock = productSize != null ? productSize.StockQuantity : 0;
+                    }
+                    else if (item.Product != null)
+                    {
+                        currentStock = item.Product.StockQuantity;
+                    }
 
                     response.Items.Add(new CartItemResponseDto
                     {
                         CartItemId = item.CartItemId,
+                        ProductId = item.ProductId,
                         ProductName = item.Product?.Name ?? "Sản phẩm không xác định",
-                        SizeName = item.Size?.Name, // Trả về null nếu món không có Size
+                        ImageUrl = item.Product?.ImageUrl,
+                        SizeId = item.SizeId,
+                        SizeName = item.Size?.Name,
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice,
                         TotalItemPrice = itemTotal,
-
-                        // SỬ DỤNG .Toppings (số nhiều) & THÊM DẤU ? ĐỂ CHỐNG LỖI NULL
+                        StockQuantity = currentStock,
                         Toppings = item.CartItemToppings?.Select(t => new CartItemToppingDto
                         {
+                            ToppingId = t.ToppingId,
                             Name = t.Topping?.Name ?? "Topping ẩn",
                             Price = t.UnitPrice,
                             Quantity = t.Quantity,
                             Unit = t.Topping?.Unit ?? "",
-                            ImageUrl = t.Topping?.ImageUrl
-                        }).ToList() ?? new List<CartItemToppingDto>() // Nếu không có topping thì trả về mảng rỗng []
+                            ImageUrl = t.Topping?.ImageUrl,
+                            StockQuantity = t.Topping?.StockQuantity ?? 0
+                        }).ToList() ?? new List<CartItemToppingDto>()
                     });
                 }
             }
@@ -83,17 +95,23 @@ namespace CafeShop.Service.Service
             if (product == null)
                 throw new ArgumentException("Sản phẩm không tồn tại!");
 
-            // 1. Tính toán Đơn giá (UnitPrice) cho 1 ly nước này
-            decimal unitPrice = product.BasePrice; // Giá gốc của sản phẩm
+            // 1. Khởi tạo giá bằng BasePrice (Dùng cho món không có size)
+            decimal unitPrice = product.BasePrice;
 
-            // 2. LOGIC MỚI: Tính giá Size theo phần trăm
-            if (request.SizeId.HasValue)
+            // 2. LOGIC MỚI: Lấy giá cứng từ bảng ProductSize
+            if (request.SizeId.HasValue && request.SizeId.Value > 0)
             {
-                var sizeInfo = await _unitOfWork.Size.GetFirstOrDefaultAsync(s => s.SizeId == request.SizeId.Value);
-                if (sizeInfo != null && sizeInfo.PercentIncrease > 0)
+                var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                    ps => ps.ProductId == request.ProductId && ps.SizeId == request.SizeId.Value);
+
+                if (productSize == null)
+                    throw new ArgumentException("Sản phẩm không hỗ trợ kích cỡ này!");
+
+                // Nếu admin có set giá riêng cho Size này, thì lấy giá đó. 
+                // Nếu không (Price == null) thì vẫn giữ BasePrice
+                if (productSize.Price.HasValue)
                 {
-                    decimal sizeSurcharge = product.BasePrice * (sizeInfo.PercentIncrease / 100m);
-                    unitPrice = product.BasePrice + sizeSurcharge;
+                    unitPrice = productSize.Price.Value;
                 }
             }
 
@@ -109,7 +127,7 @@ namespace CafeShop.Service.Service
                     if (topping != null && topping.IsAvailable)
                     {
                         decimal toppingTotalPrice = (decimal)(topping.Price ?? 0) * topSelection.Quantity;
-                        unitPrice += toppingTotalPrice;
+                        unitPrice += toppingTotalPrice; // Giá Topping cộng thêm vào đơn giá ly
 
                         toppingsToAdd.Add(new CartItemTopping
                         {
@@ -120,6 +138,7 @@ namespace CafeShop.Service.Service
                     }
                 }
             }
+
             // 4. Thêm CartItem mới vào giỏ hàng
             int quantity = request.Quantity > 0 ? request.Quantity : 1;
 
@@ -130,13 +149,12 @@ namespace CafeShop.Service.Service
                 SizeId = request.SizeId,
                 Quantity = quantity,
                 UnitPrice = unitPrice
-                // TotalPrice = unitPrice * quantity // Mở comment dòng này ra nếu DB của bạn có cột TotalPrice ở bảng CartItem
             };
 
             await _unitOfWork.CartItem.AddAsync(newCartItem);
-            await _unitOfWork.SaveAsync(); // Lưu để EF Core sinh ra newCartItem.CartItemId
+            await _unitOfWork.SaveAsync();
 
-            // 5. Lưu danh sách Topping (nếu có) vào bảng trung gian
+            // 5. Lưu danh sách Topping (nếu có)
             if (toppingsToAdd.Any())
             {
                 foreach (var cartItemTopping in toppingsToAdd)
@@ -146,11 +164,6 @@ namespace CafeShop.Service.Service
                 }
                 await _unitOfWork.SaveAsync();
             }
-
-            // (Tùy chọn) 6. Cập nhật lại tổng tiền của bảng Cart chính
-            // cart.TotalAmount += (unitPrice * quantity);
-            // _unitOfWork.Cart.Update(cart);
-            // await _unitOfWork.SaveAsync();
         }
 
         public async Task UpdateQuantityAsync(int userId, int cartItemId, int quantity)
@@ -163,7 +176,7 @@ namespace CafeShop.Service.Service
 
             if (quantity <= 0)
             {
-                _unitOfWork.CartItem.Remove(cartItem); // Xóa luôn nếu số lượng tụt về 0
+                _unitOfWork.CartItem.Remove(cartItem);
             }
             else
             {
@@ -182,7 +195,6 @@ namespace CafeShop.Service.Service
             var cartItem = await _unitOfWork.CartItem.GetFirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.CartId == cart.CartId);
             if (cartItem == null) throw new ArgumentException("Món hàng không tồn tại trong giỏ!");
 
-            // Chú ý: Vì có khóa ngoại cascade, xóa CartItem sẽ tự động xóa các CartItemTopping liên quan
             _unitOfWork.CartItem.Remove(cartItem);
             await _unitOfWork.SaveAsync();
         }

@@ -14,12 +14,12 @@ namespace CafeShop.Services.IServices
         //Task UpdateAsync(Order entity);
         //Task DeleteAsync(int id);
 
-        Task<OrderResponseDto> CheckoutAsync(int userId, CheckoutRequestDto request);
+        Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request);
 
-        Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize);
+        Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize, string? status = null);
         Task CancelOrderAsync(int userId, int orderId);
         //Task<VoucherResponseDto> CheckVoucherAsync(int userId, CheckVoucherRequestDto request);
-        Task<OrderResponseDto> BuyNowAsync(int userId, CreateOrderDto request);
+        //Task<OrderResponseDto> BuyNowAsync(int userId, CreateOrderDto request);
     }
 
 }

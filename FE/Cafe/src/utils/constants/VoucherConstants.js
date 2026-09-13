@@ -31,12 +31,16 @@ export const DiscountType = Object.freeze({
 export const APPLY_TYPE_LABEL = {
     [VoucherApplyType.ORDER]:    '🛒 Giảm tiền món',
     [VoucherApplyType.SHIPPING]: '🚚 Giảm phí ship',
+    ORDER:                       '🛒 Giảm tiền món',
+    SHIPPING:                    '🚚 Giảm phí ship',
 }
 
 /** Label hiển thị theo targetType */
 export const TARGET_TYPE_LABEL = {
-    [VoucherTargetType.PUBLIC]: 'Công khai',
-    [VoucherTargetType.USER]:   'Tặng riêng',
+    [VoucherTargetType.PUBLIC]: 'Ưu đãi chung',
+    [VoucherTargetType.USER]:   'Dành riêng cho bạn',
+    PUBLIC:                     'Ưu đãi chung',
+    USER:                       'Dành riêng cho bạn',
 }
 
 /**
@@ -46,7 +50,8 @@ export const TARGET_TYPE_LABEL = {
  * @param {function} formatVnd
  */
 export function formatDiscount(type, value, formatVnd) {
-    return type === DiscountType.PERCENTAGE
+    const isPercent = String(type || '').toUpperCase() === 'PERCENTAGE'
+    return isPercent
         ? `-${value}%`
         : `-${formatVnd(value)}`
 }

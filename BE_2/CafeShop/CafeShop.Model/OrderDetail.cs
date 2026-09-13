@@ -25,7 +25,7 @@ namespace CafeShop.Model
         public virtual Product? Product { get; set; }
         [ForeignKey("SizeId")]
         public virtual Size? Size { get; set; }
-
+        public virtual ICollection<Feedback>? Feedbacks { get; set; }
         public virtual ICollection<OrderDetailTopping>? OrderDetailToppings { get; set; }
     }
 }

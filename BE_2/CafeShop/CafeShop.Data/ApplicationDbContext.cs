@@ -30,6 +30,7 @@ namespace CafeShop.Data
         public DbSet<News> News { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<UserVoucher> UserVouchers { get; set; }
+        public DbSet<ShippingConfig> ShippingConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,12 @@ namespace CafeShop.Data
             // Bắt buộc khai báo Khóa chính kép cho bảng trung gian
             modelBuilder.Entity<ProductSize>()
                 .HasKey(ps => new { ps.ProductId, ps.SizeId });
+            // Ngăn lỗi Cascade Delete khi cấu hình khóa ngoại cho Feedback
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.OrderDetail)
+                .WithMany(o => o.Feedbacks)
+                .HasForeignKey(f => f.OrderDetailId)
+                .OnDelete(DeleteBehavior.Restrict); // Hoặc DeleteBehavior.NoAction
         }
     }
 }

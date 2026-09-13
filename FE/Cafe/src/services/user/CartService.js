@@ -5,8 +5,17 @@ export class CartService extends BaseServices {
 
     addToCart = (body) => this.post('/api/Cart/add', body)
 
-    updateQuantity = (body) =>
-        this.put('/api/Cart/update', body, { __skipGlobalLoading: true })
+    updateQuantity = (cartItemIdOrObj, quantityMaybe) => {
+        let cartItemId = cartItemIdOrObj
+        let quantity = quantityMaybe
+        if (typeof cartItemIdOrObj === 'object' && cartItemIdOrObj !== null) {
+            cartItemId = cartItemIdOrObj.cartItemId
+            quantity = cartItemIdOrObj.quantity
+        }
+        return this.put(`/api/Cart/update-quantity/${cartItemId}?quantity=${quantity}`, null, {
+            __skipGlobalLoading: true,
+        })
+    }
 
     removeItem = (cartItemId) => this.delete(`/api/Cart/remove/${cartItemId}`)
 
