@@ -40,12 +40,12 @@ namespace CafeShop.Controllers
 
         // 1. API Đặt hàng (Checkout)
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto request)
+        public async Task<IActionResult> Checkout([FromBody] SubmitOrderRequestDto request)
         {
             try
             {
                 int userId = GetUserId();
-                var result = await _orderService.CheckoutAsync(userId, request);
+                var result = await _orderService.SubmitOrderAsync(userId, request);
 
                 return Ok(new ApiResponse<OrderResponseDto>
                 {
@@ -140,12 +140,12 @@ namespace CafeShop.Controllers
         //    }
         //}
         [HttpPost("calculate-fee")]
-        public async Task<IActionResult> CalculateShippingFee([FromBody] double distanceKm)
+        public async Task<IActionResult> CalculateShippingFee([FromBody] CalculateFeeRequestDto request)
         {
             try
             {
                 // Controller gọi Service, không chứa bất kỳ logic tính toán nào
-                decimal fee = await _shippingService.CalculateFeeAsync(distanceKm);
+                decimal fee = await _shippingService.CalculateFeeAsync(request.DistanceKm);
 
                 return Ok(new ApiResponse<decimal>
                 {

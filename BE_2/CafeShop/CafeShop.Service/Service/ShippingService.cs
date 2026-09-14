@@ -17,8 +17,12 @@ namespace CafeShop.Service.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<decimal> CalculateFeeAsync(double distanceKm)
+        public async Task<decimal> CalculateFeeAsync(double distanceKm, decimal? orderTotal = null)
         {
+            //if (orderTotal != null && orderTotal >= 200000)
+            //{
+            //    return 0; // Đơn trên 200k miễn phí ship luôn
+            //}
             // 1. Lấy cấu hình từ Database thông qua Repository
             // Lấy dòng cấu hình đầu tiên (thường bảng này chỉ có 1 dòng duy nhất)
             var config = await _unitOfWork.ShippingConfig.GetFirstOrDefaultAsync();

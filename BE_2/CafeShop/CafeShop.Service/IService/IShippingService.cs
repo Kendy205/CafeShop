@@ -8,6 +8,6 @@ namespace CafeShop.Service.IService
 {
     public interface IShippingService
     {
-        Task<decimal> CalculateFeeAsync(double distanceKm)
+        Task<decimal> CalculateFeeAsync(double distanceKm, decimal? orderTotal = null);
     }
 }

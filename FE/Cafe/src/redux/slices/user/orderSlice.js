@@ -1,12 +1,31 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { buyNowOrder, cancelOrder, checkoutOrder, getMyOrders } from '../../actions/user/orderAction'
+import {
+    buyNowOrder,
+    cancelOrder,
+    checkoutOrder,
+    getMyOrders,
+    submitOrder,
+    calculateShippingFee,
+} from '../../actions/user/orderAction'
 import { normalizePagedResult } from '../../../utils/helpers/api'
 
+// Tọa độ cố định của Quán Cafe
+export const CAFE_LAT = 21.0382
+export const CAFE_LNG = 105.7828
+
 const initialState = {
+    // Tọa độ Quán Cafe
+    cafeLat: CAFE_LAT,
+    cafeLng: CAFE_LNG,
+
     lastOrder: null,
     submitting: false,
     error: null,
     successMessage: null,
+
+    // Phí ship tính từ API calculate-fee
+    shippingFee: 0,
+    calculatingFee: false,
 
     // Lịch sử đơn hàng
     myOrders: [],
@@ -36,6 +55,33 @@ const orderSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // ── Submit Order (Gộp chung 2 luồng) ─────────────────────────
+            .addCase(submitOrder.pending, (state) => {
+                state.submitting = true
+                state.error = null
+            })
+            .addCase(submitOrder.fulfilled, (state, action) => {
+                state.submitting = false
+                state.lastOrder = action.payload
+                state.successMessage = action.payload?.message || action.payload?.Message || 'Đặt hàng thành công'
+            })
+            .addCase(submitOrder.rejected, (state, action) => {
+                state.submitting = false
+                state.error = action.payload
+            })
+
+            // ── Calculate Shipping Fee ────────────────────────────────────
+            .addCase(calculateShippingFee.pending, (state) => {
+                state.calculatingFee = true
+            })
+            .addCase(calculateShippingFee.fulfilled, (state, action) => {
+                state.calculatingFee = false
+                state.shippingFee = Number(action.payload ?? 0)
+            })
+            .addCase(calculateShippingFee.rejected, (state) => {
+                state.calculatingFee = false
+            })
+
             // ── Buy Now ──────────────────────────────────────────────────
             .addCase(buyNowOrder.pending, (state) => {
                 state.submitting = true

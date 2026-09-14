@@ -17,6 +17,10 @@ const initialState = {
     isAuthenticated: Boolean(stored.accessToken),
     error: null,
     submitting: false,
+
+    // Trạng thái Popup Đăng nhập / Đăng ký
+    authModalOpen: false,
+    authModalTab: 'login', // 'login' | 'register'
 }
 
 const authSlice = createSlice({
@@ -34,6 +38,19 @@ const authSlice = createSlice({
             clearAuthStorage()
         },
         clearAuthError: (state) => {
+            state.error = null
+        },
+        openAuthModal: (state, action) => {
+            state.authModalOpen = true
+            state.authModalTab = action.payload || 'login'
+            state.error = null
+        },
+        closeAuthModal: (state) => {
+            state.authModalOpen = false
+            state.error = null
+        },
+        setAuthModalTab: (state, action) => {
+            state.authModalTab = action.payload || 'login'
             state.error = null
         },
         hydrateTokens: (state, action) => {
@@ -66,6 +83,7 @@ const authSlice = createSlice({
                 state.role = action.payload.role ?? null
                 state.user = action.payload.user ?? null
                 state.isAuthenticated = true
+                state.authModalOpen = false
                 saveFullAuth({
                     accessToken: action.payload.accessToken,
                     refreshToken: action.payload.refreshToken,
@@ -91,6 +109,7 @@ const authSlice = createSlice({
                     state.role = action.payload.role ?? null
                     state.user = action.payload.user ?? null
                     state.isAuthenticated = true
+                    state.authModalOpen = false
                     saveFullAuth({
                         accessToken,
                         refreshToken: state.refreshToken,
@@ -127,5 +146,12 @@ const authSlice = createSlice({
     },
 })
 
-export const { logout, clearAuthError, hydrateTokens } = authSlice.actions
+export const {
+    logout,
+    clearAuthError,
+    hydrateTokens,
+    openAuthModal,
+    closeAuthModal,
+    setAuthModalTab,
+} = authSlice.actions
 export default authSlice.reducer

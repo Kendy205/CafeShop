@@ -15,7 +15,8 @@ import {
     TagOutlined,
 } from '@ant-design/icons'
 import LoadingLink from '../components/loading/LoadingLink'
-import { logout } from '../redux/slices/authSlice'
+import AuthModal from '../components/auth/AuthModal'
+import { logout, openAuthModal } from '../redux/slices/authSlice'
 import { getCart } from '../redux/actions/user/cartAction'
 import { isAdminRole } from '../utils/auth/authRole'
 
@@ -106,14 +107,22 @@ export default function UserTemplate() {
                             </>
                         ) : (
                             <>
-                                <NavItem to="/login" icon={<LoginOutlined />} label="Đăng nhập" />
-                                <LoadingLink
-                                    to="/register"
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-800 px-3 py-1.5 text-white hover:bg-amber-900"
+                                <button
+                                    type="button"
+                                    onClick={() => dispatch(openAuthModal('login'))}
+                                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-stone-700 transition hover:bg-amber-50 hover:text-amber-900 cursor-pointer"
                                 >
-                                    <UserAddOutlined />
+                                    <LoginOutlined className="text-base leading-none" />
+                                    <span className="hidden sm:inline">Đăng nhập</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => dispatch(openAuthModal('register'))}
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-800 px-3.5 py-1.5 text-white transition hover:bg-amber-900 cursor-pointer shadow-xs"
+                                >
+                                    <UserAddOutlined className="text-base leading-none" />
                                     <span className="hidden sm:inline">Đăng ký</span>
-                                </LoadingLink>
+                                </button>
                             </>
                         )}
                     </nav>
@@ -125,6 +134,9 @@ export default function UserTemplate() {
             <footer className="border-t border-stone-200 bg-white py-6 text-center text-sm text-stone-500">
                 Cafe Ordering System © {new Date().getFullYear()}
             </footer>
+
+            {/* Popup Đăng nhập & Đăng ký */}
+            <AuthModal />
         </div>
     )
 }

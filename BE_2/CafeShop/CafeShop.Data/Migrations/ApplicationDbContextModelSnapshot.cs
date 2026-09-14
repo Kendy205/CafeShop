@@ -67,7 +67,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Cart", b =>
@@ -102,7 +102,7 @@ namespace CafeShop.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.CartItem", b =>
@@ -142,7 +142,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("SizeId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.CartItemTopping", b =>
@@ -175,7 +175,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("ToppingId");
 
-                    b.ToTable("cart_item_toppings");
+                    b.ToTable("cart_item_toppings", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Category", b =>
@@ -197,7 +197,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("CategoryId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Feedback", b =>
@@ -235,7 +235,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.News", b =>
@@ -265,7 +265,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("News");
+                    b.ToTable("News", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Order", b =>
@@ -318,7 +318,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.OrderDetail", b =>
@@ -355,7 +355,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("SizeId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.OrderDetailTopping", b =>
@@ -384,7 +384,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("ToppingId");
 
-                    b.ToTable("OrderDetailToppings");
+                    b.ToTable("OrderDetailToppings", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.OrderStatusHistory", b =>
@@ -417,7 +417,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderStatusHistories");
+                    b.ToTable("OrderStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Product", b =>
@@ -459,7 +459,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.ProductSize", b =>
@@ -481,7 +481,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("SizeId");
 
-                    b.ToTable("ProductSizes");
+                    b.ToTable("ProductSizes", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.ShippingConfig", b =>
@@ -527,7 +527,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ShippingConfigs");
+                    b.ToTable("ShippingConfigs", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Size", b =>
@@ -548,7 +548,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("SizeId");
 
-                    b.ToTable("Sizes");
+                    b.ToTable("Sizes", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Topping", b =>
@@ -584,7 +584,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("ToppingId");
 
-                    b.ToTable("Toppings");
+                    b.ToTable("Toppings", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.User", b =>
@@ -630,7 +630,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.UserVoucher", b =>
@@ -660,7 +660,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("UserVouchers");
+                    b.ToTable("UserVouchers", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Voucher", b =>
@@ -715,7 +715,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("VoucherId");
 
-                    b.ToTable("Vouchers");
+                    b.ToTable("Vouchers", (string)null);
                 });
 
             modelBuilder.Entity("CafeShop.Model.Address", b =>

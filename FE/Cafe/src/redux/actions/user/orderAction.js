@@ -2,11 +2,35 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { orderService } from '../../../services/user/OrderService'
 import { pickErrorMessage, unwrapApi } from '../../../utils/helpers/api'
 
+export const submitOrder = createAsyncThunk(
+    'order/submit',
+    async (body, { rejectWithValue }) => {
+        try {
+            const res = await orderService.submitOrder(body)
+            return unwrapApi(res)
+        } catch (e) {
+            return rejectWithValue(pickErrorMessage(e, 'Đặt hàng thất bại'))
+        }
+    }
+)
+
+export const calculateShippingFee = createAsyncThunk(
+    'order/calculateShippingFee',
+    async ({ distanceKm, orderTotal }, { rejectWithValue }) => {
+        try {
+            const res = await orderService.calculateShippingFee({ distanceKm, orderTotal })
+            return unwrapApi(res)
+        } catch (e) {
+            return rejectWithValue(pickErrorMessage(e, 'Không thể tính phí vận chuyển'))
+        }
+    }
+)
+
 export const buyNowOrder = createAsyncThunk(
     'order/buyNow',
     async (body, { rejectWithValue }) => {
         try {
-            const res = await orderService.buyNow(body)
+            const res = await orderService.submitOrder({ ...body, isBuyNow: true })
             return unwrapApi(res)
         } catch (e) {
             return rejectWithValue(pickErrorMessage(e, 'Đặt hàng thất bại'))
@@ -18,7 +42,7 @@ export const checkoutOrder = createAsyncThunk(
     'order/checkout',
     async (body, { rejectWithValue }) => {
         try {
-            const res = await orderService.checkout(body)
+            const res = await orderService.submitOrder({ ...body, isBuyNow: false })
             return unwrapApi(res)
         } catch (e) {
             return rejectWithValue(pickErrorMessage(e, 'Chốt đơn thất bại'))

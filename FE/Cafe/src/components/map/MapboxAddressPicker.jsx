@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { orderService } from '../../services/user/OrderService'
+import { unwrapApi } from '../../utils/helpers/api'
 
 // ── Haversine distance (km) — dùng làm fallback / ước tính tạm ────────────
 function haversineKm(lat1, lng1, lat2, lng2) {
@@ -195,12 +197,16 @@ export default function MapboxAddressPicker({
     onAddressSelected,
     storeLat = STORE_LAT,
     storeLng = STORE_LNG,
+    shippingFee: externalShippingFee,
+    feeCalculating: externalFeeCalculating,
+    orderTotal = 0,
 }) {
     const mapContainer = useRef(null)
     const mapRef = useRef(null)
     const customerMarkerRef = useRef(null)
     const storeMarkerRef = useRef(null)
     const debounceRef = useRef(null)
+    const feeDebounceRef = useRef(null)
 
     const [searchText, setSearchText] = useState('')
     const [suggestions, setSuggestions] = useState([])
@@ -211,6 +217,39 @@ export default function MapboxAddressPicker({
     const [error, setError] = useState('')
 
     const [selectedInfo, setSelectedInfo] = useState(null) // { address, lat, lng, distanceKm, shippingFee }
+    const [internalApiFee, setInternalApiFee] = useState(null)
+    const [internalCalculating, setInternalCalculating] = useState(false)
+
+    // Nếu parent không truyền shippingFee, tự gọi API POST /api/Order/calculate-fee (debounce 800ms)
+    useEffect(() => {
+        if (externalShippingFee !== undefined) return
+        clearTimeout(feeDebounceRef.current)
+
+        const dist = selectedInfo?.distanceKm
+        if (!dist || dist <= 0) {
+            setInternalApiFee(0)
+            setInternalCalculating(false)
+            return
+        }
+
+        setInternalCalculating(true)
+        feeDebounceRef.current = setTimeout(async () => {
+            try {
+                const res = await orderService.calculateShippingFee({
+                    distanceKm: dist,
+                    orderTotal,
+                })
+                const fee = unwrapApi(res)
+                setInternalApiFee(Number(fee ?? 0))
+            } catch {
+                setInternalApiFee(calcShippingFee(dist))
+            } finally {
+                setInternalCalculating(false)
+            }
+        }, 800)
+
+        return () => clearTimeout(feeDebounceRef.current)
+    }, [selectedInfo?.distanceKm, externalShippingFee, orderTotal])
 
     // ── Init map ──────────────────────────────────────────────────────────
     useEffect(() => {
@@ -460,11 +499,22 @@ export default function MapboxAddressPicker({
         onAddressSelected?.(null)
     }
 
-    // ── Shipping fee badge color ──────────────────────────────────────────
+    // ── Shipping fee badge color & calculations ───────────────────────────
+    const isCalculatingFee = externalFeeCalculating !== undefined
+        ? externalFeeCalculating
+        : internalCalculating
+
+    const effectiveFee = externalShippingFee !== undefined
+        ? externalShippingFee
+        : (internalApiFee !== null ? internalApiFee : (selectedInfo?.shippingFee ?? 0))
+
+    const isFreeship = effectiveFee === 0 && !routeLoading && !isCalculatingFee && !!selectedInfo
+
     const feeColor = !selectedInfo ? '#9ca3af'
-        : selectedInfo.shippingFee <= 25000 ? '#059669'
-            : selectedInfo.shippingFee <= 40000 ? '#d97706'
-                : '#dc2626'
+        : isFreeship ? '#059669'
+            : effectiveFee <= 25000 ? '#059669'
+                : effectiveFee <= 40000 ? '#d97706'
+                    : '#dc2626'
 
     const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
@@ -573,10 +623,18 @@ export default function MapboxAddressPicker({
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
-                        <div style={S.badge(routeLoading ? '#9ca3af' : feeColor)}>
-                            {routeLoading ? '⏳ Đang tính...' : `🚚 ${fmt(selectedInfo.shippingFee)}`}
+                        <div style={S.badge(routeLoading || isCalculatingFee ? '#9ca3af' : feeColor)}>
+                            {routeLoading || isCalculatingFee ? (
+                                '⏳ Đang tính...'
+                            ) : isFreeship ? (
+                                '🎉 Miễn phí (Freeship)'
+                            ) : (
+                                `🚚 ${fmt(effectiveFee)}`
+                            )}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#6b7280' }}>Phí vận chuyển</div>
+                        <div style={{ fontSize: '11px', color: isFreeship ? '#059669' : '#6b7280', fontWeight: isFreeship ? 600 : 400 }}>
+                            {isFreeship ? 'Ưu đãi Freeship' : 'Phí vận chuyển'}
+                        </div>
                     </div>
                 </div>
             )}
