@@ -40,7 +40,7 @@ builder.Services.AddScoped<IToppingService, ToppingService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
-builder.Services.AddScoped<IVoucherService, VoucherService>();
+//builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserVoucherService, UserVoucherService>();
 builder.Services.AddScoped<IOrderDetailToppingService, OrderDetailToppingService>();

@@ -17,6 +17,7 @@ import AddressPage from './pages/address/AddressPage'
 import OrderSuccessPage from './pages/order/OrderSuccessPage'
 import OrderHistoryPage from './pages/order/OrderHistoryPage'
 import MyVouchersPage from './pages/voucher/MyVouchersPage'
+import ProfilePage from './pages/profile/ProfilePage'
 import DashboardAdminPage from './pages/admin/DashboardAdminPage'
 import VoucherAdminPage from './pages/admin/voucher/VoucherAdminPage'
 
@@ -33,6 +34,7 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route element={<ProtectedRoute allowedRoles={CUSTOMER_ROLES} />}>
+                        <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/addresses" element={<AddressPage />} />
                         <Route path="/checkout" element={<CheckoutPage />} />

@@ -79,14 +79,14 @@ export default function SavedAddressList({
                 )
             })}
 
-            {/* Thông báo lỗi màu đỏ khi địa chỉ vượt quá phạm vi giao hàng (400 Bad Request) */}
+            {/* Thông báo lỗi khi không tính được khoảng cách địa chỉ */}
             {shippingError && (
-                <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
+                <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-sm text-amber-800">
                     <span className="text-base shrink-0">⚠️</span>
                     <div className="flex-1">
-                        <p className="font-semibold text-red-800">{shippingError}</p>
-                        <p className="mt-0.5 text-xs text-red-600">
-                            Vui lòng chọn một địa chỉ khác hoặc chọn vị trí trên bản đồ trong phạm vi phục vụ của quán.
+                        <p className="font-semibold">{shippingError}</p>
+                        <p className="mt-0.5 text-xs text-amber-700">
+                            Bạn có thể chuyển sang tab &quot;Chọn trên bản đồ&quot; để chọn lại vị trí nhanh chóng.
                         </p>
                     </div>
                 </div>

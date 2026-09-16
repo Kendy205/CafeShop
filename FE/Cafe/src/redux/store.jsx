@@ -8,12 +8,14 @@ import voucherReducer from './slices/user/voucherSlice'
 import cartReducer from './slices/user/cartSlice'
 import sizeReducer from './slices/user/sizeSlice'
 import toppingReducer from './slices/user/toppingSlice'
+import userReducer from './slices/user/userSlice'
 import adminVoucherReducer from './slices/admin/adminVoucherSlice'
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         ui: uiReducer,
+        user: userReducer,
         product: productReducer,
         address: addressReducer,
         order: orderReducer,

@@ -89,10 +89,26 @@ export default function UserTemplate() {
 
                         {isAuthenticated ? (
                             <>
-                                <span className="ml-1 hidden items-center gap-1.5 rounded-lg bg-stone-50 px-2.5 py-1.5 text-stone-600 md:inline-flex">
-                                    <UserOutlined />
-                                    {user?.fullName || 'Khách'}
-                                </span>
+                                <LoadingLink
+                                    to="/profile"
+                                    className="ml-1 inline-flex items-center gap-2 rounded-lg bg-stone-50 px-2.5 py-1.5 text-stone-700 transition hover:bg-amber-50 hover:text-amber-900 border border-stone-200/80"
+                                    title="Hồ sơ & Tài khoản của tôi"
+                                >
+                                    {user?.avatarUrl ? (
+                                        <img
+                                            src={user.avatarUrl}
+                                            alt={user.fullName || 'User avatar'}
+                                            className="h-6 w-6 rounded-full object-cover border border-amber-300 ring-1 ring-amber-400/20"
+                                        />
+                                    ) : (
+                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-800 font-semibold">
+                                            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <UserOutlined className="text-xs" />}
+                                        </span>
+                                    )}
+                                    <span className="hidden sm:inline font-medium text-xs md:text-sm max-w-[130px] truncate">
+                                        {user?.fullName || 'Hồ sơ'}
+                                    </span>
+                                </LoadingLink>
                                 <button
                                     type="button"
                                     className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-2.5 py-1.5 text-stone-700 hover:bg-stone-50"

@@ -52,6 +52,7 @@ export default function CheckoutPage() {
     const items = isBuyNow && buyNowItems?.length ? buyNowItems : cartItems
 
     // ── Redux Store selectors ──────────────────────────────────────────────
+    const { user } = useSelector((s) => s.auth)
     const addresses = useSelector((s) => s.address.items)
     const vouchers = useSelector((s) => s.voucher.items)
     const { submitting, error, cafeLat: storeCafeLat, cafeLng: storeCafeLng } = useSelector((s) => s.order)
@@ -65,9 +66,9 @@ export default function CheckoutPage() {
     const [savedDistanceKm, setSavedDistanceKm] = useState(null)
     const [distanceCalculating, setDistanceCalculating] = useState(false)
 
-    // Thông tin người nhận khi chọn địa chỉ mới trên bản đồ
-    const [recipientName, setRecipientName] = useState('')
-    const [phone, setPhone] = useState('')
+    // Thông tin người nhận khi chọn địa chỉ mới trên bản đồ (tự động prefill từ user)
+    const [recipientName, setRecipientName] = useState(user?.fullName || '')
+    const [phone, setPhone] = useState(user?.phoneNumber || user?.phone || '')
 
     // ── Payment & Voucher states ───────────────────────────────────────────
     const [paymentMethod, setPaymentMethod] = useState('COD')
@@ -94,15 +95,25 @@ export default function CheckoutPage() {
         if (!isBuyNow) dispatch(getCart())
     }, [dispatch, isBuyNow])
 
+    // Tự động đồng bộ thông tin họ tên & SĐT từ tài khoản hoặc địa chỉ
+    useEffect(() => {
+        if (user) {
+            setRecipientName((prev) => prev || user.fullName || '')
+            setPhone((prev) => prev || user.phoneNumber || user.phone || '')
+        }
+    }, [user])
+
     // Bước 1: Tự động tick chọn địa chỉ mặc định (hoặc địa chỉ đầu tiên)
     useEffect(() => {
         if (addresses.length > 0 && !addressId) {
             const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0]
             if (defaultAddr) {
                 setAddressId(String(defaultAddr.addressId))
+                setRecipientName((prev) => prev || defaultAddr.recipientName || user?.fullName || '')
+                setPhone((prev) => prev || defaultAddr.phone || user?.phoneNumber || user?.phone || '')
             }
         }
-    }, [addresses, addressId])
+    }, [addresses, addressId, user])
 
     const selectedAddressId =
         addressId || String((addresses.find((a) => a.isDefault) || addresses[0])?.addressId ?? '')
@@ -118,40 +129,72 @@ export default function CheckoutPage() {
         return addresses.find((a) => String(a.addressId) === String(selectedAddressId))
     }, [addresses, selectedAddressId])
 
+    // Xử lý chuyển tab địa chỉ (xóa lỗi cũ và đồng bộ dữ liệu)
+    const handleSwitchAddressTab = (tab) => {
+        setAddressTab(tab)
+        setShippingError('')
+        if (tab === TAB_MAP) {
+            setRecipientName((prev) => prev || selectedAddr?.recipientName || user?.fullName || '')
+            setPhone((prev) => prev || selectedAddr?.phone || user?.phoneNumber || user?.phone || '')
+        }
+    }
+
     // Bước 2 & Bước 3: Tính khoảng cách Mapbox khi user chọn radio hoặc tick tự động
     useEffect(() => {
         if (addressTab !== TAB_SAVED || !selectedAddr) {
             return
         }
 
+        let cancelled = false
+        setDistanceCalculating(true)
+        setShippingError('')
+
+        const calculateDistance = (toLng, toLat) => {
+            mapService
+                .getDrivingDistance(cafeLng, cafeLat, toLng, toLat)
+                .then((dist) => {
+                    if (!cancelled) {
+                        setSavedDistanceKm(dist ?? 0)
+                        setDistanceCalculating(false)
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled) {
+                        const directDist = mapService.calculateHaversineDistance?.(cafeLat, cafeLng, toLat, toLng)
+                        setSavedDistanceKm(directDist ?? 0)
+                        setDistanceCalculating(false)
+                    }
+                })
+        }
+
         const lat = selectedAddr.latitude
         const lng = selectedAddr.longitude
 
-        if (!lat || !lng) {
-            setSavedDistanceKm(0)
-            setShippingError(
-                'Địa chỉ đã lưu chưa có tọa độ vị trí (latitude/longitude). Vui lòng cập nhật lại địa chỉ hoặc chọn trên bản đồ.'
-            )
+        // Nếu địa chỉ cũ trong DB chưa có tọa độ GPS, tự động tìm tọa độ qua Mapbox Geocoding
+        if (!lat || !lng || Number(lat) === 0 || Number(lng) === 0) {
+            mapService
+                .searchAddress(selectedAddr.fullAddress)
+                .then((features) => {
+                    if (cancelled) return
+                    if (features && features.length > 0) {
+                        const [autoLng, autoLat] = features[0].center
+                        calculateDistance(autoLng, autoLat)
+                    } else {
+                        setSavedDistanceKm(0)
+                        setDistanceCalculating(false)
+                        setShippingError('Chưa xác định được tọa độ địa chỉ. Bạn có thể chọn lại trên bản đồ.')
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled) {
+                        setSavedDistanceKm(0)
+                        setDistanceCalculating(false)
+                    }
+                })
             return
         }
 
-        let cancelled = false
-        setDistanceCalculating(true)
-        setShippingError('') // Xóa lỗi cũ khi đổi địa chỉ
-
-        mapService
-            .getDrivingDistance(cafeLng, cafeLat, lng, lat)
-            .then((dist) => {
-                if (!cancelled) {
-                    setSavedDistanceKm(dist ?? 0)
-                    setDistanceCalculating(false)
-                }
-            })
-            .catch(() => {
-                if (!cancelled) {
-                    setDistanceCalculating(false)
-                }
-            })
+        calculateDistance(lng, lat)
 
         return () => {
             cancelled = true
@@ -167,12 +210,14 @@ export default function CheckoutPage() {
     }, [addressTab, mapAddress, savedDistanceKm])
 
     // Bước 4: Xin báo giá phí vận chuyển từ Backend (POST /api/Order/calculate-fee)
+    // CỬA HÀNG KHÔNG CÓ GIỚI HẠN KM: Giao mọi khoảng cách, tính phí linh hoạt
     useEffect(() => {
         clearTimeout(shipDebounceRef.current)
 
         if (!currentDistanceKm || currentDistanceKm <= 0) {
             setApiShippingFee(0)
             setFeeCalculating(false)
+            setShippingError('')
             return
         }
 
@@ -188,19 +233,21 @@ export default function CheckoutPage() {
                 setApiShippingFee(Number(fee ?? 0))
                 setShippingError('')
             } catch (err) {
-
-                setApiShippingFee(0)
-                const errMsg = pickErrorMessage(err, 'Quán chỉ hỗ trợ giao hàng trong vòng 10km')
-                setShippingError(errMsg)
+                // Cửa hàng KHÔNG CÓ GIỚI HẠN KM:
+                // Nếu BE chưa cấu hình hoặc tạm thời không phản hồi, fallback tính phí:
+                // <= 3km = 15.000đ; mỗi km tiếp theo + 5.000đ (đồng nhất với Mapbox)
+                const fallbackFee = Math.round(15000 + Math.max(0, currentDistanceKm - 3) * 5000)
+                setApiShippingFee(fallbackFee)
+                setShippingError('')
             } finally {
                 setFeeCalculating(false)
             }
-        }, 800)
+        }, 500)
 
         return () => clearTimeout(shipDebounceRef.current)
     }, [currentDistanceKm, subtotal])
 
-    const shippingFee = shippingError ? 0 : apiShippingFee != null ? apiShippingFee : 0
+    const shippingFee = apiShippingFee != null ? apiShippingFee : 0
 
     // ── Kiểm tra voucher ───────────────────────────────────────────────────
     const runVoucherCheck = useCallback(
@@ -428,7 +475,7 @@ export default function CheckoutPage() {
                         <div className="mb-4 flex gap-2">
                             <button
                                 type="button"
-                                onClick={() => setAddressTab(TAB_SAVED)}
+                                onClick={() => handleSwitchAddressTab(TAB_SAVED)}
                                 className={`rounded-xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_SAVED
                                         ? 'bg-amber-800 text-white shadow-xs'
                                         : 'border border-stone-200 text-stone-600 hover:bg-stone-50'
@@ -438,7 +485,7 @@ export default function CheckoutPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setAddressTab(TAB_MAP)}
+                                onClick={() => handleSwitchAddressTab(TAB_MAP)}
                                 className={`rounded-xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_MAP
                                         ? 'bg-amber-800 text-white shadow-xs'
                                         : 'border border-stone-200 text-stone-600 hover:bg-stone-50'
@@ -493,16 +540,22 @@ export default function CheckoutPage() {
                                 </div>
 
                                 <MapboxAddressPicker
+                                    storeLat={cafeLat}
+                                    storeLng={cafeLng}
                                     onAddressSelected={setMapAddress}
-                                    shippingFee={shippingFee}
-                                    feeCalculating={feeCalculating}
-                                    orderTotal={subtotal}
                                 />
 
                                 {!mapValid && (
-                                    <p className="text-xs font-medium text-red-500">
-                                        ⚠️ Vui lòng nhập tên, SĐT và chọn địa chỉ trên bản đồ.
-                                    </p>
+                                    <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-2.5 text-xs text-amber-800 flex items-center gap-1.5">
+                                        <span>💡</span>
+                                        <span>
+                                            {!recipientName.trim()
+                                                ? 'Vui lòng nhập tên người nhận để giao hàng'
+                                                : !phone.trim()
+                                                ? 'Vui lòng nhập số điện thoại người nhận'
+                                                : 'Vui lòng tìm kiếm hoặc click chọn vị trí giao hàng trên bản đồ'}
+                                        </span>
+                                    </div>
                                 )}
                             </div>
                         )}

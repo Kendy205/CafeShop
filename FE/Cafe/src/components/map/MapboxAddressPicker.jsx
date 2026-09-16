@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { orderService } from '../../services/user/OrderService'
-import { unwrapApi } from '../../utils/helpers/api'
 
 // ── Haversine distance (km) — dùng làm fallback / ước tính tạm ────────────
 function haversineKm(lat1, lng1, lat2, lng2) {
@@ -15,17 +13,6 @@ function haversineKm(lat1, lng1, lat2, lng2) {
         Math.cos((lat2 * Math.PI) / 180) *
         Math.sin(dLng / 2) ** 2
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-// ── Shipping fee calculator ─────────────────────────────────────────────────
-function calcShippingFee(distanceKm) {
-    if (distanceKm <= 0) return 0
-    if (distanceKm <= 3) return 15000
-    let fee = 15000
-    if (distanceKm > 3) {
-        fee += (distanceKm - 3) * 5000
-    }
-    return fee
 }
 
 // ── Config từ env ───────────────────────────────────────────────────────────
@@ -197,16 +184,12 @@ export default function MapboxAddressPicker({
     onAddressSelected,
     storeLat = STORE_LAT,
     storeLng = STORE_LNG,
-    shippingFee: externalShippingFee,
-    feeCalculating: externalFeeCalculating,
-    orderTotal = 0,
 }) {
     const mapContainer = useRef(null)
     const mapRef = useRef(null)
     const customerMarkerRef = useRef(null)
     const storeMarkerRef = useRef(null)
     const debounceRef = useRef(null)
-    const feeDebounceRef = useRef(null)
 
     const [searchText, setSearchText] = useState('')
     const [suggestions, setSuggestions] = useState([])
@@ -216,40 +199,7 @@ export default function MapboxAddressPicker({
     const [routeLoading, setRouteLoading] = useState(false)
     const [error, setError] = useState('')
 
-    const [selectedInfo, setSelectedInfo] = useState(null) // { address, lat, lng, distanceKm, shippingFee }
-    const [internalApiFee, setInternalApiFee] = useState(null)
-    const [internalCalculating, setInternalCalculating] = useState(false)
-
-    // Nếu parent không truyền shippingFee, tự gọi API POST /api/Order/calculate-fee (debounce 800ms)
-    useEffect(() => {
-        if (externalShippingFee !== undefined) return
-        clearTimeout(feeDebounceRef.current)
-
-        const dist = selectedInfo?.distanceKm
-        if (!dist || dist <= 0) {
-            setInternalApiFee(0)
-            setInternalCalculating(false)
-            return
-        }
-
-        setInternalCalculating(true)
-        feeDebounceRef.current = setTimeout(async () => {
-            try {
-                const res = await orderService.calculateShippingFee({
-                    distanceKm: dist,
-                    orderTotal,
-                })
-                const fee = unwrapApi(res)
-                setInternalApiFee(Number(fee ?? 0))
-            } catch {
-                setInternalApiFee(calcShippingFee(dist))
-            } finally {
-                setInternalCalculating(false)
-            }
-        }, 800)
-
-        return () => clearTimeout(feeDebounceRef.current)
-    }, [selectedInfo?.distanceKm, externalShippingFee, orderTotal])
+    const [selectedInfo, setSelectedInfo] = useState(null) // { address, lat, lng, distanceKm }
 
     // ── Init map ──────────────────────────────────────────────────────────
     useEffect(() => {
@@ -400,9 +350,8 @@ export default function MapboxAddressPicker({
     // ── Commit selection & fire callback ─────────────────────────────────
     const commitSelection = useCallback(async (address, lat, lng) => {
         const estimateKm = haversineKm(storeLat, storeLng, lat, lng)
-        const estimateFee = calcShippingFee(estimateKm)
 
-        const tempInfo = { address, lat, lng, distanceKm: +estimateKm.toFixed(2), shippingFee: estimateFee, isEstimate: true }
+        const tempInfo = { address, lat, lng, distanceKm: +estimateKm.toFixed(2), isEstimate: true }
         setSelectedInfo(tempInfo)
         setSearchText(address)
         onAddressSelected?.(tempInfo)
@@ -411,10 +360,9 @@ export default function MapboxAddressPicker({
         const realKm = await drawRoute(lng, lat)
 
         if (realKm != null) {
-            const realFee = calcShippingFee(realKm)
-            const realInfo = { address, lat, lng, distanceKm: realKm, shippingFee: realFee, isEstimate: false }
+            const realInfo = { address, lat, lng, distanceKm: realKm, isEstimate: false }
             setSelectedInfo(realInfo)
-            onAddressSelected?.(realInfo)  // cập nhật lại CheckoutPage với giá trị chính xác
+            onAddressSelected?.(realInfo)
         }
     }, [storeLat, storeLng, onAddressSelected, drawRoute])
 
@@ -499,25 +447,6 @@ export default function MapboxAddressPicker({
         onAddressSelected?.(null)
     }
 
-    // ── Shipping fee badge color & calculations ───────────────────────────
-    const isCalculatingFee = externalFeeCalculating !== undefined
-        ? externalFeeCalculating
-        : internalCalculating
-
-    const effectiveFee = externalShippingFee !== undefined
-        ? externalShippingFee
-        : (internalApiFee !== null ? internalApiFee : (selectedInfo?.shippingFee ?? 0))
-
-    const isFreeship = effectiveFee === 0 && !routeLoading && !isCalculatingFee && !!selectedInfo
-
-    const feeColor = !selectedInfo ? '#9ca3af'
-        : isFreeship ? '#059669'
-            : effectiveFee <= 25000 ? '#059669'
-                : effectiveFee <= 40000 ? '#d97706'
-                    : '#dc2626'
-
-    const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
-
     return (
         <div style={S.root}>
             <label style={S.label}>📍 Địa chỉ giao hàng</label>
@@ -597,43 +526,47 @@ export default function MapboxAddressPicker({
             {/* ── Error message ── */}
             {error && <p style={S.errText}>{error}</p>}
 
-            {/* ── Info bar: khoảng cách + phí ship ── */}
+            {/* ── Info bar: Địa chỉ & Khoảng cách (không hiện phí ship) ── */}
             {selectedInfo && (
                 <div style={S.infoBar}>
                     <div style={S.infoText}>
-                        <div style={{ fontWeight: 600, marginBottom: '4px', color: '#78350f', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            ✅ Địa chỉ đã chọn
-                            {!selectedInfo.isEstimate && (
-                                <span style={{ fontSize: '10px', background: '#fde68a', color: '#92400e', borderRadius: '4px', padding: '1px 6px', fontWeight: 500 }}>
-                                    🛣️ Đường thực tế
+                        <div style={{ fontWeight: 700, marginBottom: '4px', color: '#78350f', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>📍 Địa chỉ đã chọn</span>
+                            {!selectedInfo.isEstimate ? (
+                                <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', borderRadius: '6px', padding: '1px 7px', fontWeight: 600, border: '1px solid #fde68a' }}>
+                                    🛣️ Tuyến đường thực tế
+                                </span>
+                            ) : (
+                                <span style={{ fontSize: '11px', background: '#f3f4f6', color: '#4b5563', borderRadius: '6px', padding: '1px 7px', fontWeight: 500 }}>
+                                    Ước tính
                                 </span>
                             )}
                         </div>
-                        <div>{selectedInfo.address}</div>
-                        <div style={{ marginTop: '6px', fontSize: '12px', color: '#92400e', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            📏 Khoảng cách:{' '}
-                            {routeLoading ? (
-                                <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Đang tính...</span>
-                            ) : (
-                                <b>{selectedInfo.distanceKm} km</b>
-                            )}
-                            {selectedInfo.isEstimate && !routeLoading && (
-                                <span style={{ fontSize: '10px', color: '#9ca3af' }}>(ước tính)</span>
-                            )}
-                        </div>
+                        <div style={{ color: '#374151', fontSize: '13px', lineHeight: '1.45' }}>{selectedInfo.address}</div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
-                        <div style={S.badge(routeLoading || isCalculatingFee ? '#9ca3af' : feeColor)}>
-                            {routeLoading || isCalculatingFee ? (
-                                '⏳ Đang tính...'
-                            ) : isFreeship ? (
-                                '🎉 Miễn phí (Freeship)'
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: '#78350f',
+                            color: '#ffffff',
+                            padding: '6px 12px',
+                            borderRadius: '10px',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            boxShadow: '0 1px 3px rgba(120,53,15,0.2)'
+                        }}>
+                            <span>📏</span>
+                            {routeLoading ? (
+                                <span style={{ fontStyle: 'italic', fontWeight: 500, fontSize: '12px' }}>Đang đo...</span>
                             ) : (
-                                `🚚 ${fmt(effectiveFee)}`
+                                <span>{selectedInfo.distanceKm} km</span>
                             )}
                         </div>
-                        <div style={{ fontSize: '11px', color: isFreeship ? '#059669' : '#6b7280', fontWeight: isFreeship ? 600 : 400 }}>
-                            {isFreeship ? 'Ưu đãi Freeship' : 'Phí vận chuyển'}
+                        <div style={{ fontSize: '11px', color: '#92400e', fontWeight: 500 }}>
+                            Khoảng cách tới quán
                         </div>
                     </div>
                 </div>

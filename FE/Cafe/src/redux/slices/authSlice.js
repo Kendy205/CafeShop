@@ -53,6 +53,13 @@ const authSlice = createSlice({
             state.authModalTab = action.payload || 'login'
             state.error = null
         },
+        updateUserProfile: (state, action) => {
+            state.user = {
+                ...(state.user || {}),
+                ...action.payload,
+            }
+            writeAuthToStorage({ user: state.user })
+        },
         hydrateTokens: (state, action) => {
             const { accessToken, refreshToken, role, user } = action.payload
             state.accessToken = accessToken
@@ -153,5 +160,6 @@ export const {
     openAuthModal,
     closeAuthModal,
     setAuthModalTab,
+    updateUserProfile,
 } = authSlice.actions
 export default authSlice.reducer

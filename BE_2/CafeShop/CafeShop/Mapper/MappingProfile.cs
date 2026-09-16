@@ -7,6 +7,7 @@ using CafeShop.DTO.Order;
 using CafeShop.DTO.Product;
 using CafeShop.DTO.Size;
 using CafeShop.DTO.Topping;
+using CafeShop.DTO.User;
 using CafeShop.DTO.Voucher;
 using CafeShop.Model;
 
@@ -34,7 +35,7 @@ namespace CafeShop.Mapper
             // 2. USER
             // ==========================================
             CreateMap<User, UserResponseDto>();
-
+            CreateMap<User, UserProfileDto>().ReverseMap();
             // ==========================================
             // 4. ORDER
             // ==========================================

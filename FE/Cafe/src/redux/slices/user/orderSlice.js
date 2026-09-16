@@ -9,9 +9,9 @@ import {
 } from '../../actions/user/orderAction'
 import { normalizePagedResult } from '../../../utils/helpers/api'
 
-// Tọa độ cố định của Quán Cafe
-export const CAFE_LAT = 21.0382
-export const CAFE_LNG = 105.7828
+// Tọa độ quán cafe đồng nhất từ cấu hình .env
+export const CAFE_LAT = parseFloat(import.meta.env.VITE_STORE_LAT ?? '21.0285')
+export const CAFE_LNG = parseFloat(import.meta.env.VITE_STORE_LNG ?? '105.8542')
 
 const initialState = {
     // Tọa độ Quán Cafe
