@@ -1,4 +1,4 @@
-﻿using CafeShop.Data;
+using CafeShop.Data;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
@@ -8,6 +8,8 @@ using CafeShop.Service.Service;
 using CafeShop.Service.Service.Users;
 using CafeShop.Services.IServices;
 using CafeShop.Services.Services;
+using CafeShop.Service.IService.Admin;
+using CafeShop.Service.Service.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,6 +46,16 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserVoucherService, UserVoucherService>();
 builder.Services.AddScoped<IOrderDetailToppingService, OrderDetailToppingService>();
+
+// Admin Services
+builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
+builder.Services.AddScoped<IAdminSizeService, AdminSizeService>();
+builder.Services.AddScoped<IAdminToppingService, AdminToppingService>();
+builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
+builder.Services.AddScoped<IAdminVoucherService, AdminVoucherService>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 //public Services
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

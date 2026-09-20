@@ -1,11 +1,13 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Topping;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Services.IServices;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CafeShop.Service.IService;
 
 namespace CafeShop.Services.Services
 {
@@ -13,16 +15,18 @@ namespace CafeShop.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPhotoService _photoService;
 
-        public ToppingService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ToppingService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _photoService = photoService;
         }
 
         public async Task<IEnumerable<Topping>> GetAllAsync()
         {
-            return await _unitOfWork.Topping.GetAllAsync();
+            return await _unitOfWork.Topping.GetAllAsync(t => t.IsAvailable);
         }
 
         public async Task<Topping> GetByIdAsync(int id)
@@ -30,62 +34,12 @@ namespace CafeShop.Services.Services
             return await _unitOfWork.Topping.GetFirstOrDefaultAsync(p=>p.ToppingId==id);
         }
 
-        public async Task AddAsync(Topping entity)
-        {
-            await _unitOfWork.Topping.AddAsync(entity);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task UpdateAsync(Topping entity)
-        {
-            _unitOfWork.Topping.Update(entity);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _unitOfWork.Topping.GetFirstOrDefaultAsync(p => p.ToppingId == id);
-            if (entity != null)
-            {
-                _unitOfWork.Topping.Remove(entity);
-                await _unitOfWork.SaveAsync();
-            }
-        }
-        public async Task<List<ToppingDto>> GetAllToppingsAsync(bool onlyAvailable = false)
+        public async Task<List<ToppingDto>> GetAllToppingsAsync(bool onlyAvailable = true)
         {
             var toppings = await _unitOfWork.Topping.GetAllAsync(
                 filter: t => !onlyAvailable || t.IsAvailable
             );
             return _mapper.Map<List<ToppingDto>>(toppings);
-        }
-
-        public async Task<ToppingDto> CreateToppingAsync(CreateUpdateToppingDto request)
-        {
-            var topping = _mapper.Map<Topping>(request);
-            await _unitOfWork.Topping.AddAsync(topping);
-            await _unitOfWork.SaveAsync();
-            return _mapper.Map<ToppingDto>(topping);
-        }
-
-        public async Task<ToppingDto> UpdateToppingAsync(int id, CreateUpdateToppingDto request)
-        {
-            var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == id);
-            if (topping == null) throw new ArgumentException("Không tìm thấy Topping!");
-
-            _mapper.Map(request, topping);
-            _unitOfWork.Topping.Update(topping);
-            await _unitOfWork.SaveAsync();
-            return _mapper.Map<ToppingDto>(topping);
-        }
-
-        public async Task ToggleAvailabilityAsync(int id)
-        {
-            var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == id);
-            if (topping == null) throw new ArgumentException("Không tìm thấy Topping!");
-
-            topping.IsAvailable = !topping.IsAvailable;
-            _unitOfWork.Topping.Update(topping);
-            await _unitOfWork.SaveAsync();
         }
     }
 }

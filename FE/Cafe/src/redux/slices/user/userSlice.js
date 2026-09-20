@@ -49,10 +49,7 @@ const userSlice = createSlice({
             })
             .addCase(updateProfile.fulfilled, (state, action) => {
                 state.updating = false
-                state.profile = {
-                    ...state.profile,
-                    ...action.payload,
-                }
+                state.profile = { ...state.profile, ...action.payload }
             })
             .addCase(updateProfile.rejected, (state, action) => {
                 state.updating = false

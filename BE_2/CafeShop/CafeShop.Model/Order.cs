@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -12,7 +12,7 @@ namespace CafeShop.Model
     {
         [Key]
         public int OrderId { get; set; }
-        public int CustomerId { get; set; }
+        public int UserId { get; set; }
         public int AddressId { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
         public decimal TotalAmount { get; set; }
@@ -26,8 +26,8 @@ namespace CafeShop.Model
         public int? VoucherId { get; set; }
         public decimal DiscountAmount { get; set; }
 
-        [ForeignKey("CustomerId")]
-        public virtual User? Customer { get; set; }
+        [ForeignKey("UserId")]
+        public virtual User? User { get; set; }
         [ForeignKey("VoucherId")]
         public virtual Voucher? Voucher { get; set; }
         [ForeignKey("AddressId")]

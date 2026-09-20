@@ -6,7 +6,6 @@ import {
     setDefaultAddress,
     updateAddress,
 } from '../../actions/user/addressAction'
-import { asList } from '../../../utils/helpers/api'
 
 const initialState = {
     items: [],
@@ -18,11 +17,7 @@ const initialState = {
 const addressSlice = createSlice({
     name: 'address',
     initialState,
-    reducers: {
-        clearAddressError: (state) => {
-            state.error = null
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(getAddresses.pending, (state) => {
@@ -31,7 +26,7 @@ const addressSlice = createSlice({
             })
             .addCase(getAddresses.fulfilled, (state, action) => {
                 state.loading = false
-                state.items = asList(action.payload)
+                state.items = action.payload ?? []
             })
             .addCase(getAddresses.rejected, (state, action) => {
                 state.loading = false
@@ -82,5 +77,4 @@ const addressSlice = createSlice({
     },
 })
 
-export const { clearAddressError } = addressSlice.actions
 export default addressSlice.reducer

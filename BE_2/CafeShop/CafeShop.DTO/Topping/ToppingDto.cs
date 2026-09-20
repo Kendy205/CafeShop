@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +26,8 @@ namespace CafeShop.DTO.Topping
         public bool IsAvailable { get; set; } = true;
 
         public int StockQuantity { get; set; } = 0;
-        public string? ImageUrl { get; set; }
+        
+        // Thêm IFormFile để hỗ trợ upload ảnh từ form-data
+        public Microsoft.AspNetCore.Http.IFormFile? ImageFile { get; set; }
     }
 }

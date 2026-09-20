@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.UnitOfWork;
+using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Auth;
 
 using CafeShop.Model;
@@ -30,20 +30,22 @@ namespace CafeShop.Services.Services
 
         public async Task<string> RegisterAsync(RegisterRequestDto dto)
         {
-            var existingUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.Username == dto.Username);
+            var username = dto.Username?.Trim();
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ArgumentException("Tên đăng nhập không được để trống!");
+
+            var existingUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.Username == username);
             if (existingUser != null)
-            {
-                return "Tên đăng nhập đã tồn tại!";
-            }
+                throw new ArgumentException("Tên đăng nhập đã tồn tại!");
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var newUser = new User
             {
-                Username = dto.Username,
+                Username = username,
                 PasswordHash = passwordHash,
                 FullName = dto.FullName,
-                Role = "CUSTOMER",
+                Role = CafeShop.Uitls.SystemRole.Customer,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -151,7 +153,7 @@ namespace CafeShop.Services.Services
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
 
             // Lấy Role trực tiếp từ string, nếu rỗng thì mặc định là CUSTOMER
-            var role = !string.IsNullOrEmpty(user.Role) ? user.Role : "CUSTOMER";
+            var role = !string.IsNullOrEmpty(user.Role) ? user.Role : CafeShop.Uitls.SystemRole.Customer;
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

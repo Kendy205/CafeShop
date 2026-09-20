@@ -211,20 +211,20 @@ export default function AddressManager({ hideTitle = false }) {
         <div>
             {/* ── Tiêu đề (nếu không bị ẩn) ── */}
             {!hideTitle && (
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 pb-4">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
                     <div>
-                        <h1 className="text-xl font-black text-stone-800 sm:text-2xl flex items-center gap-2">
+                        <h1 className="text-xl font-black text-slate-800 sm:text-2xl flex items-center gap-2">
                             <span>📍</span>
                             <span>Sổ địa chỉ nhận hàng</span>
                         </h1>
-                        <p className="mt-0.5 text-xs text-stone-500">
+                        <p className="mt-0.5 text-xs text-slate-500">
                             Quản lý các địa chỉ nhận hàng của bạn để thanh toán nhanh chóng hơn
                         </p>
                     </div>
 
                     <LoadingLink
                         to="/checkout"
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-amber-800 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-amber-900 transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-3xl bg-sky-800 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-sky-900 transition-colors"
                     >
                         <span>🛒 Vào thanh toán</span>
                     </LoadingLink>
@@ -236,7 +236,7 @@ export default function AddressManager({ hideTitle = false }) {
                 {/* ══ CỘT TRÁI: Danh sách địa chỉ đã lưu ══ */}
                 <div className="lg:col-span-5 space-y-3.5">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-stone-800 flex items-center gap-1.5">
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                             <span>📋</span>
                             <span>Địa chỉ đã lưu ({addresses.length})</span>
                         </h3>
@@ -244,7 +244,7 @@ export default function AddressManager({ hideTitle = false }) {
                             <button
                                 type="button"
                                 onClick={resetForm}
-                                className="text-xs font-semibold text-amber-800 hover:underline cursor-pointer"
+                                className="text-xs font-semibold text-sky-800 hover:underline cursor-pointer"
                             >
                                 + Thêm mới
                             </button>
@@ -254,16 +254,16 @@ export default function AddressManager({ hideTitle = false }) {
                     {loading && addresses.length === 0 && (
                         <div className="space-y-2.5">
                             {[1, 2].map((i) => (
-                                <div key={i} className="h-24 animate-pulse rounded-2xl bg-stone-100 border border-stone-200" />
+                                <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100 border border-slate-200" />
                             ))}
                         </div>
                     )}
 
                     {!loading && addresses.length === 0 && (
-                        <div className="rounded-2xl border border-dashed border-stone-200 bg-white p-6 text-center">
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center">
                             <span className="text-3xl block mb-1.5">📍</span>
-                            <p className="text-xs text-stone-500 font-medium">Bạn chưa lưu địa chỉ nào.</p>
-                            <p className="text-[11px] text-stone-400 mt-0.5">
+                            <p className="text-xs text-slate-500 font-medium">Bạn chưa lưu địa chỉ nào.</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
                                 Hãy điền thông tin vào biểu mẫu bên cạnh để tạo địa chỉ đầu tiên!
                             </p>
                         </div>
@@ -278,30 +278,30 @@ export default function AddressManager({ hideTitle = false }) {
                                     key={addr.addressId}
                                     className={`relative overflow-hidden rounded-2xl border-2 p-3.5 transition-all ${
                                         isSelected
-                                            ? 'border-amber-700 bg-amber-50/70 shadow-xs'
-                                            : 'border-stone-200/90 bg-white shadow-2xs hover:border-amber-300'
+                                            ? 'border-sky-700 bg-sky-50/70 shadow-xs'
+                                            : 'border-slate-200/90 bg-white shadow-2xs hover:border-sky-300'
                                     }`}
                                 >
                                     <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1">
                                         <div className="flex items-center gap-1.5">
-                                            <span className="font-bold text-sm text-stone-800">
+                                            <span className="font-bold text-sm text-slate-800">
                                                 {addr.recipientName}
                                             </span>
-                                            <span className="text-stone-300">•</span>
-                                            <span className="font-mono text-xs text-stone-600 font-semibold">
+                                            <span className="text-slate-300">•</span>
+                                            <span className="font-mono text-xs text-slate-600 font-semibold">
                                                 {addr.phone}
                                             </span>
                                         </div>
 
                                         {addr.isDefault && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-900 border border-amber-300/80">
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-extrabold text-sky-900 border border-sky-300/80">
                                                 <span>⭐</span>
                                                 <span>Mặc định</span>
                                             </span>
                                         )}
                                     </div>
 
-                                    <p className="text-xs text-stone-600 leading-relaxed pr-1">
+                                    <p className="text-xs text-slate-600 leading-relaxed pr-1">
                                         {addr.fullAddress}
                                     </p>
 
@@ -311,24 +311,24 @@ export default function AddressManager({ hideTitle = false }) {
                                             <span>Tọa độ: <span className="font-mono">{Number(addr.latitude).toFixed(4)}, {Number(addr.longitude).toFixed(4)}</span></span>
                                         </div>
                                     ) : (
-                                        <div className="mt-1.5 flex items-center gap-1 text-[11px] text-stone-400">
+                                        <div className="mt-1.5 flex items-center gap-1 text-[11px] text-slate-400">
                                             <span>📍</span>
                                             <span>Chưa có tọa độ GPS</span>
                                         </div>
                                     )}
 
-                                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 pt-2 text-xs">
+                                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
                                                 onClick={() => handleStartEdit(addr)}
-                                                className="inline-flex items-center gap-1 font-bold text-amber-800 hover:text-amber-950 transition-colors cursor-pointer"
+                                                className="inline-flex items-center gap-1 font-bold text-sky-800 hover:text-sky-950 transition-colors cursor-pointer"
                                             >
                                                 <span>✏️</span>
                                                 <span>Sửa</span>
                                             </button>
 
-                                            <span className="text-stone-200">|</span>
+                                            <span className="text-slate-200">|</span>
 
                                             <button
                                                 type="button"
@@ -344,7 +344,7 @@ export default function AddressManager({ hideTitle = false }) {
                                             <button
                                                 type="button"
                                                 onClick={() => handleSetDefault(addr.addressId)}
-                                                className="rounded-lg border border-stone-200 bg-white px-2 py-0.5 text-[10px] font-bold text-stone-600 hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300 transition-colors cursor-pointer"
+                                                className="rounded-2xl border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-sky-50 hover:text-sky-900 hover:border-sky-300 transition-colors cursor-pointer"
                                             >
                                                 Đặt mặc định
                                             </button>
@@ -358,14 +358,14 @@ export default function AddressManager({ hideTitle = false }) {
 
                 {/* ══ CỘT PHẢI: Form Thêm / Sửa Địa Chỉ ══ */}
                 <div className="lg:col-span-7">
-                    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white p-5 shadow-xs">
-                        <div className="mb-4 flex items-center justify-between border-b border-stone-100 pb-3">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                        <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
                             <div>
-                                <h3 className="text-sm font-bold text-stone-800 flex items-center gap-1.5">
+                                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                                     <span>{editingId ? '✏️' : '➕'}</span>
                                     <span>{editingId ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ nhận hàng'}</span>
                                 </h3>
-                                <p className="text-[11px] text-stone-500 mt-0.5">
+                                <p className="text-[11px] text-slate-500 mt-0.5">
                                     {editingId
                                         ? 'Chỉnh sửa thông tin người nhận hoặc chọn lại vị trí'
                                         : 'Nhập thông tin người nhận và lựa chọn phương thức định vị'}
@@ -376,7 +376,7 @@ export default function AddressManager({ hideTitle = false }) {
                                 <button
                                     type="button"
                                     onClick={resetForm}
-                                    className="rounded-xl border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
+                                    className="rounded-3xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                                 >
                                     ✕ Hủy sửa
                                 </button>
@@ -387,7 +387,7 @@ export default function AddressManager({ hideTitle = false }) {
                             {/* Tên & SĐT */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="mb-1 block text-xs font-bold text-stone-700">
+                                    <label className="mb-1 block text-xs font-bold text-slate-700">
                                         Tên người nhận <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -395,13 +395,13 @@ export default function AddressManager({ hideTitle = false }) {
                                         value={recipientName}
                                         onChange={(e) => setRecipientName(e.target.value)}
                                         placeholder="Ví dụ: Nguyễn Văn A"
-                                        className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-3 py-2 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-600 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                                        className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-sky-500"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-xs font-bold text-stone-700">
+                                    <label className="mb-1 block text-xs font-bold text-slate-700">
                                         Số điện thoại <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -409,7 +409,7 @@ export default function AddressManager({ hideTitle = false }) {
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder="Ví dụ: 0987654321"
-                                        className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-3 py-2 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-600 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                                        className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-sky-500"
                                         required
                                     />
                                 </div>
@@ -417,7 +417,7 @@ export default function AddressManager({ hideTitle = false }) {
 
                             {/* Phương thức chọn địa chỉ: Mapbox vs Nhập tay */}
                             <div>
-                                <label className="mb-1.5 block text-xs font-bold text-stone-700">
+                                <label className="mb-1.5 block text-xs font-bold text-slate-700">
                                     Phương thức chọn địa chỉ <span className="text-red-500">*</span>
                                 </label>
 
@@ -425,10 +425,10 @@ export default function AddressManager({ hideTitle = false }) {
                                     <button
                                         type="button"
                                         onClick={() => setInputTab(INPUT_TAB_MAP)}
-                                        className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                                        className={`flex items-center justify-center gap-1.5 rounded-3xl py-2 text-xs font-bold transition-all cursor-pointer ${
                                             inputTab === INPUT_TAB_MAP
-                                                ? 'bg-amber-800 text-white shadow-xs'
-                                                : 'border border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100'
+                                                ? 'bg-sky-800 text-white shadow-xs'
+                                                : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                                         }`}
                                     >
                                         <span>🗺️</span>
@@ -438,10 +438,10 @@ export default function AddressManager({ hideTitle = false }) {
                                     <button
                                         type="button"
                                         onClick={() => setInputTab(INPUT_TAB_MANUAL)}
-                                        className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                                        className={`flex items-center justify-center gap-1.5 rounded-3xl py-2 text-xs font-bold transition-all cursor-pointer ${
                                             inputTab === INPUT_TAB_MANUAL
-                                                ? 'bg-amber-800 text-white shadow-xs'
-                                                : 'border border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100'
+                                                ? 'bg-sky-800 text-white shadow-xs'
+                                                : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                                         }`}
                                     >
                                         <span>✍️</span>
@@ -451,22 +451,22 @@ export default function AddressManager({ hideTitle = false }) {
 
                                 {/* Tab Mapbox */}
                                 {inputTab === INPUT_TAB_MAP && (
-                                    <div className="space-y-2.5 rounded-xl border border-amber-200/70 bg-amber-50/30 p-3">
-                                        <p className="text-[11px] text-amber-900 font-medium">
+                                    <div className="space-y-2.5 rounded-3xl border border-sky-200/70 bg-sky-50/30 p-3">
+                                        <p className="text-[11px] text-sky-900 font-medium">
                                             💡 Click trực tiếp lên bản đồ hoặc tìm kiếm để lấy vị trí và tự động tính khoảng cách!
                                         </p>
                                         <MapboxAddressPicker onAddressSelected={handleMapAddressSelected} />
 
                                         {fullAddress && (
-                                            <div className="rounded-xl border border-stone-200 bg-white p-2.5 shadow-2xs">
-                                                <label className="mb-1 block text-[10px] font-bold text-stone-600">
+                                            <div className="rounded-3xl border border-slate-200 bg-white p-2.5 shadow-2xs">
+                                                <label className="mb-1 block text-[10px] font-bold text-slate-600">
                                                     Địa chỉ lấy từ bản đồ (có thể bổ sung số nhà/tầng nếu cần):
                                                 </label>
                                                 <textarea
                                                     value={fullAddress}
                                                     onChange={(e) => setFullAddress(e.target.value)}
                                                     rows={2}
-                                                    className="w-full rounded-lg border border-stone-200 p-2 text-xs text-stone-800 focus:border-amber-600 focus:outline-hidden"
+                                                    className="w-full rounded-2xl border border-slate-200 p-2 text-xs text-slate-800 focus:border-sky-600 focus:outline-hidden"
                                                     required
                                                 />
                                             </div>
@@ -476,8 +476,8 @@ export default function AddressManager({ hideTitle = false }) {
 
                                 {/* Tab Nhập tay */}
                                 {inputTab === INPUT_TAB_MANUAL && (
-                                    <div className="space-y-1.5 rounded-xl border border-stone-200 bg-stone-50/50 p-3.5">
-                                        <label className="block text-xs font-bold text-stone-700">
+                                    <div className="space-y-1.5 rounded-3xl border border-slate-200 bg-slate-50/50 p-3.5">
+                                        <label className="block text-xs font-bold text-slate-700">
                                             Địa chỉ chi tiết <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
@@ -485,7 +485,7 @@ export default function AddressManager({ hideTitle = false }) {
                                             onChange={(e) => setFullAddress(e.target.value)}
                                             rows={3}
                                             placeholder="Ví dụ: Số 123 đường Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội..."
-                                            className="w-full rounded-xl border border-stone-200 bg-white p-2.5 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-600 focus:outline-hidden"
+                                            className="w-full rounded-3xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-hidden"
                                             required
                                         />
                                     </div>
@@ -493,24 +493,24 @@ export default function AddressManager({ hideTitle = false }) {
                             </div>
 
                             {/* Mặc định */}
-                            <label className="flex items-center gap-2 text-xs font-bold text-stone-700 cursor-pointer pt-0.5">
+                            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer pt-0.5">
                                 <input
                                     type="checkbox"
                                     checked={isDefault}
                                     onChange={(e) => setIsDefault(e.target.checked)}
-                                    className="h-3.5 w-3.5 rounded-md accent-amber-800 cursor-pointer"
+                                    className="h-3.5 w-3.5 rounded-md accent-sky-800 cursor-pointer"
                                 />
                                 <span>Đặt làm địa chỉ giao hàng mặc định</span>
                             </label>
 
                             {/* Tọa độ GPS preview */}
                             {latitude != null && longitude != null ? (
-                                <div className="flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 text-xs text-emerald-800">
+                                <div className="flex items-center gap-1.5 rounded-3xl bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 text-xs text-emerald-800">
                                     <span>📍</span>
                                     <span>Tọa độ GPS: <b className="font-mono">{Number(latitude).toFixed(5)}, {Number(longitude).toFixed(5)}</b></span>
                                 </div>
                             ) : (
-                                <p className="text-[11px] text-stone-400 italic">
+                                <p className="text-[11px] text-slate-400 italic">
                                     💡 Hệ thống sẽ tự động xác định tọa độ GPS từ Mapbox khi bấm lưu địa chỉ.
                                 </p>
                             )}
@@ -520,7 +520,7 @@ export default function AddressManager({ hideTitle = false }) {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-800 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-amber-900 disabled:opacity-50 transition-all cursor-pointer"
+                                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-3xl bg-sky-800 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-sky-900 disabled:opacity-50 transition-all cursor-pointer"
                                 >
                                     <span>{submitting ? '⏳' : editingId ? '💾' : '➕'}</span>
                                     <span>{submitting ? 'Đang lưu...' : editingId ? 'Lưu cập nhật' : 'Thêm địa chỉ'}</span>
@@ -530,7 +530,7 @@ export default function AddressManager({ hideTitle = false }) {
                                     <button
                                         type="button"
                                         onClick={resetForm}
-                                        className="rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-xs font-bold text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer"
+                                        className="rounded-3xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                                     >
                                         Hủy
                                     </button>

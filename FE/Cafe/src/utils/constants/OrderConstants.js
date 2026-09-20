@@ -13,12 +13,12 @@ export const OrderStatus = Object.freeze({
 
 // ── Cấu hình trạng thái đơn hàng ──────────────────────────────────────────────
 export const STATUS_CONFIG = {
-    Pending:    { label: 'Chờ xác nhận', color: 'bg-amber-100 text-amber-900 border-amber-300', dot: 'bg-amber-500' },
+    Pending:    { label: 'Chờ xác nhận', color: 'bg-sky-100 text-sky-900 border-sky-300', dot: 'bg-sky-500' },
     Confirmed:  { label: 'Đã xác nhận',  color: 'bg-blue-100 text-blue-900 border-blue-300',     dot: 'bg-blue-500' },
     Preparing:  { label: 'Đang pha chế', color: 'bg-purple-100 text-purple-900 border-purple-300', dot: 'bg-purple-500' },
     Delivering: { label: 'Đang giao',    color: 'bg-sky-100 text-sky-900 border-sky-300',       dot: 'bg-sky-500' },
     Completed:  { label: 'Hoàn thành',   color: 'bg-emerald-100 text-emerald-900 border-emerald-300', dot: 'bg-emerald-600' },
-    Cancelled:  { label: 'Đã hủy',       color: 'bg-stone-100 text-stone-500 border-stone-300',   dot: 'bg-stone-400' },
+    Cancelled:  { label: 'Đã hủy',       color: 'bg-slate-100 text-slate-500 border-slate-300',   dot: 'bg-slate-400' },
 }
 
 // ── Phương thức thanh toán ────────────────────────────────────────────────────
@@ -57,4 +57,3 @@ export const ORDER_STATUS_TABS = [
     { key: OrderStatus.COMPLETED,  label: STATUS_CONFIG.Completed.label,  icon: '⭐', dot: STATUS_CONFIG.Completed.dot },
     { key: OrderStatus.CANCELLED,  label: STATUS_CONFIG.Cancelled.label,  icon: '✕',  dot: STATUS_CONFIG.Cancelled.dot },
 ]
-

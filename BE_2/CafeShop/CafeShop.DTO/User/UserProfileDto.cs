@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -13,8 +13,8 @@ namespace CafeShop.DTO.User
     {
         public int UserId { get; set; }
         public string FullName { get; set; } = string.Empty;
-   
         public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
         public string? AvatarUrl { get; set; }
         public string? AvatarPublicId { get; set; }
     }
@@ -27,6 +27,9 @@ namespace CafeShop.DTO.User
 
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? PhoneNumber { get; set; }
+
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string? Email { get; set; }
 
         // Nhận file ảnh từ Frontend gửi lên để BE up lên Cloudinary
         public IFormFile? AvatarFile { get; set; }

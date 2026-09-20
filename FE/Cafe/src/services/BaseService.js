@@ -19,28 +19,42 @@ function isPublicAuthPath(url) {
     )
 }
 
-let storePromise = null
-function getStore() {
-    if (!storePromise) {
-        storePromise = import('../redux/store').then((m) => m.store)
+// ── Store Injection để tránh Circular Dependency & Dynamic Import overhead ───
+let appStore = null
+
+export const injectStore = (store) => {
+    appStore = store
+}
+
+function dispatchStartLoading() {
+    if (appStore) {
+        appStore.dispatch(startGlobalLoading())
     }
-    return storePromise
 }
 
-async function dispatchStartLoading() {
-    const store = await getStore()
-    store.dispatch(startGlobalLoading())
+function dispatchStopLoading() {
+    if (appStore) {
+        appStore.dispatch(stopGlobalLoading())
+    }
 }
 
-async function dispatchStopLoading() {
-    const store = await getStore()
-    store.dispatch(stopGlobalLoading())
+function dispatchLogout() {
+    if (appStore) {
+        appStore.dispatch({ type: 'auth/logout' })
+    }
 }
 
-http.interceptors.request.use(async (config) => {
+function dispatchHydrateTokens(payload) {
+    if (appStore) {
+        appStore.dispatch({ type: 'auth/hydrateTokens', payload })
+    }
+}
+
+// ── Request Interceptor (Hoàn toàn đồng bộ, không block luồng bằng await) ────
+http.interceptors.request.use((config) => {
     if (!config.__skipGlobalLoading) {
         config.__globalLoadingCountered = true
-        await dispatchStartLoading()
+        dispatchStartLoading()
     }
 
     if (!isPublicAuthPath(config.url)) {
@@ -52,6 +66,7 @@ http.interceptors.request.use(async (config) => {
     return config
 })
 
+// ── Queue & Mutex cho Refresh Token ──────────────────────────────────────────
 let isRefreshing = false
 let failedQueue = []
 
@@ -63,16 +78,11 @@ function processQueue(error, token) {
     failedQueue = []
 }
 
-async function dispatchLogout() {
-    const { store } = await import('../redux/store')
-    const { logout } = await import('../redux/slices/authSlice')
-    store.dispatch(logout())
-}
-
+// ── Response Interceptor ─────────────────────────────────────────────────────
 http.interceptors.response.use(
-    async (response) => {
+    (response) => {
         if (response?.config?.__globalLoadingCountered) {
-            await dispatchStopLoading()
+            dispatchStopLoading()
         }
         return response
     },
@@ -82,18 +92,18 @@ http.interceptors.response.use(
         const shouldStopLoading = Boolean(originalRequest?.__globalLoadingCountered)
 
         if (status !== 401 || !originalRequest) {
-            if (shouldStopLoading) await dispatchStopLoading()
+            if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(error)
         }
 
         if (isPublicAuthPath(originalRequest.url) || originalRequest.__skipRefresh) {
-            if (shouldStopLoading) await dispatchStopLoading()
+            if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(error)
         }
 
         if (originalRequest._retry) {
-            await dispatchLogout()
-            if (shouldStopLoading) await dispatchStopLoading()
+            dispatchLogout()
+            if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(error)
         }
 
@@ -106,12 +116,12 @@ http.interceptors.response.use(
                     originalRequest.__skipGlobalLoading = true
                     originalRequest.__globalLoadingCountered = false
                     originalRequest._retry = true
-                    return http(originalRequest).finally(async () => {
-                        if (shouldStopLoading) await dispatchStopLoading()
+                    return http(originalRequest).finally(() => {
+                        if (shouldStopLoading) dispatchStopLoading()
                     })
                 })
-                .catch(async (err) => {
-                    if (shouldStopLoading) await dispatchStopLoading()
+                .catch((err) => {
+                    if (shouldStopLoading) dispatchStopLoading()
                     return Promise.reject(err)
                 })
         }
@@ -120,8 +130,8 @@ http.interceptors.response.use(
         const refreshToken = localStorage.getItem(REFRESH_TOKEN)
 
         if (!accessToken || !refreshToken) {
-            await dispatchLogout()
-            if (shouldStopLoading) await dispatchStopLoading()
+            dispatchLogout()
+            if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(error)
         }
 
@@ -144,15 +154,11 @@ http.interceptors.response.use(
             const newRefresh = payload?.refreshToken ?? refreshToken
             const newRole = resolveRoleFromAuth(payload, newAccess)
 
-            const { store } = await import('../redux/store')
-            const { hydrateTokens } = await import('../redux/slices/authSlice')
-            store.dispatch(
-                hydrateTokens({
-                    accessToken: newAccess,
-                    refreshToken: newRefresh,
-                    ...(newRole != null ? { role: newRole } : {}),
-                })
-            )
+            dispatchHydrateTokens({
+                accessToken: newAccess,
+                refreshToken: newRefresh,
+                ...(newRole != null ? { role: newRole } : {}),
+            })
 
             processQueue(null, newAccess)
             isRefreshing = false
@@ -162,14 +168,14 @@ http.interceptors.response.use(
             originalRequest.__globalLoadingCountered = false
             originalRequest._retry = true
 
-            return http(originalRequest).finally(async () => {
-                if (shouldStopLoading) await dispatchStopLoading()
+            return http(originalRequest).finally(() => {
+                if (shouldStopLoading) dispatchStopLoading()
             })
         } catch (refreshErr) {
             processQueue(refreshErr, null)
             isRefreshing = false
-            await dispatchLogout()
-            if (shouldStopLoading) await dispatchStopLoading()
+            dispatchLogout()
+            if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(refreshErr)
         }
     }

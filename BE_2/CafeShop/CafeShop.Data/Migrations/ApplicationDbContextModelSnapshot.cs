@@ -282,9 +282,6 @@ namespace CafeShop.Data.Migrations
                     b.Property<string>("CurrentStatus")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("DiscountAmount")
                         .HasColumnType("decimal(65,30)");
 
@@ -307,6 +304,9 @@ namespace CafeShop.Data.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("VoucherId")
                         .HasColumnType("int");
 
@@ -314,7 +314,7 @@ namespace CafeShop.Data.Migrations
 
                     b.HasIndex("AddressId");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("UserId");
 
                     b.HasIndex("VoucherId");
 
@@ -607,6 +607,9 @@ namespace CafeShop.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("FullName")
                         .HasColumnType("longtext");
 
@@ -836,9 +839,9 @@ namespace CafeShop.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CafeShop.Model.User", "Customer")
+                    b.HasOne("CafeShop.Model.User", "User")
                         .WithMany("Orders")
-                        .HasForeignKey("CustomerId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -848,7 +851,7 @@ namespace CafeShop.Data.Migrations
 
                     b.Navigation("Address");
 
-                    b.Navigation("Customer");
+                    b.Navigation("User");
 
                     b.Navigation("Voucher");
                 });

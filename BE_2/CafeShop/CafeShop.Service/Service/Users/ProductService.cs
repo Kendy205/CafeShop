@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Product;
+using CafeShop.DTO.Admin;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
+using System.Text.Json;
+using CafeShop.Service.IService;
 
 namespace CafeShop.Services.Services
 {
@@ -14,27 +17,22 @@ namespace CafeShop.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPhotoService _photoService;
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _photoService = photoService;
         }
 
-        public Task AddAsync(Product entity)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task DeleteAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)
         {
             // 1. Lấy toàn bộ dữ liệu (nếu hệ thống lớn, bạn nên tối ưu lại hàm này trong Repository để trả về IQueryable)
             var products = await _unitOfWork.Product.GetAllAsync(
+                            filter: p => p.IsAvailable, // ONLY AVAILABLE
                             includeProperties: "Category,ProductSizes,ProductSizes.Size");
             var query = products.AsQueryable();
 
@@ -89,29 +87,15 @@ namespace CafeShop.Services.Services
 
         public async Task<ProductResponseDto?> GetByIdAsync(int id)
         {
-            // 1. Thêm ProductSizes và ProductSizes.Size vào includeProperties để EF Core tự động Join bảng
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
-                p => p.ProductId == id,
+                p => p.ProductId == id && p.IsAvailable, // ONLY AVAILABLE
                 includeProperties: "Category,ProductSizes,ProductSizes.Size"
             );
 
             if (product == null)
                 return null;
 
-            // 2. Map các thông tin cơ bản bằng AutoMapper (Tên, BasePrice, CategoryName...)
-            
-
-            var mappedProduct = _mapper.Map<ProductResponseDto>(product);
-
-            return mappedProduct;
-        }
-
-
-
-
-        public Task UpdateAsync(Product entity)
-        {
-            throw new NotImplementedException();
+            return _mapper.Map<ProductResponseDto>(product);
         }
     }
 }

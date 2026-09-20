@@ -105,6 +105,10 @@ namespace CafeShop.Controllers
                     Message = "Hủy đơn hàng thành công!"
                 });
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                return BadRequest(ApiResponse<string>.Failed("Tồn kho vừa được cập nhật, vui lòng thử hủy lại!", 409));
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(new ApiResponse<object> { Success = false, Message = ex.Message });

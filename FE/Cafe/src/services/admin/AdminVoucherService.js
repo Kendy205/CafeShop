@@ -1,13 +1,17 @@
 import { BaseServices } from '../BaseService'
 
 export class AdminVoucherService extends BaseServices {
-    getVouchers = (params) => this.get('/api/Voucher', { params })
+    basePath = '/api/admin/voucher'
 
-    createVoucher = (body) => this.post('/api/Voucher', body)
+    getVouchers = (params) => this.get(this.basePath, { params, __skipGlobalLoading: true })
 
-    updateVoucher = (id, body) => this.put(`/api/Voucher/${id}`, body)
+    createVoucher = (body) => this.post(this.basePath, body)
 
-    toggleActive = (id) => this.patch(`/api/Voucher/${id}/toggle-active`)
+    updateVoucher = (id, body) => this.put(`${this.basePath}/${id}`, body)
+
+    toggleActive = (id) => this.patch(`${this.basePath}/${id}/toggle-active`)
+
+    assignUser = (body) => this.post(`${this.basePath}/assign-user`, body)
 }
 
 export const adminVoucherService = new AdminVoucherService()

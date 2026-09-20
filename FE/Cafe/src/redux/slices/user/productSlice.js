@@ -4,10 +4,10 @@ import { normalizePagedResult } from '../../../utils/helpers/api'
 
 const initialState = {
     items: [],
-    totalRecord: 0,
+    total: 0,
     totalPages: 0,
-    pageNumber: 1,
-    pageSize: 10,
+    page: 1,
+    pageSize: 8,
     detail: null,
     loading: false,
     detailLoading: false,
@@ -18,15 +18,13 @@ const productSlice = createSlice({
     name: 'product',
     initialState,
     reducers: {
-        clearProductError: (state) => {
-            state.error = null
-        },
         clearProductDetail: (state) => {
             state.detail = null
         },
     },
     extraReducers: (builder) => {
         builder
+            // ── getProducts ──────────────────────────────────────────
             .addCase(getProducts.pending, (state) => {
                 state.loading = true
                 state.error = null
@@ -35,15 +33,16 @@ const productSlice = createSlice({
                 state.loading = false
                 const paged = normalizePagedResult(action.payload, state.pageSize || 8)
                 state.items = paged.items
-                state.totalRecord = paged.total
-                state.pageNumber = paged.page
-                state.pageSize = paged.pageSize
+                state.total = paged.total
                 state.totalPages = paged.totalPages
+                state.page = paged.page
+                state.pageSize = paged.pageSize
             })
             .addCase(getProducts.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.payload
             })
+            // ── getProductDetail ─────────────────────────────────────
             .addCase(getProductDetail.pending, (state) => {
                 state.detailLoading = true
                 state.error = null
@@ -59,5 +58,5 @@ const productSlice = createSlice({
     },
 })
 
-export const { clearProductError, clearProductDetail } = productSlice.actions
+export const { clearProductDetail } = productSlice.actions
 export default productSlice.reducer

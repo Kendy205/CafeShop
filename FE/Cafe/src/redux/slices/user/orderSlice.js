@@ -7,14 +7,12 @@ import {
     submitOrder,
     calculateShippingFee,
 } from '../../actions/user/orderAction'
-import { normalizePagedResult } from '../../../utils/helpers/api'
 
-// Tọa độ quán cafe đồng nhất từ cấu hình .env
+// Tọa độ quán cafe — đọc từ .env, fallback về Hà Nội
 export const CAFE_LAT = parseFloat(import.meta.env.VITE_STORE_LAT ?? '21.0285')
 export const CAFE_LNG = parseFloat(import.meta.env.VITE_STORE_LNG ?? '105.8542')
 
 const initialState = {
-    // Tọa độ Quán Cafe
     cafeLat: CAFE_LAT,
     cafeLng: CAFE_LNG,
 
@@ -55,7 +53,7 @@ const orderSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // ── Submit Order (Gộp chung 2 luồng) ─────────────────────────
+            // ── Submit Order ──────────────────────────────────────────────
             .addCase(submitOrder.pending, (state) => {
                 state.submitting = true
                 state.error = null
@@ -63,7 +61,7 @@ const orderSlice = createSlice({
             .addCase(submitOrder.fulfilled, (state, action) => {
                 state.submitting = false
                 state.lastOrder = action.payload
-                state.successMessage = action.payload?.message || action.payload?.Message || 'Đặt hàng thành công'
+                state.successMessage = action.payload?.message ?? 'Đặt hàng thành công'
             })
             .addCase(submitOrder.rejected, (state, action) => {
                 state.submitting = false
@@ -82,7 +80,7 @@ const orderSlice = createSlice({
                 state.calculatingFee = false
             })
 
-            // ── Buy Now ──────────────────────────────────────────────────
+            // ── Buy Now ───────────────────────────────────────────────────
             .addCase(buyNowOrder.pending, (state) => {
                 state.submitting = true
                 state.error = null
@@ -90,14 +88,14 @@ const orderSlice = createSlice({
             .addCase(buyNowOrder.fulfilled, (state, action) => {
                 state.submitting = false
                 state.lastOrder = action.payload
-                state.successMessage = action.payload?.message || action.payload?.Message || 'Đặt hàng thành công'
+                state.successMessage = action.payload?.message ?? 'Đặt hàng thành công'
             })
             .addCase(buyNowOrder.rejected, (state, action) => {
                 state.submitting = false
                 state.error = action.payload
             })
 
-            // ── Checkout ─────────────────────────────────────────────────
+            // ── Checkout ──────────────────────────────────────────────────
             .addCase(checkoutOrder.pending, (state) => {
                 state.submitting = true
                 state.error = null
@@ -105,7 +103,7 @@ const orderSlice = createSlice({
             .addCase(checkoutOrder.fulfilled, (state, action) => {
                 state.submitting = false
                 state.lastOrder = action.payload
-                state.successMessage = action.payload?.message || action.payload?.Message || 'Chốt đơn thành công'
+                state.successMessage = action.payload?.message ?? 'Chốt đơn thành công'
             })
             .addCase(checkoutOrder.rejected, (state, action) => {
                 state.submitting = false
@@ -119,12 +117,12 @@ const orderSlice = createSlice({
             })
             .addCase(getMyOrders.fulfilled, (state, action) => {
                 state.myOrdersLoading = false
-                const paged = normalizePagedResult(action.payload)
-                state.myOrders = paged.items
-                state.myOrdersTotal = paged.total
-                state.myOrdersPage = paged.page
-                state.myOrdersPageSize = paged.pageSize
-                state.myOrdersTotalPages = paged.totalPages
+                const payload = action.payload ?? {}
+                state.myOrders = payload.items ?? []
+                state.myOrdersTotal = payload.total ?? 0
+                state.myOrdersPage = payload.page ?? 1
+                state.myOrdersPageSize = payload.pageSize ?? 10
+                state.myOrdersTotalPages = payload.totalPages ?? Math.max(1, Math.ceil((payload.total ?? 0) / (payload.pageSize ?? 10)))
             })
             .addCase(getMyOrders.rejected, (state, action) => {
                 state.myOrdersLoading = false
@@ -139,11 +137,8 @@ const orderSlice = createSlice({
             .addCase(cancelOrder.fulfilled, (state, action) => {
                 state.cancelling = false
                 const cancelledId = action.payload
-                // Cập nhật status local ngay lập tức, không cần fetch lại
                 state.myOrders = state.myOrders.map((o) =>
-                    o.orderId === cancelledId
-                        ? { ...o, currentStatus: 'Cancelled' }
-                        : o
+                    o.orderId === cancelledId ? { ...o, currentStatus: 'Cancelled' } : o
                 )
             })
             .addCase(cancelOrder.rejected, (state, action) => {

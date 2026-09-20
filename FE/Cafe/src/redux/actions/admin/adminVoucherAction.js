@@ -49,3 +49,15 @@ export const toggleAdminVoucher = createAsyncThunk(
         }
     }
 )
+
+export const assignAdminVoucher = createAsyncThunk(
+    'adminVoucher/assign',
+    async (body, { rejectWithValue }) => {
+        try {
+            const res = await adminVoucherService.assignUser(body)
+            return unwrapApi(res)
+        } catch (e) {
+            return rejectWithValue(pickErrorMessage(e, 'Gán mã giảm giá thất bại'))
+        }
+    }
+)

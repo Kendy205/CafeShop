@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Voucher;
 using CafeShop.Model;
@@ -66,7 +66,7 @@ namespace CafeShop.Services.Services
             // 1. Mã Public (các trường cá nhân tự mang giá trị null)
             var publicVouchers = (await _unitOfWork.Voucher.GetAllAsync(v =>
                 v.IsActive &&
-                v.TargetType == VoucherTypeTarget.PUBLIC &&
+                (v.TargetType == VoucherTypeTarget.PUBLIC || v.TargetType == "Public") &&
                 v.StartDate <= now &&
                 v.EndDate >= now &&
                 v.UsedCount < v.UsageLimit
@@ -103,7 +103,7 @@ namespace CafeShop.Services.Services
             var allAvailable = validMyVouchers
                 .Concat(publicVouchers)
                 .DistinctBy(v => v.VoucherId)
-                .OrderByDescending(v => v.TargetType == VoucherTypeTarget.USER.ToString()) // Đẩy mã cá nhân lên đầu danh sách cho user dễ thấy
+                .OrderByDescending(v => VoucherTypeTarget.IsUser(v.TargetType))
                 .ThenByDescending(v => v.DiscountValue)
                 .ToList();
 
@@ -170,7 +170,7 @@ namespace CafeShop.Services.Services
                 throw new ArgumentException("Mã giảm giá không tồn tại!");
 
             UserVoucher? userVoucher = null;
-            if (voucher.TargetType == VoucherTypeTarget.USER)
+            if (VoucherTypeTarget.IsUser(voucher.TargetType))
             {
                 userVoucher = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(uv => uv.UserId == userId && uv.VoucherId == voucher.VoucherId);
             }
@@ -203,122 +203,7 @@ namespace CafeShop.Services.Services
             };
         }
 
-        // =========================================================================
-        // ADMIN LOGIC
-        // =========================================================================
 
-        public async Task<object> GetAllVouchersAsync(int pageNumber, int pageSize)
-        {
-            var vouchers = await _unitOfWork.Voucher.GetAllAsync();
-            var totalItems = vouchers.Count();
-            var pagedData = vouchers.OrderByDescending(v => v.VoucherId)
-                                    .Skip((pageNumber - 1) * pageSize)
-                                    .Take(pageSize)
-                                    .ToList();
-
-            return new
-            {
-                TotalItems = totalItems,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
-                Items = _mapper.Map<List<VoucherDto>>(pagedData)
-            };
-        }
-
-        public async Task<VoucherDto?> GetVoucherByIdAsync(int id)
-        {
-            var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == id);
-            return voucher == null ? null : _mapper.Map<VoucherDto>(voucher);
-        }
-
-        public async Task<VoucherDto> CreateVoucherAsync(CreateVoucherDto dto)
-        {
-            var existing = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.Code == dto.Code);
-            if (existing != null)
-                throw new ArgumentException($"Mã voucher '{dto.Code}' đã tồn tại trong hệ thống!");
-
-            if (dto.EndDate <= dto.StartDate)
-                throw new ArgumentException("Ngày kết thúc phải lớn hơn ngày bắt đầu!");
-
-            var voucher = _mapper.Map<Voucher>(dto);
-            voucher.UsedCount = 0;
-
-            await _unitOfWork.Voucher.AddAsync(voucher);
-            await _unitOfWork.SaveAsync();
-
-            return _mapper.Map<VoucherDto>(voucher);
-        }
-
-        public async Task<VoucherDto> UpdateVoucherAsync(int id, UpdateVoucherDto dto)
-        {
-            var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == id);
-            if (voucher == null)
-                throw new ArgumentException("Mã giảm giá không tồn tại!");
-
-            if (dto.EndDate <= dto.StartDate)
-                throw new ArgumentException("Ngày kết thúc phải lớn hơn ngày bắt đầu!");
-
-            _mapper.Map(dto, voucher);
-            _unitOfWork.Voucher.Update(voucher);
-            await _unitOfWork.SaveAsync();
-
-            return _mapper.Map<VoucherDto>(voucher);
-        }
-
-        public async Task<bool> ToggleActiveAsync(int id)
-        {
-            var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == id);
-            if (voucher == null)
-                throw new ArgumentException("Mã giảm giá không tồn tại!");
-
-            voucher.IsActive = !voucher.IsActive;
-            _unitOfWork.Voucher.Update(voucher);
-            await _unitOfWork.SaveAsync();
-
-            return voucher.IsActive;
-        }
-
-        public async Task DeleteVoucherAsync(int id)
-        {
-            var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == id);
-            if (voucher == null)
-                throw new ArgumentException("Mã giảm giá không tồn tại!");
-
-            _unitOfWork.Voucher.Remove(voucher);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task AssignVoucherToUserAsync(AssignUserVoucherDto dto)
-        {
-            var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId);
-            if (voucher == null)
-                throw new ArgumentException("Mã giảm giá không tồn tại!");
-
-            if (voucher.TargetType != "Personal")
-                throw new ArgumentException("Chỉ có thể gán mã cá nhân (Personal) cho người dùng!");
-
-            foreach (var uId in dto.UserIds)
-            {
-                var existingAssignment = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(
-                    uv => uv.UserId == uId && uv.VoucherId == dto.VoucherId
-                );
-
-                if (existingAssignment == null)
-                {
-                    await _unitOfWork.UserVoucher.AddAsync(new UserVoucher
-                    {
-                        UserId = uId,
-                        VoucherId = dto.VoucherId,
-                        UsageLimitPerUser = dto.UsageLimitPerUser > 0 ? dto.UsageLimitPerUser : 1,
-                        UsedCount = 0,
-                        AssignedDate = DateTime.UtcNow
-                    });
-                }
-            }
-
-            await _unitOfWork.SaveAsync();
-        }
 
         // =========================================================================
         // PRIVATE HELPER METHODS
@@ -344,7 +229,7 @@ namespace CafeShop.Services.Services
                 throw new ArgumentException($"Đơn hàng tối thiểu phải từ {voucher.MinOrderValue:N0} đ để dùng mã này!");
 
             // 5. Kiểm tra voucher cá nhân (USER / PERSONAL)
-            if (voucher.TargetType == VoucherTypeTarget.USER)
+            if (VoucherTypeTarget.IsUser(voucher.TargetType))
             {
                 if (userVoucher == null || userVoucher.UserId != userId)
                     throw new ArgumentException("Bạn không sở hữu mã giảm giá này!");
@@ -418,7 +303,7 @@ namespace CafeShop.Services.Services
                 throw new ArgumentException("Mã giảm giá không tồn tại!");
 
             UserVoucher? userVoucher = null;
-            if (voucher.TargetType == "Personal")
+            if (VoucherTypeTarget.IsUser(voucher.TargetType))
             {
                 userVoucher = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(
                     uv => uv.UserId == userId && uv.VoucherId == voucher.VoucherId
@@ -433,7 +318,7 @@ namespace CafeShop.Services.Services
             _unitOfWork.Voucher.Update(voucher);
 
             // Nếu là mã cá nhân -> Tiêu thụ lượt dùng của user
-            if (voucher.TargetType == VoucherTypeTarget.USER && userVoucher != null)
+            if (VoucherTypeTarget.IsUser(voucher.TargetType) && userVoucher != null)
             {
                 userVoucher.UsedCount += 1;
                 _unitOfWork.UserVoucher.Update(userVoucher);

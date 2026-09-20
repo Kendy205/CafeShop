@@ -1,4 +1,4 @@
-export const DOMAIN = import.meta.env.VITE_API_URL || 'https://localhost:7198'
+export const DOMAIN = import.meta.env.VITE_API_URL
 
 export const TOKEN = 'accessToken'
 export const REFRESH_TOKEN = 'refreshToken'

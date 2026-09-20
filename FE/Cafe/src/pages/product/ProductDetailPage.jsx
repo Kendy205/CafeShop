@@ -5,6 +5,7 @@ import { getProductDetail } from '../../redux/actions/user/productAction'
 import { getAvailableToppings } from '../../redux/actions/user/toppingAction'
 import { addToCart } from '../../redux/actions/user/cartAction'
 import { clearProductDetail } from '../../redux/slices/user/productSlice'
+import { openAuthModal } from '../../redux/slices/authSlice'
 import { formatVnd } from '../../utils/helpers/format'
 import Skeleton from '../../components/loading/Skeleton'
 import ProductFeedbackSection from '../../components/feedback/ProductFeedbackSection'
@@ -69,7 +70,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
     const linePreview = useMemo(() => {
         const unit = selectedSize?.price ?? detail.basePrice ?? 0
         const toppingSum = selectedToppings.reduce((s, t) => s + Number(t.price || 0) * t.quantity, 0)
-        return unit * quantity + toppingSum
+        return (unit + toppingSum) * quantity
     }, [selectedSize, detail, selectedToppings, quantity])
 
     const buildAddPayload = () => ({
@@ -83,7 +84,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
     })
 
     const requireLogin = () => {
-        navigate('/login', { state: { from: `/menu/${productId}` } })
+        dispatch(openAuthModal('login'))
     }
 
     const handleAddToCart = async () => {
@@ -156,7 +157,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
     return (
         <div>
             {detail.categoryName && (
-                <p className="text-xs uppercase tracking-wide text-amber-800">{detail.categoryName}</p>
+                <p className="text-xs uppercase tracking-wide text-sky-800">{detail.categoryName}</p>
             )}
             <div className="mt-1 flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-semibold">{detail.name}</h1>
@@ -176,22 +177,22 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                             e.preventDefault()
                             document.getElementById('product-reviews')?.scrollIntoView({ behavior: 'smooth' })
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-900 border border-amber-200/80 hover:bg-amber-100 hover:border-amber-300 transition shadow-2xs"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-bold text-sky-900 border border-sky-200/80 hover:bg-sky-100 hover:border-sky-300 transition shadow-2xs"
                     >
-                        <span className="text-amber-500 font-extrabold">★</span>
+                        <span className="text-sky-500 font-extrabold">★</span>
                         <span>{Number(summary.averageRating).toFixed(1)}</span>
-                        <span className="text-stone-400 font-medium">({summary.totalReviews} đánh giá)</span>
+                        <span className="text-slate-400 font-medium">({summary.totalReviews} đánh giá)</span>
                     </a>
                 ) : (
-                    <span className="text-xs text-stone-400">★ Chưa có đánh giá</span>
+                    <span className="text-xs text-slate-400">★ Chưa có đánh giá</span>
                 )}
             </div>
 
-            <p className="mt-2 text-sm text-stone-500">
+            <p className="mt-2 text-sm text-slate-500">
                 Giá size đang chọn:{' '}
                 {formatVnd(selectedSize?.price ?? detail.basePrice)}
             </p>
-            <p className="mt-2 text-xl text-amber-900">{formatVnd(linePreview)}</p>
+            <p className="mt-2 text-xl text-sky-900">{formatVnd(linePreview)}</p>
             {(error || cartError || localError) && (
                 <p className="mt-2 text-sm text-red-600">{localError || cartError || error}</p>
             )}
@@ -200,7 +201,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                 <div className="mb-2 flex items-center justify-between">
                     <p className="text-sm font-medium">Chọn size</p>
                     {hasSizes && selectedSize && (
-                        <span className="text-xs text-stone-500">
+                        <span className="text-xs text-slate-500">
                             {selectedSize.isOutOfStock ? (
                                 <span className="font-semibold text-red-600">Size này đã hết</span>
                             ) : (
@@ -227,10 +228,10 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                     disabled={isSizeOOS}
                                     onClick={() => setSizeId(s.sizeId)}
                                     className={`rounded-full border px-4 py-2 text-sm transition-all ${isSizeOOS
-                                            ? 'cursor-not-allowed border-stone-200 bg-stone-100 text-stone-400 opacity-60'
+                                            ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 opacity-60'
                                             : isSelected
-                                                ? 'border-amber-800 bg-amber-800 text-white shadow-sm'
-                                                : 'border-stone-200 bg-white hover:border-amber-700'
+                                                ? 'border-sky-800 bg-sky-800 text-white shadow-sm'
+                                                : 'border-slate-200 bg-white hover:border-sky-700'
                                         }`}
                                 >
                                     {s.name} · {formatVnd(s.price)} {isSizeOOS && '(Hết hàng)'}
@@ -239,26 +240,26 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                         })}
                     </div>
                 ) : (
-                    <p className="text-sm text-stone-500">Món này không có size.</p>
+                    <p className="text-sm text-slate-500">Món này không có size.</p>
                 )}
             </div>
 
             {/* ── Topping thêm (Add-on) ── */}
-            <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-50/60 p-4">
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div>
                         <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-stone-800">Topping thêm</p>
-                            <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                            <p className="text-sm font-semibold text-slate-800">Topping thêm</p>
+                            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                                 Tùy chọn
                             </span>
                             {selectedToppings.length > 0 && (
-                                <span className="rounded-full bg-amber-800 px-2 py-0.5 text-[11px] font-medium text-white shadow-sm">
+                                <span className="rounded-full bg-sky-800 px-2 py-0.5 text-[11px] font-medium text-white shadow-sm">
                                     Đã thêm {selectedToppings.length} loại
                                 </span>
                             )}
                         </div>
-                        <p className="mt-1 text-xs text-stone-500">
+                        <p className="mt-1 text-xs text-slate-500">
                             Đồ uống đã có topping mặc định theo công thức. Chọn thêm nếu bạn muốn thêm topping nhé!
                         </p>
                     </div>
@@ -266,9 +267,9 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                     <button
                         type="button"
                         onClick={() => setShowToppingList((prev) => !prev)}
-                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${showToppingList
-                                ? 'bg-stone-200 text-stone-700 hover:bg-stone-300'
-                                : 'bg-amber-800 text-white shadow-sm hover:bg-amber-900'
+                        className={`inline-flex items-center gap-1.5 rounded-3xl px-3 py-1.5 text-xs font-semibold transition-all ${showToppingList
+                                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                : 'bg-sky-800 text-white shadow-sm hover:bg-sky-900'
                             }`}
                     >
                         {showToppingList ? (
@@ -295,20 +296,20 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                         {selectedToppings.map((t) => (
                             <div
                                 key={t.toppingId}
-                                className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50/90 px-2.5 py-1 text-xs text-amber-950 shadow-xs"
+                                className="inline-flex items-center gap-2 rounded-3xl border border-sky-300 bg-sky-50/90 px-2.5 py-1 text-xs text-sky-950 shadow-xs"
                             >
                                 <span className="font-medium">{t.name}</span>
-                                <span className="rounded-md bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-900">
+                                <span className="rounded-md bg-sky-200/80 px-1.5 py-0.5 text-[10px] font-bold text-sky-900">
                                     +{t.quantity} {t.unit}
                                 </span>
-                                <span className="text-amber-800 font-semibold">
-                                    {formatVnd(Number(t.price) * t.quantity)}
+                                <span className="text-sky-800 font-semibold">
+                                    {formatVnd(Number(t.price) * t.quantity * quantity)}
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => changeTopping(t.toppingId, 0)}
                                     title="Xóa topping này"
-                                    className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-stone-400 hover:bg-amber-200 hover:text-red-600 transition-colors"
+                                    className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-slate-400 hover:bg-sky-200 hover:text-red-600 transition-colors"
                                 >
                                     ✕
                                 </button>
@@ -319,12 +320,12 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
 
                 {/* Danh sách chọn topping - chỉ hiển thị khi showToppingList = true */}
                 {showToppingList && (
-                    <div className="mt-4 border-t border-stone-200/80 pt-4">
+                    <div className="mt-4 border-t border-slate-200/80 pt-4">
                         {toppings.length === 0 ? (
-                            <p className="py-2 text-center text-sm text-stone-400">Hiện chưa có topping khả dụng.</p>
+                            <p className="py-2 text-center text-sm text-slate-400">Hiện chưa có topping khả dụng.</p>
                         ) : (
                             <>
-                                <div className="mb-2 flex items-center justify-between text-xs text-stone-500">
+                                <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
                                     <span>Chọn loại topping và định lượng thêm:</span>
                                     <span>{toppings.length} loại có thể thêm</span>
                                 </div>
@@ -349,14 +350,14 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                     if (!active && !isToppingOOS) changeTopping(t.toppingId, Math.min(step, maxToppingStock))
                                                 }}
                                                 className={`relative flex flex-col overflow-hidden rounded-2xl border-2 transition-all duration-200 ${isToppingOOS
-                                                        ? 'cursor-not-allowed border-stone-200 bg-stone-100/70 opacity-60'
+                                                        ? 'cursor-not-allowed border-slate-200 bg-slate-100/70 opacity-60'
                                                         : active
-                                                            ? 'border-amber-700 bg-amber-50/40 shadow-md shadow-amber-100'
-                                                            : 'cursor-pointer border-stone-200/80 bg-white hover:border-amber-400 hover:shadow-sm'
+                                                            ? 'border-sky-700 bg-sky-50/40 shadow-md shadow-sky-100'
+                                                            : 'cursor-pointer border-slate-200/80 bg-white hover:border-sky-400 hover:shadow-sm'
                                                     }`}
                                             >
                                                 {/* Hình ảnh topping */}
-                                                <div className="relative h-24 w-full overflow-hidden bg-amber-50">
+                                                <div className="relative h-24 w-full overflow-hidden bg-sky-50">
                                                     {t.imageUrl ? (
                                                         <img
                                                             src={t.imageUrl}
@@ -372,14 +373,14 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
 
                                                     {/* Badge hết hàng */}
                                                     {isToppingOOS && (
-                                                        <span className="absolute left-2 top-2 rounded-full bg-stone-800/90 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                                                        <span className="absolute left-2 top-2 rounded-full bg-slate-800/90 px-2 py-0.5 text-[10px] font-bold text-white shadow">
                                                             Hết hàng
                                                         </span>
                                                     )}
 
                                                     {/* Badge số lượng khi active */}
                                                     {active && !isToppingOOS && (
-                                                        <span className="absolute left-2 top-2 rounded-full bg-amber-800 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                                                        <span className="absolute left-2 top-2 rounded-full bg-sky-800 px-2 py-0.5 text-[10px] font-bold text-white shadow">
                                                             +{qty} {t.unit || 'phần'}
                                                         </span>
                                                     )}
@@ -388,7 +389,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                     {!active && !isToppingOOS && (
                                                         <button
                                                             type="button"
-                                                            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-amber-800 shadow-sm hover:bg-amber-800 hover:text-white transition-colors"
+                                                            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-sky-800 shadow-sm hover:bg-sky-800 hover:text-white transition-colors"
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 changeTopping(t.toppingId, Math.min(step, maxToppingStock))
@@ -402,20 +403,20 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                 </div>
 
                                                 {/* Thông tin topping */}
-                                                <div className={`px-2.5 py-2 ${active ? 'bg-amber-50/60' : 'bg-white'}`}>
-                                                    <p className="truncate text-xs font-semibold text-stone-800" title={t.name}>
+                                                <div className={`px-2.5 py-2 ${active ? 'bg-sky-50/60' : 'bg-white'}`}>
+                                                    <p className="truncate text-xs font-semibold text-slate-800" title={t.name}>
                                                         {t.name}{' '}
                                                         {isToppingOOS && (
                                                             <span className="font-normal text-red-600">(Hết hàng)</span>
                                                         )}
                                                     </p>
                                                     <div className="mt-1 flex items-center justify-between gap-1">
-                                                        <span className="text-[11px] font-medium text-amber-800">
+                                                        <span className="text-[11px] font-medium text-sky-800">
                                                             +{formatVnd(t.price)}
-                                                            {t.unit ? <span className="text-stone-400 font-normal"> / {t.unit}</span> : null}
+                                                            {t.unit ? <span className="text-slate-400 font-normal"> / {t.unit}</span> : null}
                                                         </span>
                                                         {!isToppingOOS && t.stockQuantity !== undefined && t.stockQuantity !== null && (
-                                                            <span className="rounded-md bg-stone-100 px-1.5 py-0.5 text-[10px] font-medium text-stone-600">
+                                                            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
                                                                 Còn {t.stockQuantity}
                                                             </span>
                                                         )}
@@ -425,26 +426,26 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                 {/* Controls tăng giảm — chỉ hiện khi active */}
                                                 {active && !isToppingOOS && (
                                                     <div
-                                                        className="flex items-center justify-between gap-1 border-t border-amber-200/60 bg-amber-50 px-2 pb-2 pt-1"
+                                                        className="flex items-center justify-between gap-1 border-t border-sky-200/60 bg-sky-50 px-2 pb-2 pt-1"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
                                                         <button
                                                             type="button"
-                                                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-base font-bold text-stone-600 shadow-xs hover:bg-red-50 hover:text-red-500 transition-colors"
+                                                            className="flex h-7 w-7 items-center justify-center rounded-2xl bg-white text-base font-bold text-slate-600 shadow-xs hover:bg-red-50 hover:text-red-500 transition-colors"
                                                             onClick={() => changeTopping(t.toppingId, qty - step)}
                                                         >
                                                             −
                                                         </button>
-                                                        <span className="min-w-[36px] text-center text-xs font-bold text-amber-900">
+                                                        <span className="min-w-[36px] text-center text-xs font-bold text-sky-900">
                                                             {qty} {t.unit || ''}
                                                         </span>
                                                         <button
                                                             type="button"
                                                             disabled={!canIncrease}
                                                             title={!canIncrease ? 'Đã đạt giới hạn tồn kho topping' : 'Thêm'}
-                                                            className={`flex h-7 w-7 items-center justify-center rounded-lg bg-amber-800 text-base font-bold text-white shadow-xs transition-colors ${!canIncrease
+                                                            className={`flex h-7 w-7 items-center justify-center rounded-2xl bg-sky-800 text-base font-bold text-white shadow-xs transition-colors ${!canIncrease
                                                                     ? 'opacity-40 cursor-not-allowed'
-                                                                    : 'hover:bg-amber-900'
+                                                                    : 'hover:bg-sky-900'
                                                                 }`}
                                                             onClick={() => canIncrease && changeTopping(t.toppingId, qty + step)}
                                                         >
@@ -461,7 +462,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                     <button
                                         type="button"
                                         onClick={() => setShowToppingList(false)}
-                                        className="rounded-xl border border-stone-300 bg-white px-4 py-1.5 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 transition-colors"
+                                        className="rounded-3xl border border-slate-300 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
                                     >
                                         Đóng danh sách topping
                                     </button>
@@ -474,12 +475,12 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-stone-700">Số lượng ly</label>
+                    <label className="text-sm font-medium text-slate-700">Số lượng ly</label>
                     {isProductOutOfStock ? (
                         <span className="text-xs font-semibold text-red-600">(Hết hàng)</span>
                     ) : (
                         maxAvailableStock < 999 && (
-                            <span className="text-xs text-stone-500">(Còn {maxAvailableStock} ly)</span>
+                            <span className="text-xs text-slate-500">(Còn {maxAvailableStock} ly)</span>
                         )
                     )}
                 </div>
@@ -487,7 +488,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                     <button
                         type="button"
                         disabled={quantity <= 1 || isProductOutOfStock}
-                        className="h-8 w-8 rounded-lg border border-stone-300 bg-white font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        className="h-8 w-8 rounded-2xl border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     >
                         −
@@ -502,12 +503,12 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                             const val = Number(e.target.value) || 1
                             setQuantity(Math.max(1, Math.min(maxAvailableStock, val)))
                         }}
-                        className="w-16 rounded-lg border border-stone-300 bg-white px-2 py-1 text-center font-medium disabled:bg-stone-100 disabled:opacity-50"
+                        className="w-16 rounded-2xl border border-slate-300 bg-white px-2 py-1 text-center font-medium disabled:bg-slate-100 disabled:opacity-50"
                     />
                     <button
                         type="button"
                         disabled={quantity >= maxAvailableStock || isProductOutOfStock}
-                        className="h-8 w-8 rounded-lg border border-stone-300 bg-white font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        className="h-8 w-8 rounded-2xl border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
                         onClick={() => setQuantity((q) => Math.min(maxAvailableStock, q + 1))}
                     >
                         +
@@ -515,7 +516,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                 </div>
             </div>
             <textarea
-                className="mt-4 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm focus:border-amber-700 focus:outline-none"
+                className="mt-4 w-full rounded-3xl border border-slate-200 px-3 py-2 text-sm focus:border-sky-700 focus:outline-none"
                 rows={2}
                 placeholder="Ghi chú (ít đá, ít đường...) — dùng khi mua ngay"
                 value={note}
@@ -526,7 +527,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                     type="button"
                     disabled={cartSubmitting || isProductOutOfStock}
                     onClick={handleAddToCart}
-                    className="rounded-xl border border-amber-800 px-5 py-2.5 font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="rounded-3xl border border-sky-800 px-5 py-2.5 font-medium text-sky-900 hover:bg-sky-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     {isProductOutOfStock ? 'Tạm hết hàng' : cartSubmitting ? 'Đang thêm...' : 'Thêm vào giỏ'}
                 </button>
@@ -534,7 +535,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                     type="button"
                     disabled={isProductOutOfStock}
                     onClick={handleBuyNow}
-                    className="rounded-xl bg-amber-800 px-5 py-2.5 font-medium text-white hover:bg-amber-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="rounded-3xl bg-sky-800 px-5 py-2.5 font-medium text-white hover:bg-sky-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                     {isProductOutOfStock ? 'Tạm hết hàng' : 'Mua ngay'}
                 </button>
@@ -599,7 +600,7 @@ export default function ProductDetailPage() {
     return (
         <div className="space-y-8">
             <div className="grid gap-8 md:grid-cols-2">
-                <div className="relative overflow-hidden rounded-3xl bg-stone-100">
+                <div className="relative overflow-hidden rounded-3xl bg-slate-100">
                     {detail.imageUrl ? (
                         <img
                             src={detail.imageUrl}
@@ -607,7 +608,7 @@ export default function ProductDetailPage() {
                             className={`h-80 w-full object-cover ${detail.isOutOfStock ? 'grayscale-30' : ''}`}
                         />
                     ) : (
-                        <div className="flex h-80 items-center justify-center text-stone-400">Chưa có ảnh</div>
+                        <div className="flex h-80 items-center justify-center text-slate-400">Chưa có ảnh</div>
                     )}
                     {detail.isOutOfStock && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">
