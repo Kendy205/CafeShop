@@ -138,7 +138,7 @@ namespace CafeShop.Services.Services
 
             var orders = await _unitOfWork.Order.GetAllAsync(
                 filter: filter,
-                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,Customer,Address",
+                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,User,Address",
                 pageSize: pageSize,
                 pageNumber: pageNumber,
                 orderBy: q => q.OrderByDescending(o => o.OrderDate)
@@ -399,7 +399,7 @@ namespace CafeShop.Services.Services
                 var orderDetail = new OrderDetail
                 {
                     ProductId = cartItem.ProductId,
-                    SizeId = cartItem.SizeId ?? 0,
+                    SizeId = cartItem.SizeId ,
                     Quantity = cartItem.Quantity,
                     UnitPrice = cartItem.UnitPrice,
                     OrderDetailToppings = cartItem.CartItemToppings.Select(t => new OrderDetailTopping
@@ -487,7 +487,7 @@ namespace CafeShop.Services.Services
                 details.Add(new OrderDetail
                 {
                     ProductId = item.ProductId,
-                    SizeId = item.SizeId ?? 0,
+                    SizeId = item.SizeId ,
                     Quantity = qty,
                     UnitPrice = unitPrice,
                     OrderDetailToppings = orderDetailToppings

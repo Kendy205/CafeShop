@@ -45,7 +45,7 @@ namespace CafeShop.Services.Services
                 Username = username,
                 PasswordHash = passwordHash,
                 FullName = dto.FullName,
-                Role = CafeShop.Uitls.SystemRole.Customer,
+                Role = CafeShop.Uitls.SystemRole.User,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -152,8 +152,8 @@ namespace CafeShop.Services.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
 
-            // Lấy Role trực tiếp từ string, nếu rỗng thì mặc định là CUSTOMER
-            var role = !string.IsNullOrEmpty(user.Role) ? user.Role : CafeShop.Uitls.SystemRole.Customer;
+            // Lấy Role trực tiếp từ string, nếu rỗng thì mặc định là USER
+            var role = !string.IsNullOrEmpty(user.Role) ? user.Role : CafeShop.Uitls.SystemRole.User;
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

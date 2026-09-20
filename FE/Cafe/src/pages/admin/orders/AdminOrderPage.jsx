@@ -97,8 +97,8 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
                             {/* Thông tin khách */}
                             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-1.5">
                                 <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">👤 Thông tin khách hàng</h3>
-                                <p className="text-sm text-slate-700"><span className="font-semibold">Tên:</span> {detail.customerName || '-'}</p>
-                                <p className="text-sm text-slate-700"><span className="font-semibold">SĐT:</span> {detail.customerPhone || '-'}</p>
+                                <p className="text-sm text-slate-700"><span className="font-semibold">Tên:</span> {detail.userName || detail.UserName || detail.customerName || '-'}</p>
+                                <p className="text-sm text-slate-700"><span className="font-semibold">SĐT:</span> {detail.userPhone || detail.UserPhone || detail.customerPhone || '-'}</p>
                                 <p className="text-sm text-slate-700"><span className="font-semibold">Địa chỉ:</span> {detail.shippingAddress || '-'}</p>
                                 <p className="text-sm text-slate-700"><span className="font-semibold">Ghi chú:</span> {detail.note || '-'}</p>
                                 <p className="text-sm text-slate-700"><span className="font-semibold">Đặt lúc:</span> {formatDate(detail.orderDate)}</p>
@@ -313,8 +313,8 @@ export default function AdminOrderPage() {
                                                 #{order.orderId}
                                             </td>
                                             <td className="px-5 py-4">
-                                                <p className="font-semibold text-slate-800">{order.customerName || '-'}</p>
-                                                <p className="text-xs text-slate-500">{order.customerPhone || '-'}</p>
+                                                <p className="font-semibold text-slate-800">{order.userName || order.UserName || order.customerName || '-'}</p>
+                                                <p className="text-xs text-slate-500">{order.userPhone || order.UserPhone || order.customerPhone || '-'}</p>
                                                 <p className="text-xs text-slate-400 mt-1 line-clamp-1" title={order.shippingAddress}>{order.shippingAddress || '-'}</p>
                                             </td>
                                             <td className="px-5 py-4 text-xs text-slate-500">

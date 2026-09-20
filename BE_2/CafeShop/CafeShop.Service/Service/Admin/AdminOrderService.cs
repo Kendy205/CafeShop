@@ -33,7 +33,7 @@ namespace CafeShop.Service.Service.Admin
 
             var orders = await _unitOfWork.Order.GetAllAsync(
                 filter: filter,
-                includeProperties: "Customer,Address",
+                includeProperties: "User,Address",
                 pageSize: pageSize,
                 pageNumber: pageNumber,
                 orderBy: q => q.OrderByDescending(o => o.OrderDate)
@@ -55,7 +55,7 @@ namespace CafeShop.Service.Service.Admin
         {
             var order = await _unitOfWork.Order.GetFirstOrDefaultAsync(
                 o => o.OrderId == orderId,
-                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,Customer,Address"
+                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,User,Address"
             );
 
             if (order == null)

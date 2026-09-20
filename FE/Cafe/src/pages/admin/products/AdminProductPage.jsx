@@ -127,14 +127,21 @@ export default function AdminProductPage() {
             title: 'Giá / Kích cỡ',
             key: 'sizes',
             render: (_, record) => (
-                <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                    {record.productSizes?.map((sz) => (
-                        <Tooltip key={sz.sizeId} title={`Tồn kho: ${sz.stockQuantity ?? 0}`}>
-                            <span className="inline-flex items-center rounded-2xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-800 border border-sky-200">
-                                {sz.name ?? sz.sizeName ?? '?'}: {formatVnd(sz.price)}
-                            </span>
-                        </Tooltip>
-                    ))}
+                <div className="space-y-1.5">
+                    {record.basePrice !== undefined && record.basePrice !== null && (
+                        <div className="text-xs text-slate-500 font-medium">
+                            Giá gốc: <span className="font-bold text-slate-800 font-mono">{formatVnd(record.basePrice)}</span>
+                        </div>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 max-w-[200px]">
+                        {record.productSizes?.map((sz) => (
+                            <Tooltip key={sz.sizeId} title={`Tồn kho: ${sz.stockQuantity ?? 0}`}>
+                                <span className="inline-flex items-center rounded-2xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-800 border border-sky-200">
+                                    {sz.name ?? sz.sizeName ?? '?'}: {formatVnd(sz.price)}
+                                </span>
+                            </Tooltip>
+                        ))}
+                    </div>
                 </div>
             ),
         },

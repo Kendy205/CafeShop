@@ -20,6 +20,7 @@ export default function ProductFormModal({
 
     const [form, setForm] = useState({
         name: '',
+        basePrice: '',
         description: '',
         categoryId: null,
         imageFile: null,
@@ -33,6 +34,7 @@ export default function ProductFormModal({
         const matchedCategory = categories.find((c) => c.name === editingItem?.categoryName)
         setForm({
             name: editingItem ? editingItem.name : '',
+            basePrice: editingItem ? (editingItem.basePrice ?? '') : '',
             description: editingItem ? editingItem.description || '' : '',
             categoryId: editingItem
                 ? Number(editingItem.categoryId) || Number(matchedCategory?.categoryId) || null
@@ -75,8 +77,13 @@ export default function ProductFormModal({
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (!form.name || !form.categoryId) {
-            message.warning('Vui lòng nhập tên và chọn danh mục!')
+        if (!form.name || !form.categoryId || form.basePrice === '' || form.basePrice === null) {
+            message.warning('Vui lòng nhập tên món, giá cơ bản và chọn danh mục!')
+            return
+        }
+
+        if (Number(form.basePrice) < 0) {
+            message.warning('Giá cơ bản không được âm!')
             return
         }
 
@@ -102,6 +109,7 @@ export default function ProductFormModal({
 
         const formData = new FormData()
         formData.append('name', form.name.trim())
+        formData.append('basePrice', Number(form.basePrice))
         formData.append('description', form.description || '')
         formData.append('categoryId', form.categoryId)
         if (form.imageFile) {
@@ -193,7 +201,7 @@ export default function ProductFormModal({
                         />
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-1">
                         <label className="mb-1.5 block text-sm font-bold text-slate-700">
                             Danh Mục <span className="text-red-500">*</span>
                         </label>
@@ -203,6 +211,22 @@ export default function ProductFormModal({
                             className="w-full h-12"
                             placeholder="Chọn danh mục"
                             options={categories.map((c) => ({ value: Number(c.categoryId), label: c.name }))}
+                        />
+                    </div>
+
+                    <div className="sm:col-span-1">
+                        <label className="mb-1.5 block text-sm font-bold text-slate-700">
+                            Giá Cơ Bản / Gốc (VNĐ) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="1000"
+                            value={form.basePrice}
+                            onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
+                            placeholder="VD: 35000"
+                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10 transition-all font-mono"
+                            required
                         />
                     </div>
 
@@ -239,8 +263,8 @@ export default function ProductFormModal({
                                     <div
                                         key={ms.sizeId}
                                         className={`rounded-3xl border ${state.isSelected
-                                                ? 'border-cyan-500 bg-cyan-50/30'
-                                                : 'border-slate-200 bg-slate-50/30'
+                                            ? 'border-cyan-500 bg-cyan-50/30'
+                                            : 'border-slate-200 bg-slate-50/30'
                                             } p-4 transition-all duration-300`}
                                     >
                                         <div className="flex items-center gap-3 mb-3">
