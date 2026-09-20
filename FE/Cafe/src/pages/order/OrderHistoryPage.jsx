@@ -5,6 +5,7 @@ import { getMyOrders, cancelOrder } from '../../redux/actions/user/orderAction'
 import { clearCancelError } from '../../redux/slices/user/orderSlice'
 import { formatVnd } from '../../utils/helpers/format'
 import LoadingLink from '../../components/loading/LoadingLink'
+import AppPagination from '../../components/common/AppPagination'
 import { feedbackService } from '../../services/user/FeedbackService'
 import {
     PAYMENT_LABEL,
@@ -102,18 +103,18 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
             <div className="pt-2 pb-1">
                 {/* Header modal */}
                 <div className="text-center">
-                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-2xl shadow-inner">
+                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-2xl shadow-inner">
                         ⭐
                     </span>
-                    <h3 className="mt-2.5 text-lg font-black text-stone-800">Đánh giá món</h3>
-                    <p className="text-xs text-stone-500">
+                    <h3 className="mt-2.5 text-lg font-black text-slate-800">Đánh giá món</h3>
+                    <p className="text-xs text-slate-500">
                         Cảm nhận thực tế của bạn sẽ giúp quán cải thiện chất lượng phục vụ tốt hơn
                     </p>
                 </div>
 
                 {/* Thông tin món đang đánh giá */}
-                <div className="mt-4 flex items-center gap-3 rounded-2xl border border-amber-100 bg-amber-50/50 p-3">
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-stone-200 bg-white">
+                <div className="mt-4 flex items-center gap-3 rounded-2xl border border-sky-100 bg-sky-50/50 p-3">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-3xl border border-slate-200 bg-white">
                         {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />
                         ) : (
@@ -121,10 +122,10 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                         )}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <h4 className="truncate text-sm font-bold text-stone-800">{item.productName}</h4>
-                        <div className="flex items-center gap-2 text-xs text-stone-500">
+                        <h4 className="truncate text-sm font-bold text-slate-800">{item.productName}</h4>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
                             {item.sizeName && (
-                                <span className="rounded bg-white px-1.5 py-0.5 font-semibold text-amber-800 border border-amber-200">
+                                <span className="rounded bg-white px-1.5 py-0.5 font-semibold text-sky-800 border border-sky-200">
                                     Size {item.sizeName}
                                 </span>
                             )}
@@ -134,8 +135,8 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                 </div>
 
                 {/* Phần chọn số sao */}
-                <div className="mt-5 rounded-2xl bg-stone-50 p-4 text-center">
-                    <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-center">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                         Bạn thấy món này thế nào?
                     </label>
 
@@ -156,9 +157,8 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 24 24"
                                         fill="currentColor"
-                                        className={`h-9 w-9 transition-colors ${
-                                            isFilled ? 'text-amber-400 drop-shadow-sm' : 'text-stone-300 hover:text-amber-200'
-                                        }`}
+                                        className={`h-9 w-9 transition-colors ${isFilled ? 'text-sky-400 drop-shadow-sm' : 'text-slate-300 hover:text-sky-200'
+                                            }`}
                                     >
                                         <path
                                             fillRule="evenodd"
@@ -172,7 +172,7 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                     </div>
 
                     {/* Nhãn cảm xúc tương ứng sao */}
-                    <div className="mt-2 flex items-center justify-center gap-1.5 text-sm font-bold text-amber-900">
+                    <div className="mt-2 flex items-center justify-center gap-1.5 text-sm font-bold text-sky-900">
                         <span>{RATING_LABELS[currentRating]?.emoji}</span>
                         <span>{RATING_LABELS[currentRating]?.text}</span>
                     </div>
@@ -180,11 +180,11 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
 
                 {/* Nhận xét văn bản */}
                 <div className="mt-4">
-                    <div className="flex items-center justify-between text-xs text-stone-600 mb-1.5">
+                    <div className="flex items-center justify-between text-xs text-slate-600 mb-1.5">
                         <label htmlFor="feedback-comment" className="font-semibold">
-                            Nhận xét chi tiết <span className="font-normal text-stone-400">(Tùy chọn)</span>
+                            Nhận xét chi tiết <span className="font-normal text-slate-400">(Tùy chọn)</span>
                         </label>
-                        <span className="text-[11px] text-stone-400">{comment.length}/500</span>
+                        <span className="text-[11px] text-slate-400">{comment.length}/500</span>
                     </div>
                     <textarea
                         id="feedback-comment"
@@ -193,7 +193,7 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Hãy chia sẻ hương vị đồ uống, độ đậm đà, độ ngọt đá, hay cách quán đóng gói bạn nhé..."
-                        className="w-full rounded-2xl border border-stone-200 p-3 text-xs text-stone-800 placeholder:text-stone-400 focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700 transition"
+                        className="w-full rounded-2xl border border-slate-200 p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-sky-700 focus:outline-none focus:ring-1 focus:ring-sky-700 transition"
                     />
                 </div>
 
@@ -203,7 +203,7 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                         type="button"
                         disabled={submitting}
                         onClick={onClose}
-                        className="rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-xs font-bold text-stone-600 hover:bg-stone-50 transition"
+                        className="rounded-3xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
                     >
                         Để sau
                     </button>
@@ -211,7 +211,7 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                         type="button"
                         disabled={submitting}
                         onClick={handleSubmit}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-amber-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-amber-900 disabled:opacity-50 transition"
+                        className="inline-flex items-center gap-1.5 rounded-3xl bg-sky-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-sky-900 disabled:opacity-50 transition"
                     >
                         {submitting ? (
                             <>
@@ -265,16 +265,16 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
         : '—'
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-xs transition-all hover:shadow-md hover:border-amber-300">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all hover:shadow-md hover:border-sky-300">
             {/* Header: Mã đơn + Ngày giờ + Trạng thái */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 bg-stone-50/50 px-5 py-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
                 <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-sm font-extrabold text-stone-800">
+                    <span className="font-mono text-sm font-extrabold text-slate-800">
                         Đơn hàng #{orderId}
                     </span>
                     <StatusBadge status={currentStatus} />
                 </div>
-                <span className="text-xs font-medium text-stone-400">{formattedDate}</span>
+                <span className="text-xs font-medium text-slate-400">{formattedDate}</span>
             </div>
 
             {/* Danh sách các món của đơn hàng */}
@@ -287,10 +287,10 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                         return (
                             <div
                                 key={idx}
-                                className="flex items-start justify-between gap-3.5 border-b border-stone-100/80 pb-3.5 last:border-b-0 last:pb-0"
+                                className="flex items-start justify-between gap-3.5 border-b border-slate-100/80 pb-3.5 last:border-b-0 last:pb-0"
                             >
                                 {/* Thumbnail sản phẩm */}
-                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-stone-100 bg-stone-50">
+                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
                                     {item.imageUrl ? (
                                         <img
                                             src={item.imageUrl}
@@ -298,7 +298,7 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-full w-full items-center justify-center text-2xl text-stone-400">
+                                        <div className="flex h-full w-full items-center justify-center text-2xl text-slate-400">
                                             ☕
                                         </div>
                                     )}
@@ -307,30 +307,30 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                                 {/* Thông tin món + size + topping */}
                                 <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                        <h4 className="text-sm font-bold text-stone-800">
+                                        <h4 className="text-sm font-bold text-slate-800">
                                             {item.productName || item.name}
                                         </h4>
                                         {/* Size: chỉ hiển thị khi sizeId != null theo đặc tả */}
                                         {hasSize && (
-                                            <span className="rounded-md bg-amber-100/80 px-1.5 py-0.5 text-[11px] font-bold text-amber-900">
+                                            <span className="rounded-md bg-sky-100/80 px-1.5 py-0.5 text-[11px] font-bold text-sky-900">
                                                 Size {item.sizeName}
                                             </span>
                                         )}
                                     </div>
 
-                                    <div className="mt-0.5 flex items-center gap-2 text-xs text-stone-500">
-                                        <span>Số lượng: <strong className="text-stone-700">×{item.quantity}</strong></span>
+                                    <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                                        <span>Số lượng: <strong className="text-slate-700">×{item.quantity}</strong></span>
                                         <span>•</span>
                                         <span>Đơn giá: {formatVnd(item.unitPrice)}</span>
                                     </div>
 
                                     {/* Danh sách topping của món */}
                                     {itemToppings.length > 0 && (
-                                        <div className="mt-1.5 space-y-1 rounded-xl bg-stone-50 p-2 text-xs">
+                                        <div className="mt-1.5 space-y-1 rounded-3xl bg-slate-50 p-2 text-xs">
                                             {itemToppings.map((t, ti) => (
                                                 <div
                                                     key={ti}
-                                                    className="flex items-center justify-between text-stone-600"
+                                                    className="flex items-center justify-between text-slate-600"
                                                 >
                                                     <div className="flex items-center gap-1.5">
                                                         {t.imageUrl ? (
@@ -340,14 +340,14 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                                                                 className="h-4 w-4 rounded-full object-cover"
                                                             />
                                                         ) : (
-                                                            <span className="text-[10px] text-amber-700">+</span>
+                                                            <span className="text-[10px] text-sky-700">+</span>
                                                         )}
                                                         <span>{t.toppingName || t.name}</span>
-                                                        <span className="font-bold text-amber-800">
+                                                        <span className="font-bold text-sky-800">
                                                             ×{t.quantity} {t.unit || 'phần'}
                                                         </span>
                                                     </div>
-                                                    <span className="font-medium text-stone-700">
+                                                    <span className="font-medium text-slate-700">
                                                         {formatVnd((t.unitPrice ?? t.price ?? 0) * (t.quantity || 1))}
                                                     </span>
                                                 </div>
@@ -362,7 +362,7 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                                                 item.isReviewed ||
                                                 (item.orderDetailId && reviewedMap?.[item.orderDetailId])
                                             ) ? (
-                                                <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                                <span className="inline-flex items-center gap-1 rounded-2xl bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
                                                     <span>✓</span>
                                                     <span>Đã đánh giá</span>
                                                 </span>
@@ -378,7 +378,7 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                                                             sizeName: item.sizeName,
                                                         })
                                                     }
-                                                    className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50/80 px-2.5 py-1 text-xs font-bold text-amber-900 shadow-2xs hover:bg-amber-100 hover:border-amber-400 transition-colors"
+                                                    className="inline-flex items-center gap-1 rounded-2xl border border-sky-300 bg-sky-50/80 px-2.5 py-1 text-xs font-bold text-sky-900 shadow-2xs hover:bg-sky-100 hover:border-sky-400 transition-colors"
                                                 >
                                                     <span>⭐</span>
                                                     <span>Đánh giá món</span>
@@ -390,7 +390,7 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
 
                                 {/* Tổng tiền dòng (Line Total: lấy trực tiếp totalItemPrice) */}
                                 <div className="text-right shrink-0">
-                                    <span className="text-sm font-extrabold text-amber-900">
+                                    <span className="text-sm font-extrabold text-sky-900">
                                         {formatVnd(item.totalItemPrice ?? (item.unitPrice * item.quantity))}
                                     </span>
                                 </div>
@@ -401,7 +401,7 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
 
                 {/* Ghi chú của đơn (nếu có) */}
                 {note && (
-                    <div className="mt-3.5 flex items-start gap-1.5 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-900">
+                    <div className="mt-3.5 flex items-start gap-1.5 rounded-3xl border border-sky-200/80 bg-sky-50/70 px-3 py-2 text-xs text-sky-900">
                         <span className="shrink-0 font-bold">📝 Ghi chú:</span>
                         <span>{note}</span>
                     </div>
@@ -409,10 +409,10 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
             </div>
 
             {/* Chi tiết phụ phí & Tổng thanh toán */}
-            <div className="border-t border-stone-100 bg-stone-50/40 px-5 py-4">
-                <div className="space-y-1 text-xs text-stone-600">
+            <div className="border-t border-slate-100 bg-slate-50/40 px-5 py-4">
+                <div className="space-y-1 text-xs text-slate-600">
                     <div className="flex justify-between">
-                        <span className="text-stone-500">Phí giao hàng {distanceKm ? `(${distanceKm} km)` : ''}:</span>
+                        <span className="text-slate-500">Phí giao hàng {distanceKm ? `(${distanceKm} km)` : ''}:</span>
                         <span>{formatVnd(shippingFee ?? 0)}</span>
                     </div>
 
@@ -424,34 +424,34 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
                     )}
 
                     <div className="flex justify-between">
-                        <span className="text-stone-500">Phương thức thanh toán:</span>
-                        <span className="font-medium text-stone-700">{PAYMENT_LABEL[paymentMethod] ?? paymentMethod ?? 'COD'}</span>
+                        <span className="text-slate-500">Phương thức thanh toán:</span>
+                        <span className="font-medium text-slate-700">{PAYMENT_LABEL[paymentMethod] ?? paymentMethod ?? 'COD'}</span>
                     </div>
                 </div>
 
                 {/* Tổng thanh toán cuối cùng (totalAmount BE đã tính sẵn) */}
-                <div className="mt-3 flex items-baseline justify-between border-t border-stone-200/70 pt-3">
+                <div className="mt-3 flex items-baseline justify-between border-t border-slate-200/70 pt-3">
                     <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Tổng thanh toán
                         </span>
-                        <span className="text-[11px] text-stone-400 block">
+                        <span className="text-[11px] text-slate-400 block">
                             (Đã bao gồm phí ship & giảm giá)
                         </span>
                     </div>
-                    <span className="text-xl font-black text-amber-900">
+                    <span className="text-xl font-black text-sky-900">
                         {formatVnd(totalAmount)}
                     </span>
                 </div>
 
                 {/* Nút Hủy Đơn: Chỉ hiển thị/enabled khi currentStatus === "Pending" */}
                 {canCancel && (
-                    <div className="mt-4 border-t border-stone-200/60 pt-3 flex justify-end">
+                    <div className="mt-4 border-t border-slate-200/60 pt-3 flex justify-end">
                         <button
                             type="button"
                             disabled={cancelling}
                             onClick={() => onCancel(orderId)}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-600 shadow-2xs hover:bg-red-50 hover:border-red-400 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-3xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-600 shadow-2xs hover:bg-red-50 hover:border-red-400 transition-colors disabled:opacity-50"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
@@ -557,12 +557,12 @@ export default function OrderHistoryPage() {
             {/* Header */}
             <div className="mb-5 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-stone-800">Lịch sử đơn hàng</h1>
-                    <p className="text-xs text-stone-500">Xem và theo dõi tình trạng các đơn hàng bạn đã đặt</p>
+                    <h1 className="text-2xl font-bold text-slate-800">Lịch sử đơn hàng</h1>
+                    <p className="text-xs text-slate-500">Xem và theo dõi tình trạng các đơn hàng bạn đã đặt</p>
                 </div>
                 <LoadingLink
                     to="/"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-800 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-900 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-3xl bg-sky-800 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-900 transition-colors"
                 >
                     <span>☕ Đặt món mới</span>
                 </LoadingLink>
@@ -570,7 +570,7 @@ export default function OrderHistoryPage() {
 
             {/* Header Phân Loại Nhanh Các Trạng Thái Đơn Hàng (Sử dụng ORDER_STATUS_TABS từ utils) */}
             <div className="mb-6">
-                <div className="flex flex-wrap items-center gap-2 border-b border-stone-200/90 pb-4">
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/90 pb-4">
                     {ORDER_STATUS_TABS.map((tab) => {
                         const isActive = selectedStatus === tab.key
                         return (
@@ -578,17 +578,15 @@ export default function OrderHistoryPage() {
                                 key={tab.key}
                                 type="button"
                                 onClick={() => handleTabChange(tab.key)}
-                                className={`group inline-flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-bold transition-all shadow-2xs ${
-                                    isActive
-                                        ? 'bg-amber-800 text-white shadow-md shadow-amber-900/20 ring-2 ring-amber-800/30'
-                                        : 'bg-white text-stone-600 border border-stone-200/80 hover:bg-stone-50 hover:border-amber-300 hover:text-amber-900'
-                                }`}
+                                className={`group inline-flex items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-bold transition-all shadow-2xs ${isActive
+                                        ? 'bg-sky-800 text-white shadow-md shadow-sky-900/20 ring-2 ring-sky-800/30'
+                                        : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50 hover:border-sky-300 hover:text-sky-900'
+                                    }`}
                             >
                                 {tab.dot && (
                                     <span
-                                        className={`h-2 w-2 rounded-full transition-transform group-hover:scale-125 ${
-                                            isActive ? 'bg-amber-300 ring-2 ring-white' : tab.dot
-                                        }`}
+                                        className={`h-2 w-2 rounded-full transition-transform group-hover:scale-125 ${isActive ? 'bg-sky-300 ring-2 ring-white' : tab.dot
+                                            }`}
                                     />
                                 )}
                                 <span>{tab.icon}</span>
@@ -603,7 +601,7 @@ export default function OrderHistoryPage() {
             {myOrdersLoading && (
                 <div className="flex flex-col gap-4">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-44 animate-pulse rounded-3xl bg-stone-100" />
+                        <div key={i} className="h-44 animate-pulse rounded-3xl bg-slate-100" />
                     ))}
                 </div>
             )}
@@ -615,7 +613,7 @@ export default function OrderHistoryPage() {
                     <button
                         type="button"
                         onClick={() => fetchOrders(page, selectedStatus)}
-                        className="mt-3 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-red-700 transition-colors"
+                        className="mt-3 rounded-3xl bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-red-700 transition-colors"
                     >
                         Thử lại
                     </button>
@@ -624,14 +622,14 @@ export default function OrderHistoryPage() {
 
             {/* Empty state */}
             {!myOrdersLoading && !myOrdersError && displayedOrders.length === 0 && (
-                <div className="flex flex-col items-center gap-3 rounded-3xl border border-stone-200 bg-white py-16 text-center shadow-xs">
+                <div className="flex flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white py-16 text-center shadow-xs">
                     <span className="text-5xl">{currentTabInfo.icon || '📦'}</span>
-                    <h3 className="text-base font-bold text-stone-800">
+                    <h3 className="text-base font-bold text-slate-800">
                         {selectedStatus === 'ALL'
                             ? 'Bạn chưa có đơn hàng nào'
                             : `Không có đơn hàng nào "${currentTabInfo.label}"`}
                     </h3>
-                    <p className="text-xs text-stone-400 max-w-xs">
+                    <p className="text-xs text-slate-400 max-w-xs">
                         {selectedStatus === 'ALL'
                             ? 'Các đơn hàng đã đặt của bạn sẽ xuất hiện tại đây cùng trạng thái giao hàng chi tiết.'
                             : `Hiện tại bạn không có đơn hàng nào thuộc trạng thái ${currentTabInfo.label.toLowerCase()}.`}
@@ -640,14 +638,14 @@ export default function OrderHistoryPage() {
                         <button
                             type="button"
                             onClick={() => handleTabChange('ALL')}
-                            className="mt-3 inline-flex items-center gap-2 rounded-xl bg-stone-100 px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-200 transition-colors"
+                            className="mt-3 inline-flex items-center gap-2 rounded-3xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors"
                         >
                             <span>Xem tất cả đơn hàng</span>
                         </button>
                     ) : (
                         <LoadingLink
                             to="/"
-                            className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-amber-900 transition-colors"
+                            className="mt-3 inline-flex items-center gap-2 rounded-3xl bg-sky-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-sky-900 transition-colors"
                         >
                             <span>Khám phá thực đơn ngay</span>
                         </LoadingLink>
@@ -658,9 +656,9 @@ export default function OrderHistoryPage() {
             {/* Order list */}
             {!myOrdersLoading && !myOrdersError && displayedOrders.length > 0 && (
                 <>
-                    <div className="mb-3 flex items-center justify-between text-xs text-stone-500">
+                    <div className="mb-3 flex items-center justify-between text-xs text-slate-500">
                         <span>
-                            Trạng thái: <strong className="text-stone-800">{currentTabInfo.label}</strong> (
+                            Trạng thái: <strong className="text-slate-800">{currentTabInfo.label}</strong> (
                             {displayedOrders.length} đơn hàng)
                         </span>
                         <span>Trang {page} / {myOrdersTotalPages}</span>
@@ -694,7 +692,7 @@ export default function OrderHistoryPage() {
                                 type="button"
                                 disabled={page <= 1}
                                 onClick={() => setPage((p) => p - 1)}
-                                className="h-9 w-9 rounded-xl border border-stone-200 bg-white text-sm font-bold text-stone-600 shadow-2xs hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                className="h-9 w-9 rounded-3xl border border-slate-200 bg-white text-sm font-bold text-slate-600 shadow-2xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
                                 ‹
                             </button>
@@ -703,9 +701,9 @@ export default function OrderHistoryPage() {
                                     key={n}
                                     type="button"
                                     onClick={() => setPage(n)}
-                                    className={`h-9 w-9 rounded-xl text-xs font-bold transition-all shadow-2xs ${n === page
-                                            ? 'bg-amber-800 text-white shadow-sm'
-                                            : 'border border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
+                                    className={`h-9 w-9 rounded-3xl text-xs font-bold transition-all shadow-2xs ${n === page
+                                        ? 'bg-sky-800 text-white shadow-sm'
+                                        : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                                         }`}
                                 >
                                     {n}
@@ -715,12 +713,21 @@ export default function OrderHistoryPage() {
                                 type="button"
                                 disabled={page >= myOrdersTotalPages}
                                 onClick={() => setPage((p) => p + 1)}
-                                className="h-9 w-9 rounded-xl border border-stone-200 bg-white text-sm font-bold text-stone-600 shadow-2xs hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                className="h-9 w-9 rounded-3xl border border-slate-200 bg-white text-sm font-bold text-slate-600 shadow-2xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
                                 ›
                             </button>
                         </div>
                     )}
+                    <AppPagination
+                        current={page}
+                        pageSize={10}
+                        total={myOrdersTotal}
+                        totalPages={myOrdersTotalPages}
+                        onChange={setPage}
+                        border={false}
+                        className="mt-8"
+                    />
                 </>
             )}
         </div>

@@ -2,6 +2,7 @@
 using CafeShop.DTO.Voucher;
 using CafeShop.Model;
 using CafeShop.Service.IService.Users;
+using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,7 +70,7 @@ namespace CafeShop.Service.Service.Users
             if (voucher.UsedCount >= voucher.UsageLimit)
                 throw new ArgumentException("Mã giảm giá đã hết lượt sử dụng toàn hệ thống!");
 
-            if (voucher.TargetType == "Personal")
+            if (VoucherTypeTarget.IsUser(voucher.TargetType))
                 throw new ArgumentException("Đây là mã giảm giá tặng riêng, không thể tự nhận!");
 
             // Kiểm tra xem đã lưu voucher này vào ví chưa

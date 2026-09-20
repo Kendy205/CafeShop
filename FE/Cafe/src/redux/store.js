@@ -8,11 +8,20 @@ import voucherReducer from './slices/user/voucherSlice'
 import cartReducer from './slices/user/cartSlice'
 import sizeReducer from './slices/user/sizeSlice'
 import toppingReducer from './slices/user/toppingSlice'
+import categoryReducer from './slices/user/categorySlice'
 import userReducer from './slices/user/userSlice'
 import adminVoucherReducer from './slices/admin/adminVoucherSlice'
+import adminCategoryReducer from './slices/admin/adminCategorySlice'
+import adminSizeReducer from './slices/admin/adminSizeSlice'
+import adminToppingReducer from './slices/admin/adminToppingSlice'
+import adminProductReducer from './slices/admin/adminProductSlice'
+import adminUserReducer from './slices/admin/adminUserSlice'
+import adminOrderReducer from './slices/admin/adminOrderSlice'
+import adminDashboardReducer from './slices/admin/adminDashboardSlice'
 
 export const store = configureStore({
     reducer: {
+        //Public User Slices
         auth: authReducer,
         ui: uiReducer,
         user: userReducer,
@@ -23,6 +32,15 @@ export const store = configureStore({
         cart: cartReducer,
         size: sizeReducer,
         topping: toppingReducer,
+        category: categoryReducer,
+        //Admin Slices
         adminVoucher: adminVoucherReducer,
+        adminCategory: adminCategoryReducer,
+        adminSize: adminSizeReducer,
+        adminTopping: adminToppingReducer,
+        adminProduct: adminProductReducer,
+        adminUser: adminUserReducer,
+        adminOrder: adminOrderReducer,
+        adminDashboard: adminDashboardReducer,
     },
 })

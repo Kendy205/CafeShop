@@ -20,7 +20,13 @@ import MyVouchersPage from './pages/voucher/MyVouchersPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import DashboardAdminPage from './pages/admin/DashboardAdminPage'
 import VoucherAdminPage from './pages/admin/voucher/VoucherAdminPage'
-
+import AdminCategoryPage from './pages/admin/categories/AdminCategoryPage'
+import AdminSizePage from './pages/admin/sizes/AdminSizePage'
+import AdminToppingPage from './pages/admin/toppings/AdminToppingPage'
+import AdminProductPage from './pages/admin/products/AdminProductPage'
+import AdminOrderPage from './pages/admin/orders/AdminOrderPage'
+import AdminUsersPage from './pages/admin/users/AdminUsersPage'
+import AdminSettingsPage from './pages/admin/settings/AdminSettingsPage'
 function App() {
     return (
         <Provider store={store}>
@@ -48,6 +54,13 @@ function App() {
                     <Route path="/admin" element={<AdminTemplate />}>
                         <Route index element={<DashboardAdminPage />} />
                         <Route path="vouchers" element={<VoucherAdminPage />} />
+                        <Route path="categories" element={<AdminCategoryPage />} />
+                        <Route path="sizes" element={<AdminSizePage />} />
+                        <Route path="toppings" element={<AdminToppingPage />} />
+                        <Route path="products" element={<AdminProductPage />} />
+                        <Route path="orders" element={<AdminOrderPage />} />
+                        <Route path="users" element={<AdminUsersPage />} />
+                        <Route path="settings" element={<AdminSettingsPage />} />
                     </Route>
                 </Route>
             </Routes>

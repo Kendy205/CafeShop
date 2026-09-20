@@ -18,28 +18,11 @@ function emptyCart() {
 }
 
 function applyCart(state, payload) {
-    const data = payload && typeof payload === 'object' ? payload : {}
-    if (Array.isArray(data)) {
-        state.items = data
-        state.cartId = null
-        state.status = null
-        state.totalPrice = 0
-        return
-    }
-    state.cartId = data.cartId ?? data.CartId ?? null
-    state.status = data.status ?? data.Status ?? null
-    state.totalPrice = Number(
-        data.totalPrice ??
-        data.TotalPrice ??
-        data.totalAmount ??
-        data.TotalAmount ??
-        0
-    )
-    state.items = Array.isArray(data.items)
-        ? data.items
-        : Array.isArray(data.Items)
-          ? data.Items
-          : []
+    const data = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {}
+    state.cartId     = data.cartId ?? null
+    state.status     = data.status ?? null
+    state.totalPrice = Number(data.totalPrice ?? 0)
+    state.items      = data.items ?? []
 }
 
 const initialState = {
@@ -55,9 +38,6 @@ const cartSlice = createSlice({
     reducers: {
         resetCart: (state) => {
             Object.assign(state, initialState)
-        },
-        clearCartError: (state) => {
-            state.error = null
         },
     },
     extraReducers: (builder) => {
@@ -110,7 +90,6 @@ const cartSlice = createSlice({
                 state.submitting = true
             })
             .addCase(clearCart.fulfilled, (state) => {
-                state.submitting = false
                 Object.assign(state, { ...initialState, submitting: false })
             })
             .addCase(clearCart.rejected, (state, action) => {
@@ -123,5 +102,5 @@ const cartSlice = createSlice({
     },
 })
 
-export const { resetCart, clearCartError } = cartSlice.actions
+export const { resetCart } = cartSlice.actions
 export default cartSlice.reducer

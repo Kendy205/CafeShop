@@ -98,7 +98,7 @@ namespace CafeShop.Service.Service
             // 1. Khởi tạo giá bằng BasePrice (Dùng cho món không có size)
             decimal unitPrice = product.BasePrice;
 
-            // 2. LOGIC MỚI: Lấy giá cứng từ bảng ProductSize
+            // 2. Lấy giá cứng từ bảng ProductSize
             if (request.SizeId.HasValue && request.SizeId.Value > 0)
             {
                 var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
@@ -139,30 +139,73 @@ namespace CafeShop.Service.Service
                 }
             }
 
-            // 4. Thêm CartItem mới vào giỏ hàng
+            // 4. Kiểm tra xem món này (cùng Size, cùng Topping) đã có trong giỏ chưa
             int quantity = request.Quantity > 0 ? request.Quantity : 1;
+            CartItem? existingCartItem = null;
 
-            var newCartItem = new CartItem
+            if (cart.CartItems != null)
             {
-                CartId = cart.CartId,
-                ProductId = request.ProductId,
-                SizeId = request.SizeId,
-                Quantity = quantity,
-                UnitPrice = unitPrice
-            };
-
-            await _unitOfWork.CartItem.AddAsync(newCartItem);
-            await _unitOfWork.SaveAsync();
-
-            // 5. Lưu danh sách Topping (nếu có)
-            if (toppingsToAdd.Any())
-            {
-                foreach (var cartItemTopping in toppingsToAdd)
+                foreach (var ci in cart.CartItems)
                 {
-                    cartItemTopping.CartItemId = newCartItem.CartItemId;
-                    await _unitOfWork.CartItemTopping.AddAsync(cartItemTopping);
+                    if (ci.ProductId == request.ProductId && ci.SizeId == request.SizeId)
+                    {
+                        var existingToppings = ci.CartItemToppings?.ToList() ?? new List<CartItemTopping>();
+                        
+                        if (existingToppings.Count == toppingsToAdd.Count)
+                        {
+                            bool isMatch = true;
+                            foreach (var newTop in toppingsToAdd)
+                            {
+                                var matchTop = existingToppings.FirstOrDefault(t => t.ToppingId == newTop.ToppingId && t.Quantity == newTop.Quantity);
+                                if (matchTop == null)
+                                {
+                                    isMatch = false;
+                                    break;
+                                }
+                            }
+
+                            if (isMatch)
+                            {
+                                existingCartItem = ci;
+                                break;
+                            }
+                        }
+                    }
                 }
+            }
+
+            // Nếu đã có món y hệt -> Chỉ tăng số lượng
+            if (existingCartItem != null)
+            {
+                existingCartItem.Quantity += quantity;
+                _unitOfWork.CartItem.Update(existingCartItem);
                 await _unitOfWork.SaveAsync();
+            }
+            else
+            {
+                // 5. Nếu chưa có -> Thêm CartItem mới
+                var newCartItem = new CartItem
+                {
+                    CartId = cart.CartId,
+                    ProductId = request.ProductId,
+                    SizeId = request.SizeId,
+                    Quantity = quantity,
+                    UnitPrice = unitPrice
+                };
+
+                await _unitOfWork.CartItem.AddAsync(newCartItem);
+                await _unitOfWork.SaveAsync();
+
+                // 6. Lưu danh sách Topping (nếu có)
+                if (toppingsToAdd.Any())
+                {
+                    foreach (var cartItemTopping in toppingsToAdd)
+                    {
+                        cartItemTopping.CartItemId = newCartItem.CartItemId;
+                        await _unitOfWork.CartItemTopping.AddAsync(cartItemTopping);
+                    }
+                    await _unitOfWork.SaveAsync();
+                }
             }
         }
 

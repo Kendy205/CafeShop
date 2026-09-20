@@ -21,13 +21,13 @@ export default function ProductCard({ product }) {
     return (
         <LoadingLink
             to={`/menu/${id}`}
-            className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-stone-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg ${
+            className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg ${
                 isOutOfStock ? 'opacity-85' : ''
             }`}
         >
             {/* ── Khung ảnh sản phẩm ── */}
             <div>
-                <div className="relative h-48 w-full overflow-hidden bg-stone-100">
+                <div className="relative h-48 w-full overflow-hidden bg-slate-100">
                     {product.imageUrl ? (
                         <img
                             src={product.imageUrl}
@@ -37,7 +37,7 @@ export default function ProductCard({ product }) {
                             }`}
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-amber-50/50 text-3xl text-amber-800/40">
+                        <div className="flex h-full w-full items-center justify-center bg-sky-50/50 text-3xl text-sky-800/40">
                             ☕
                         </div>
                     )}
@@ -62,7 +62,7 @@ export default function ProductCard({ product }) {
                                 Hết hàng
                             </span>
                         ) : totalStock !== null && totalStock <= 10 ? (
-                            <span className="rounded-full bg-amber-500/95 backdrop-blur-xs px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                            <span className="rounded-full bg-sky-500/95 backdrop-blur-xs px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
                                 Còn {totalStock} phần
                             </span>
                         ) : totalStock !== null ? (
@@ -75,7 +75,7 @@ export default function ProductCard({ product }) {
                     {/* Overlay hết hàng lớn khi hết hàng */}
                     {isOutOfStock && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">
-                            <span className="rounded-full border border-white/20 bg-stone-900/90 px-4 py-1.5 text-xs font-extrabold text-white shadow-md tracking-wider">
+                            <span className="rounded-full border border-white/20 bg-slate-900/90 px-4 py-1.5 text-xs font-extrabold text-white shadow-md tracking-wider">
                                 TẠM HẾT HÀNG
                             </span>
                         </div>
@@ -85,17 +85,17 @@ export default function ProductCard({ product }) {
                 {/* ── Thông tin sản phẩm ── */}
                 <div className="p-4">
                     {/* Tên món */}
-                    <h3 className="text-base font-bold text-stone-800 line-clamp-1 transition-colors group-hover:text-amber-900">
+                    <h3 className="text-base font-bold text-slate-800 line-clamp-1 transition-colors group-hover:text-sky-900">
                         {product.name}
                     </h3>
 
                     {/* Mô tả sản phẩm */}
                     {product.description ? (
-                        <p className="mt-1 text-xs text-stone-500 line-clamp-2 leading-relaxed h-8">
+                        <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed h-8">
                             {product.description}
                         </p>
                     ) : (
-                        <p className="mt-1 text-xs text-stone-400 italic h-8">
+                        <p className="mt-1 text-xs text-slate-400 italic h-8">
                             Hương vị thơm ngon được chọn lọc kỹ càng...
                         </p>
                     )}
@@ -103,14 +103,14 @@ export default function ProductCard({ product }) {
                     {/* Các kích cỡ có sẵn (Sizes) */}
                     {hasSizes && (
                         <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[11px] font-medium text-stone-400">Size:</span>
+                            <span className="text-[11px] font-medium text-slate-400">Size:</span>
                             {sizes.map((s) => (
                                 <span
                                     key={s.sizeId || s.name}
                                     className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
                                         s.isOutOfStock
-                                            ? 'bg-stone-100 text-stone-400 line-through'
-                                            : 'bg-amber-50 text-amber-900 border border-amber-200/80'
+                                            ? 'bg-slate-100 text-slate-400 line-through'
+                                            : 'bg-sky-50 text-sky-900 border border-sky-200/80'
                                     }`}
                                 >
                                     {s.name}
@@ -122,23 +122,23 @@ export default function ProductCard({ product }) {
             </div>
 
             {/* ── Chân card: Giá & Nút Chọn món ── */}
-            <div className="border-t border-stone-100 bg-stone-50/50 px-4 py-3">
+            <div className="border-t border-slate-100 bg-slate-50/50 px-4 py-3">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <span className="text-[10px] font-medium text-stone-400 uppercase tracking-wider block">
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider block">
                             {hasSizes ? 'Giá từ' : 'Giá bán'}
                         </span>
-                        <span className="text-base font-black text-amber-900 tracking-tight">
+                        <span className="text-base font-black text-sky-900 tracking-tight">
                             {displayPrice}
                         </span>
                     </div>
 
                     <button
                         type="button"
-                        className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${
+                        className={`inline-flex items-center gap-1 rounded-3xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${
                             isOutOfStock
-                                ? 'bg-stone-200 text-stone-500 cursor-not-allowed'
-                                : 'bg-amber-800 text-white hover:bg-amber-900 group-hover:shadow-sm'
+                                ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                                : 'bg-sky-800 text-white hover:bg-sky-900 group-hover:shadow-sm'
                         }`}
                     >
                         <span>{isOutOfStock ? 'Hết món' : 'Đặt món'}</span>

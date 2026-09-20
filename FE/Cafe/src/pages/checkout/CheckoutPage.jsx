@@ -428,10 +428,10 @@ export default function CheckoutPage() {
     if (!items.length) {
         return (
             <div className="rounded-2xl bg-white p-8 text-center shadow-xs">
-                <p className="text-stone-600">Chưa có món nào để thanh toán.</p>
+                <p className="text-slate-600">Chưa có món nào để thanh toán.</p>
                 <LoadingLink
                     to="/"
-                    className="mt-3 inline-block font-semibold text-amber-800 hover:text-amber-900 underline"
+                    className="mt-3 inline-block font-semibold text-sky-800 hover:text-sky-900 underline"
                 >
                     Về thực đơn
                 </LoadingLink>
@@ -452,9 +452,9 @@ export default function CheckoutPage() {
 
             <form onSubmit={submit} className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-4 lg:col-span-2">
-                    <h1 className="text-2xl font-bold text-stone-800">Thanh toán</h1>
+                    <h1 className="text-2xl font-bold text-slate-800">Thanh toán</h1>
                     {error && (
-                        <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+                        <p className="rounded-3xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
                             {error}
                         </p>
                     )}
@@ -462,10 +462,10 @@ export default function CheckoutPage() {
                     {/* ── Khối Địa chỉ giao hàng ── */}
                     <section className="rounded-2xl bg-white p-5 shadow-xs">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="font-semibold text-stone-800">📍 Địa chỉ giao hàng</h2>
+                            <h2 className="font-semibold text-slate-800">📍 Địa chỉ giao hàng</h2>
                             <LoadingLink
                                 to="/addresses"
-                                className="text-sm font-medium text-amber-800 hover:underline"
+                                className="text-sm font-medium text-sky-800 hover:underline"
                             >
                                 Quản lý địa chỉ
                             </LoadingLink>
@@ -476,9 +476,9 @@ export default function CheckoutPage() {
                             <button
                                 type="button"
                                 onClick={() => handleSwitchAddressTab(TAB_SAVED)}
-                                className={`rounded-xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_SAVED
-                                        ? 'bg-amber-800 text-white shadow-xs'
-                                        : 'border border-stone-200 text-stone-600 hover:bg-stone-50'
+                                className={`rounded-3xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_SAVED
+                                        ? 'bg-sky-800 text-white shadow-xs'
+                                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
                                 📋 Địa chỉ đã lưu
@@ -486,9 +486,9 @@ export default function CheckoutPage() {
                             <button
                                 type="button"
                                 onClick={() => handleSwitchAddressTab(TAB_MAP)}
-                                className={`rounded-xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_MAP
-                                        ? 'bg-amber-800 text-white shadow-xs'
-                                        : 'border border-stone-200 text-stone-600 hover:bg-stone-50'
+                                className={`rounded-3xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_MAP
+                                        ? 'bg-sky-800 text-white shadow-xs'
+                                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
                                 🗺️ Chọn trên bản đồ
@@ -512,7 +512,7 @@ export default function CheckoutPage() {
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="mb-1 block text-xs font-semibold text-stone-700">
+                                        <label className="mb-1 block text-xs font-semibold text-slate-700">
                                             Tên người nhận <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -520,12 +520,12 @@ export default function CheckoutPage() {
                                             value={recipientName}
                                             onChange={(e) => setRecipientName(e.target.value)}
                                             placeholder="Nguyễn Văn A"
-                                            className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-3xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
                                             required={addressTab === TAB_MAP}
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-1 block text-xs font-semibold text-stone-700">
+                                        <label className="mb-1 block text-xs font-semibold text-slate-700">
                                             Số điện thoại <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -533,7 +533,7 @@ export default function CheckoutPage() {
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="0987654321"
-                                            className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-3xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
                                             required={addressTab === TAB_MAP}
                                         />
                                     </div>
@@ -546,7 +546,7 @@ export default function CheckoutPage() {
                                 />
 
                                 {!mapValid && (
-                                    <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-2.5 text-xs text-amber-800 flex items-center gap-1.5">
+                                    <div className="rounded-3xl bg-sky-50 border border-sky-200/80 p-2.5 text-xs text-sky-800 flex items-center gap-1.5">
                                         <span>💡</span>
                                         <span>
                                             {!recipientName.trim()

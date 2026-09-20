@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { claimVoucher, getAvailableVouchers, getMyVouchers } from '../../actions/user/voucherAction'
-import { asList } from '../../../utils/helpers/api'
 
 const initialState = {
     // Danh sách voucher khả dụng (public + personal được tặng)
@@ -16,7 +15,7 @@ const initialState = {
     // Claim voucher
     claiming: false,
     claimError: null,
-    claimSuccess: null, // message từ server khi claim thành công
+    claimSuccess: null,
 }
 
 const voucherSlice = createSlice({
@@ -37,7 +36,7 @@ const voucherSlice = createSlice({
             })
             .addCase(getAvailableVouchers.fulfilled, (state, action) => {
                 state.loading = false
-                state.items = asList(action.payload)
+                state.items = action.payload ?? []
             })
             .addCase(getAvailableVouchers.rejected, (state, action) => {
                 state.loading = false
@@ -51,7 +50,7 @@ const voucherSlice = createSlice({
             })
             .addCase(getMyVouchers.fulfilled, (state, action) => {
                 state.myVouchersLoading = false
-                state.myVouchers = Array.isArray(action.payload) ? action.payload : []
+                state.myVouchers = action.payload ?? []
             })
             .addCase(getMyVouchers.rejected, (state, action) => {
                 state.myVouchersLoading = false

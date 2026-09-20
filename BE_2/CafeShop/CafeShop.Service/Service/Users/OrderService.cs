@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Order;
 using CafeShop.Model;
@@ -92,7 +92,7 @@ namespace CafeShop.Services.Services
                 // 5. LƯU ĐƠN HÀNG VÀO DATABASE
                 var order = new Order
                 {
-                    CustomerId = userId,
+                    UserId = userId,
                     AddressId = finalAddressId,
                     DistanceKm = request.DistanceKm,
                     ShippingFee = shippingFee,
@@ -133,12 +133,12 @@ namespace CafeShop.Services.Services
             if (pageSize < 1) pageSize = 10;
 
             System.Linq.Expressions.Expression<Func<Order, bool>> filter = x =>
-                x.CustomerId == userId &&
+                x.UserId == userId &&
                 (string.IsNullOrEmpty(status) || x.CurrentStatus == status);
 
             var orders = await _unitOfWork.Order.GetAllAsync(
                 filter: filter,
-                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks",
+                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,Customer,Address",
                 pageSize: pageSize,
                 pageNumber: pageNumber,
                 orderBy: q => q.OrderByDescending(o => o.OrderDate)
@@ -159,26 +159,39 @@ namespace CafeShop.Services.Services
         // ================= HỦY ĐƠN HÀNG =================
         public async Task CancelOrderAsync(int userId, int orderId)
         {
-            var order = await _unitOfWork.Order.GetFirstOrDefaultAsync(o => o.OrderId == orderId && o.CustomerId == userId);
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var order = await _unitOfWork.Order.GetFirstOrDefaultAsync(
+                    o => o.OrderId == orderId && o.UserId == userId,
+                    includeProperties: "OrderDetails.OrderDetailToppings"
+                );
 
-            if (order == null)
-                throw new ArgumentException("Không tìm thấy đơn hàng!");
+                if (order == null)
+                    throw new ArgumentException("Không tìm thấy đơn hàng!");
 
-            if (order.CurrentStatus == OrderStatus.Cancelled)
-                throw new ArgumentException("Đơn hàng này đã được hủy trước đó.");
+                if (order.CurrentStatus == OrderStatus.Cancelled)
+                    throw new ArgumentException("Đơn hàng này đã được hủy trước đó.");
 
-            if (order.CurrentStatus != OrderStatus.Pending)
-                throw new ArgumentException("Quán đã bắt đầu pha chế món của bạn, không thể hủy đơn!");
+                if (order.CurrentStatus != OrderStatus.Pending)
+                    throw new ArgumentException("Quán đã bắt đầu pha chế món của bạn, không thể hủy đơn!");
 
-            order.CurrentStatus = OrderStatus.Cancelled;
+                await RestoreStockAsync(order.OrderDetails);
+                await RestoreVoucherUsageAsync(userId, order.VoucherId);
 
-            // Bổ sung Logic hoàn tồn kho tại đây nếu cần thiết trong tương lai
-
-            _unitOfWork.Order.Update(order);
-            await _unitOfWork.SaveAsync();
+                order.CurrentStatus = OrderStatus.Cancelled;
+                _unitOfWork.Order.Update(order);
+                await _unitOfWork.SaveAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
-        // =========================================================================
+
         // ================= CÁC HÀM HELPER XỬ LÝ LOGIC BÊN TRONG ==================
         // =========================================================================
 
@@ -255,6 +268,83 @@ namespace CafeShop.Services.Services
             if (reportedDistanceKm < (straightDistance - 0.2))
             {
                 throw new ArgumentException($"Dữ liệu khoảng cách bị sai lệch! (Thực tế không thể nhỏ hơn {Math.Round(straightDistance, 1)}km). Vui lòng thử lại!");
+            }
+        }
+
+        // --- HOÀN KHO KHI HỦY ĐƠN (ĐỐI XỨNG VỚI LOGIC TRỪ KHO LÚC ĐẶT) ---
+        private async Task RestoreStockAsync(ICollection<OrderDetail>? orderDetails)
+        {
+            if (orderDetails == null || !orderDetails.Any())
+                return;
+
+            foreach (var detail in orderDetails)
+            {
+                int qty = detail.Quantity > 0 ? detail.Quantity : 1;
+
+                if (detail.SizeId > 0)
+                {
+                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                        ps => ps.ProductId == detail.ProductId && ps.SizeId == detail.SizeId
+                    );
+
+                    if (productSize != null)
+                    {
+                        productSize.StockQuantity += qty;
+                        _unitOfWork.ProductSize.Update(productSize);
+                    }
+                }
+                else
+                {
+                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
+                    if (product != null)
+                    {
+                        product.StockQuantity += qty;
+                        _unitOfWork.Product.Update(product);
+                    }
+                }
+
+                if (detail.OrderDetailToppings == null)
+                    continue;
+
+                foreach (var toppingLine in detail.OrderDetailToppings)
+                {
+                    var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == toppingLine.ToppingId);
+                    if (topping == null)
+                        continue;
+
+                    int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
+                    topping.StockQuantity += toppingQty * qty;
+                    _unitOfWork.Topping.Update(topping);
+                }
+            }
+        }
+
+        private async Task RestoreVoucherUsageAsync(int userId, int? voucherId)
+        {
+            if (!voucherId.HasValue || voucherId.Value <= 0)
+                return;
+
+            var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == voucherId.Value);
+            if (voucher == null)
+                return;
+
+            if (voucher.UsedCount > 0)
+            {
+                voucher.UsedCount -= 1;
+                _unitOfWork.Voucher.Update(voucher);
+            }
+
+            if (!VoucherTypeTarget.IsUser(voucher.TargetType))
+                return;
+
+            var userVoucher = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(
+                uv => uv.UserId == userId && uv.VoucherId == voucher.VoucherId
+            );
+
+            if (userVoucher != null && userVoucher.UsedCount > 0)
+            {
+                userVoucher.UsedCount -= 1;
+                _unitOfWork.UserVoucher.Update(userVoucher);
             }
         }
 

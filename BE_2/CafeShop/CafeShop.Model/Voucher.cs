@@ -18,7 +18,7 @@ namespace CafeShop.Model
         public string? Code { get; set; }
         public string Description { get; set; } = string.Empty;
 
-        // 1. Áp dụng cho ai: "Public" hoặc "Personal"
+        // 1. Áp dụng cho ai: "PUBLIC" hoặc "USER"
         public string TargetType { get; set; } = VoucherTypeTarget.PUBLIC;
 
         // 2. Giảm vào cái gì: "Order" (tiền nước) hoặc "Shipping" (tiền ship)

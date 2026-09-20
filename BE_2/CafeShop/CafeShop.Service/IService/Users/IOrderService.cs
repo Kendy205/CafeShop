@@ -1,4 +1,4 @@
-﻿using CafeShop.DTO.Order;
+using CafeShop.DTO.Order;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using System.Collections.Generic;
@@ -18,8 +18,5 @@ namespace CafeShop.Services.IServices
 
         Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize, string? status = null);
         Task CancelOrderAsync(int userId, int orderId);
-        //Task<VoucherResponseDto> CheckVoucherAsync(int userId, CheckVoucherRequestDto request);
-        //Task<OrderResponseDto> BuyNowAsync(int userId, CreateOrderDto request);
     }
-
 }

@@ -191,13 +191,13 @@ export default function ProfilePage({ defaultTab }) {
     return (
         <div className="mx-auto max-w-6xl px-4 py-8">
             {/* ── Tiêu đề trang ── */}
-            <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-stone-200/80 pb-5">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
                 <div>
-                    <h1 className="text-2xl font-black text-stone-800 sm:text-3xl flex items-center gap-2.5">
+                    <h1 className="text-2xl font-black text-slate-800 sm:text-3xl flex items-center gap-2.5">
                         <span>☕</span>
                         <span>Tài khoản của tôi</span>
                     </h1>
-                    <p className="mt-1 text-xs text-stone-500">
+                    <p className="mt-1 text-xs text-slate-500">
                         Quản lý thông tin cá nhân, cập nhật ảnh đại diện, sổ địa chỉ và bảo mật mật khẩu
                     </p>
                 </div>
@@ -205,13 +205,13 @@ export default function ProfilePage({ defaultTab }) {
                 <div className="flex items-center gap-2">
                     <LoadingLink
                         to="/orders"
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-xs font-bold text-stone-700 hover:bg-amber-50 hover:text-amber-900 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 rounded-3xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-900 transition-colors shadow-2xs"
                     >
                         <span>📦 Lịch sử đơn hàng</span>
                     </LoadingLink>
                     <LoadingLink
                         to="/vouchers"
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-xs font-bold text-stone-700 hover:bg-amber-50 hover:text-amber-900 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 rounded-3xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-900 transition-colors shadow-2xs"
                     >
                         <span>🎟️ Ví Voucher</span>
                     </LoadingLink>
@@ -223,16 +223,16 @@ export default function ProfilePage({ defaultTab }) {
                 {/* ══ CỘT TRÁI: User Summary & Menu Tabs (4 cols) ══ */}
                 <div className="lg:col-span-4 space-y-4">
                     {/* Thẻ tóm tắt thông tin người dùng */}
-                    <div className="overflow-hidden rounded-3xl border border-stone-200/90 bg-white p-6 shadow-xs text-center">
+                    <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs text-center">
                         <div className="relative mx-auto mb-3.5 h-24 w-24">
                             {currentAvatarUrl ? (
                                 <img
                                     src={currentAvatarUrl}
                                     alt="Avatar"
-                                    className="h-full w-full rounded-full object-cover border-4 border-amber-100 shadow-md"
+                                    className="h-full w-full rounded-full object-cover border-4 border-sky-100 shadow-md"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-amber-700 to-amber-900 text-3xl font-bold text-white border-4 border-amber-100 shadow-md">
+                                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-sky-700 to-sky-900 text-3xl font-bold text-white border-4 border-sky-100 shadow-md">
                                     {(profile?.fullName || user?.fullName || 'U').charAt(0).toUpperCase()}
                                 </div>
                             )}
@@ -244,36 +244,36 @@ export default function ProfilePage({ defaultTab }) {
                                     handleSwitchTab(TAB_PROFILE)
                                     fileInputRef.current?.click()
                                 }}
-                                className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-amber-800 text-white shadow-md hover:bg-amber-900 transition-transform active:scale-95 cursor-pointer text-xs"
+                                className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-sky-800 text-white shadow-md hover:bg-sky-900 transition-transform active:scale-95 cursor-pointer text-xs"
                                 title="Đổi ảnh đại diện"
                             >
                                 📷
                             </button>
                         </div>
 
-                        <h2 className="text-base font-bold text-stone-800">
+                        <h2 className="text-base font-bold text-slate-800">
                             {profile?.fullName || user?.fullName || 'Khách hàng'}
                         </h2>
-                        <p className="mt-0.5 text-xs text-stone-500 font-mono">
+                        <p className="mt-0.5 text-xs text-slate-500 font-mono">
                             {profile?.phoneNumber || user?.phone || 'Chưa cập nhật số điện thoại'}
                         </p>
 
-                        <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-900 border border-amber-200/60">
+                        <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-[11px] font-semibold text-sky-900 border border-sky-200/60">
                             <span>☕</span>
                             <span>Thành viên Cafe Club</span>
                         </div>
                     </div>
 
                     {/* Menu Tabs dọc */}
-                    <div className="overflow-hidden rounded-3xl border border-stone-200/90 bg-white p-2.5 shadow-xs">
+                    <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-2.5 shadow-xs">
                         <nav className="space-y-1">
                             <button
                                 type="button"
                                 onClick={() => handleSwitchTab(TAB_PROFILE)}
                                 className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold transition-all cursor-pointer ${
                                     activeTab === TAB_PROFILE
-                                        ? 'bg-amber-800 text-white shadow-sm'
-                                        : 'text-stone-600 hover:bg-amber-50/60 hover:text-amber-900'
+                                        ? 'bg-sky-800 text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-sky-50/60 hover:text-sky-900'
                                 }`}
                             >
                                 <span className="text-base">👤</span>
@@ -285,8 +285,8 @@ export default function ProfilePage({ defaultTab }) {
                                 onClick={() => handleSwitchTab(TAB_ADDRESS)}
                                 className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold transition-all cursor-pointer ${
                                     activeTab === TAB_ADDRESS
-                                        ? 'bg-amber-800 text-white shadow-sm'
-                                        : 'text-stone-600 hover:bg-amber-50/60 hover:text-amber-900'
+                                        ? 'bg-sky-800 text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-sky-50/60 hover:text-sky-900'
                                 }`}
                             >
                                 <span className="text-base">📍</span>
@@ -298,8 +298,8 @@ export default function ProfilePage({ defaultTab }) {
                                 onClick={() => handleSwitchTab(TAB_PASSWORD)}
                                 className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold transition-all cursor-pointer ${
                                     activeTab === TAB_PASSWORD
-                                        ? 'bg-amber-800 text-white shadow-sm'
-                                        : 'text-stone-600 hover:bg-amber-50/60 hover:text-amber-900'
+                                        ? 'bg-sky-800 text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-sky-50/60 hover:text-sky-900'
                                 }`}
                             >
                                 <span className="text-base">🔒</span>
@@ -313,25 +313,25 @@ export default function ProfilePage({ defaultTab }) {
                 <div className="lg:col-span-8">
                     {/* ── TAB 1: CẬP NHẬT HỒ SƠ CÁ NHÂN ── */}
                     {activeTab === TAB_PROFILE && (
-                        <div className="rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-7 shadow-xs animate-in fade-in duration-200">
-                            <div className="mb-6 border-b border-stone-100 pb-4">
-                                <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
+                        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-xs animate-in fade-in duration-200">
+                            <div className="mb-6 border-b border-slate-100 pb-4">
+                                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                                     <span>👤</span>
                                     <span>Thông tin cá nhân & Ảnh đại diện</span>
                                 </h3>
-                                <p className="mt-0.5 text-xs text-stone-500">
+                                <p className="mt-0.5 text-xs text-slate-500">
                                     Cập nhật họ tên, số điện thoại và tải lên hình đại diện của bạn
                                 </p>
                             </div>
 
                             {profileLoading && !profile ? (
-                                <div className="space-y-4 py-8 text-center text-xs text-stone-400">
+                                <div className="space-y-4 py-8 text-center text-xs text-slate-400">
                                     <span>⏳ Đang tải thông tin hồ sơ...</span>
                                 </div>
                             ) : (
                                 <form onSubmit={handleUpdateProfile} className="space-y-5">
                                     {/* Khu vực chọn ảnh đại diện */}
-                                    <div className="flex flex-col sm:flex-row items-center gap-5 rounded-2xl border border-amber-200/60 bg-amber-50/30 p-4">
+                                    <div className="flex flex-col sm:flex-row items-center gap-5 rounded-2xl border border-sky-200/60 bg-sky-50/30 p-4">
                                         <div className="relative h-20 w-20 shrink-0">
                                             {currentAvatarUrl ? (
                                                 <img
@@ -340,17 +340,17 @@ export default function ProfilePage({ defaultTab }) {
                                                     className="h-full w-full rounded-full object-cover border-2 border-white shadow-md"
                                                 />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center rounded-full bg-amber-800 text-2xl font-bold text-white shadow-md">
+                                                <div className="flex h-full w-full items-center justify-center rounded-full bg-sky-800 text-2xl font-bold text-white shadow-md">
                                                     {(fullName || 'U').charAt(0).toUpperCase()}
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="flex-1 text-center sm:text-left">
-                                            <label className="block text-xs font-bold text-stone-800">
+                                            <label className="block text-xs font-bold text-slate-800">
                                                 Ảnh đại diện
                                             </label>
-                                            <p className="mt-0.5 text-[11px] text-stone-500">
+                                            <p className="mt-0.5 text-[11px] text-slate-500">
                                                 Hỗ trợ định dạng JPG, JPEG, PNG. Dung lượng tối đa 5MB.
                                             </p>
 
@@ -365,7 +365,7 @@ export default function ProfilePage({ defaultTab }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className="rounded-xl bg-white border border-stone-200 px-3.5 py-1.5 text-xs font-bold text-stone-700 shadow-2xs hover:bg-stone-50 transition-colors cursor-pointer"
+                                                    className="rounded-3xl bg-white border border-slate-200 px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
                                                 >
                                                     📁 Chọn ảnh mới
                                                 </button>
@@ -374,7 +374,7 @@ export default function ProfilePage({ defaultTab }) {
                                                     <button
                                                         type="button"
                                                         onClick={handleCancelAvatar}
-                                                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
+                                                        className="rounded-3xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
                                                     >
                                                         ✕ Hủy chọn
                                                     </button>
@@ -385,7 +385,7 @@ export default function ProfilePage({ defaultTab }) {
 
                                     {/* Họ và tên */}
                                     <div>
-                                        <label className="mb-1 block text-xs font-bold text-stone-700">
+                                        <label className="mb-1 block text-xs font-bold text-slate-700">
                                             Họ và tên <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -393,14 +393,14 @@ export default function ProfilePage({ defaultTab }) {
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                             placeholder="Ví dụ: Nguyễn Văn A"
-                                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-4 py-2.5 text-xs text-stone-800 outline-none transition-all focus:border-amber-600 focus:bg-white focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs text-slate-800 outline-none transition-all focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200"
                                             required
                                         />
                                     </div>
 
                                     {/* Số điện thoại */}
                                     <div>
-                                        <label className="mb-1 block text-xs font-bold text-stone-700">
+                                        <label className="mb-1 block text-xs font-bold text-slate-700">
                                             Số điện thoại
                                         </label>
                                         <input
@@ -408,7 +408,7 @@ export default function ProfilePage({ defaultTab }) {
                                             value={phoneNumber}
                                             onChange={(e) => setPhoneNumber(e.target.value)}
                                             placeholder="Ví dụ: 0987654321"
-                                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-4 py-2.5 text-xs text-stone-800 outline-none transition-all focus:border-amber-600 focus:bg-white focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs text-slate-800 outline-none transition-all focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200"
                                         />
                                     </div>
 
@@ -417,7 +417,7 @@ export default function ProfilePage({ defaultTab }) {
                                         <button
                                             type="submit"
                                             disabled={updating}
-                                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-800 px-6 py-3 text-xs font-bold text-white shadow-md shadow-amber-900/20 hover:bg-amber-900 disabled:opacity-60 transition-all cursor-pointer"
+                                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-800 px-6 py-3 text-xs font-bold text-white shadow-md shadow-sky-900/20 hover:bg-sky-900 disabled:opacity-60 transition-all cursor-pointer"
                                         >
                                             <span>{updating ? '⏳' : '💾'}</span>
                                             <span>{updating ? 'Đang lưu cập nhật...' : 'Lưu thay đổi hồ sơ'}</span>
@@ -430,13 +430,13 @@ export default function ProfilePage({ defaultTab }) {
 
                     {/* ── TAB 2: SỔ ĐỊA CHỈ GIAO HÀNG (Nhúng AddressManager) ── */}
                     {activeTab === TAB_ADDRESS && (
-                        <div className="rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-7 shadow-xs animate-in fade-in duration-200">
-                            <div className="mb-6 border-b border-stone-100 pb-4">
-                                <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
+                        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-xs animate-in fade-in duration-200">
+                            <div className="mb-6 border-b border-slate-100 pb-4">
+                                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                                     <span>📍</span>
                                     <span>Quản lý sổ địa chỉ nhận hàng</span>
                                 </h3>
-                                <p className="mt-0.5 text-xs text-stone-500">
+                                <p className="mt-0.5 text-xs text-slate-500">
                                     Danh sách địa chỉ của bạn được đồng bộ trực tiếp khi đặt hàng và tính khoảng cách Mapbox
                                 </p>
                             </div>
@@ -447,13 +447,13 @@ export default function ProfilePage({ defaultTab }) {
 
                     {/* ── TAB 3: ĐỔI MẬT KHẨU BẢO MẬT ── */}
                     {activeTab === TAB_PASSWORD && (
-                        <div className="rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-7 shadow-xs animate-in fade-in duration-200">
-                            <div className="mb-6 border-b border-stone-100 pb-4">
-                                <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
+                        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-xs animate-in fade-in duration-200">
+                            <div className="mb-6 border-b border-slate-100 pb-4">
+                                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                                     <span>🔒</span>
                                     <span>Đổi mật khẩu tài khoản</span>
                                 </h3>
-                                <p className="mt-0.5 text-xs text-stone-500">
+                                <p className="mt-0.5 text-xs text-slate-500">
                                     Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác
                                 </p>
                             </div>
@@ -477,7 +477,7 @@ export default function ProfilePage({ defaultTab }) {
                             <form onSubmit={handleChangePassword} className="space-y-4 max-w-lg">
                                 {/* Mật khẩu hiện tại */}
                                 <div>
-                                    <label className="mb-1 block text-xs font-bold text-stone-700">
+                                    <label className="mb-1 block text-xs font-bold text-slate-700">
                                         Mật khẩu hiện tại <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -486,7 +486,7 @@ export default function ProfilePage({ defaultTab }) {
                                             value={currentPassword}
                                             onChange={(e) => setCurrentPassword(e.target.value)}
                                             placeholder="Nhập mật khẩu đang sử dụng..."
-                                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-4 py-2.5 pr-12 text-xs text-stone-800 outline-none transition-all focus:border-amber-600 focus:bg-white focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 pr-12 text-xs text-slate-800 outline-none transition-all focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200"
                                             required
                                         />
                                     </div>
@@ -494,7 +494,7 @@ export default function ProfilePage({ defaultTab }) {
 
                                 {/* Mật khẩu mới */}
                                 <div>
-                                    <label className="mb-1 block text-xs font-bold text-stone-700">
+                                    <label className="mb-1 block text-xs font-bold text-slate-700">
                                         Mật khẩu mới <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -503,7 +503,7 @@ export default function ProfilePage({ defaultTab }) {
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="Tối thiểu 6 ký tự..."
-                                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-4 py-2.5 pr-12 text-xs text-stone-800 outline-none transition-all focus:border-amber-600 focus:bg-white focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 pr-12 text-xs text-slate-800 outline-none transition-all focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200"
                                             required
                                         />
                                     </div>
@@ -511,7 +511,7 @@ export default function ProfilePage({ defaultTab }) {
 
                                 {/* Xác nhận mật khẩu mới */}
                                 <div>
-                                    <label className="mb-1 block text-xs font-bold text-stone-700">
+                                    <label className="mb-1 block text-xs font-bold text-slate-700">
                                         Xác nhận mật khẩu mới <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -520,7 +520,7 @@ export default function ProfilePage({ defaultTab }) {
                                             value={confirmNewPassword}
                                             onChange={(e) => setConfirmNewPassword(e.target.value)}
                                             placeholder="Nhập lại mật khẩu mới..."
-                                            className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-4 py-2.5 pr-12 text-xs text-stone-800 outline-none transition-all focus:border-amber-600 focus:bg-white focus:ring-1 focus:ring-amber-200"
+                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 pr-12 text-xs text-slate-800 outline-none transition-all focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200"
                                             required
                                         />
                                     </div>
@@ -528,12 +528,12 @@ export default function ProfilePage({ defaultTab }) {
 
                                 {/* Toggle hiện mật khẩu */}
                                 <div className="pt-0.5">
-                                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-stone-600 cursor-pointer">
+                                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={showPassword}
                                             onChange={(e) => setShowPassword(e.target.checked)}
-                                            className="h-3.5 w-3.5 rounded-md accent-amber-800"
+                                            className="h-3.5 w-3.5 rounded-md accent-sky-800"
                                         />
                                         <span>Hiện các mật khẩu</span>
                                     </label>
@@ -544,7 +544,7 @@ export default function ProfilePage({ defaultTab }) {
                                     <button
                                         type="submit"
                                         disabled={changingPassword}
-                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-800 px-6 py-3 text-xs font-bold text-white shadow-md shadow-amber-900/20 hover:bg-amber-900 disabled:opacity-60 transition-all cursor-pointer"
+                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-800 px-6 py-3 text-xs font-bold text-white shadow-md shadow-sky-900/20 hover:bg-sky-900 disabled:opacity-60 transition-all cursor-pointer"
                                     >
                                         <span>{changingPassword ? '⏳' : '🔒'}</span>
                                         <span>{changingPassword ? 'Đang đổi mật khẩu...' : 'Cập nhật mật khẩu'}</span>

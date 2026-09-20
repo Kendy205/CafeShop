@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.DTO.Address;
 using CafeShop.DTO.Auth;
 using CafeShop.DTO.Cart;
@@ -25,7 +25,7 @@ namespace CafeShop.Mapper
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : ""));
             //Ánh xạ bảng trung gian ProductSize sang DTO
             CreateMap<ProductSize, ProductSizeDto>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : ""))
+            .ForMember(dest => dest.SizeName, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : ""))
             // Logic mới: Nếu Price có giá trị thì lấy Price, nếu null thì lấy BasePrice
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
                 src.Price.HasValue ? src.Price.Value : (src.Product != null ? src.Product.BasePrice : 0)));
@@ -36,11 +36,16 @@ namespace CafeShop.Mapper
             // ==========================================
             CreateMap<User, UserResponseDto>();
             CreateMap<User, UserProfileDto>().ReverseMap();
+            CreateMap<User, CafeShop.DTO.Admin.AdminUserDto>();
+
             // ==========================================
             // 4. ORDER
             // ==========================================
             CreateMap<Order, OrderResponseDto>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetails));
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetails))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : ""))
+                .ForMember(dest => dest.UserPhone, opt => opt.MapFrom(src => src.User != null ? src.User.PhoneNumber : ""))
+                .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => src.Address != null ? src.Address.FullAddress : ""));
             CreateMap<OrderDetail, OrderDetailDto>()
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : ""))
@@ -84,8 +89,6 @@ namespace CafeShop.Mapper
             CreateMap<Feedback, FeedbackResponseDto>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
                     src.User != null ? src.User.FullName : "Người dùng ẩn danh"));
-            CreateMap<Feedback, FeedbackResponseDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName));
 
 
         }

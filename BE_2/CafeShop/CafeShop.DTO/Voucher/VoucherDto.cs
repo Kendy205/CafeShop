@@ -15,7 +15,7 @@ namespace CafeShop.DTO.Voucher
         public string Description { get; set; } = string.Empty;
 
         // Phân loại
-        public string TargetType { get; set; } = VoucherTypeTarget.PUBLIC;    // "All" / "Public" hoặc "User"
+        public string TargetType { get; set; } = VoucherTypeTarget.PUBLIC;    // PUBLIC hoặc USER
         public string ApplyType { get; set; } = VoucherApplyType.ORDER;    // "Order" hoặc "Shipping"
         public string DiscountType { get; set; } = DiscountApplyType.FIXED;// "Fixed" hoặc "Percentage"
 

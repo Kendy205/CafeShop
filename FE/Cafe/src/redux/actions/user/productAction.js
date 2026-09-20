@@ -25,3 +25,6 @@ export const getProductDetail = createAsyncThunk(
         }
     }
 )
+
+// Re-export getCategories từ categoryAction để đảm bảo tương thích ngược
+export { getCategories } from './categoryAction'

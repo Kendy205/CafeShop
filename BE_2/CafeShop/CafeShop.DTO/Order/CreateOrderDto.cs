@@ -1,4 +1,4 @@
-﻿using CafeShop.DTO.Cart;
+using CafeShop.DTO.Cart;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,8 +55,11 @@ namespace CafeShop.DTO.Order
     public class OrderResponseDto
     {
         public int OrderId { get; set; }
-        public int CustomerId { get; set; }
+        public int UserId { get; set; }
+        public string? UserName { get; set; }
+        public string? UserPhone { get; set; }
         public int AddressId { get; set; }
+        public string? ShippingAddress { get; set; }
         public double DistanceKm { get; set; }
         public decimal ShippingFee { get; set; }
         public DateTime OrderDate { get; set; }

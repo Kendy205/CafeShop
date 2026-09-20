@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
@@ -29,26 +29,5 @@ namespace CafeShop.Services.Services
             return await _unitOfWork.Category.GetFirstOrDefaultAsync(p => p.CategoryId == id);
         }
 
-        public async Task AddAsync(Category entity)
-        {
-            await _unitOfWork.Category.AddAsync(entity);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task UpdateAsync(Category entity)
-        {
-            _unitOfWork.Category.Update(entity);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _unitOfWork.Category.GetFirstOrDefaultAsync(p => p.CategoryId == id);
-            if (entity != null)
-            {
-                _unitOfWork.Category.Remove(entity);
-                await _unitOfWork.SaveAsync();
-            }
-        }
     }
 }

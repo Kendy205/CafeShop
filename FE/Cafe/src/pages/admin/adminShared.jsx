@@ -1,30 +1,34 @@
+import { THEME } from '../../utils/constants/Theme'
+
 export function PageHeader({ title, extra }) {
     return (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-2xl font-semibold text-stone-800">{title}</h1>
-            {extra}
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">{title}</h1>
+            <div className="flex items-center gap-3">
+                {extra}
+            </div>
         </div>
     )
 }
 
 export function FormField({ label, children, error }) {
     return (
-        <div className="mb-3">
-            <label className="mb-1 block text-sm font-medium text-stone-700">{label}</label>
+        <div className="mb-4">
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700 ml-1">{label}</label>
             {children}
-            {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+            {error ? <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{error}</p> : null}
         </div>
     )
 }
 
 export function AdminTable({ columns, rows, rowKey = 'id' }) {
     return (
-        <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
+        <div className="overflow-x-auto rounded-3xl bg-white shadow-sm border border-slate-100">
             <table className="min-w-full text-left text-sm">
-                <thead className="bg-stone-50 text-stone-600">
+                <thead className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
                     <tr>
                         {columns.map((c) => (
-                            <th key={c.key} className="px-4 py-3 font-medium">
+                            <th key={c.key} className="px-6 py-4 font-semibold whitespace-nowrap">
                                 {c.title}
                             </th>
                         ))}
@@ -33,15 +37,15 @@ export function AdminTable({ columns, rows, rowKey = 'id' }) {
                 <tbody>
                     {rows.length === 0 ? (
                         <tr>
-                            <td className="px-4 py-8 text-center text-stone-400" colSpan={columns.length}>
-                                Chưa có dữ liệu
+                            <td className="px-6 py-12 text-center text-slate-400 font-medium" colSpan={columns.length}>
+                                Không có dữ liệu để hiển thị
                             </td>
                         </tr>
                     ) : (
                         rows.map((row, idx) => (
-                            <tr key={row[rowKey] ?? idx} className="border-t border-stone-100">
+                            <tr key={row[rowKey] ?? idx} className="border-b border-slate-50 last:border-0 hover:bg-sky-50/30 transition-colors">
                                 {columns.map((c) => (
-                                    <td key={c.key} className="px-4 py-3">
+                                    <td key={c.key} className="px-6 py-4 text-slate-700">
                                         {c.render ? c.render(row) : row[c.dataIndex]}
                                     </td>
                                 ))}
@@ -57,17 +61,24 @@ export function AdminTable({ columns, rows, rowKey = 'id' }) {
 export function AdminModal({ open, title, onClose, children, footer }) {
     if (!open) return null
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 shadow-xl">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">{title}</h2>
-                    <button type="button" onClick={onClose} className="text-stone-500">
-                        Đóng
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white/95 backdrop-blur-xl p-6 md:p-8 shadow-apple border border-white/40 animate-in zoom-in-95 duration-200 no-scrollbar">
+                <div className="mb-6 flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors"
+                    >
+                        ✕
                     </button>
                 </div>
-                {children}
-                {footer ? <div className="mt-4 flex justify-end gap-2">{footer}</div> : null}
+                <div className="text-slate-700">
+                    {children}
+                </div>
+                {footer ? <div className="mt-8 flex justify-end gap-3">{footer}</div> : null}
             </div>
         </div>
     )
 }
+

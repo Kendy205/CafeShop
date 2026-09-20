@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Feedback;
 using CafeShop.Model;
@@ -35,7 +35,7 @@ namespace CafeShop.Service.Service.Users
             if (orderDetail == null || orderDetail.Order == null)
                 throw new ArgumentException("Chi tiết đơn hàng không tồn tại!");
 
-            if (orderDetail.Order.CustomerId != userId)
+            if (orderDetail.Order.UserId != userId)
                 throw new ArgumentException("Bạn không có quyền đánh giá đơn hàng này!");
 
             // 2. Kiểm tra trạng thái đơn hàng (Phải là Completed)

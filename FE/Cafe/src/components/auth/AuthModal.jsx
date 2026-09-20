@@ -55,7 +55,7 @@ export default function AuthModal({
                 <button
                     type="button"
                     onClick={handleClose}
-                    className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-400 transition-colors hover:bg-stone-200 hover:text-stone-700 cursor-pointer"
+                    className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700 cursor-pointer"
                     title="Đóng (ESC)"
                 >
                     ✕
@@ -63,11 +63,11 @@ export default function AuthModal({
 
                 {/* Header thương hiệu */}
                 <div className="mb-5 text-center">
-                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-700 to-amber-900 text-2xl text-white shadow-md shadow-amber-900/30">
+                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-700 to-sky-900 text-2xl text-white shadow-md shadow-sky-900/30">
                         ☕
                     </div>
-                    <h3 className="text-xl font-black text-stone-800">Chào mừng bạn đến với Cafe</h3>
-                    <p className="mt-1 text-xs text-stone-500">
+                    <h3 className="text-xl font-black text-slate-800">Chào mừng bạn đến với Cafe</h3>
+                    <p className="mt-1 text-xs text-slate-500">
                         {currentTab === 'login'
                             ? 'Đăng nhập để đặt món và theo dõi đơn hàng'
                             : 'Tạo tài khoản mới nhận ngay ưu đãi thành viên'}
@@ -75,14 +75,14 @@ export default function AuthModal({
                 </div>
 
                 {/* Pill Tab Switcher */}
-                <div className="mb-5 flex rounded-2xl bg-stone-100 p-1">
+                <div className="mb-5 flex rounded-2xl bg-slate-100 p-1">
                     <button
                         type="button"
                         onClick={() => handleSwitchTab('login')}
-                        className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                        className={`flex-1 rounded-3xl py-2 text-xs font-bold transition-all cursor-pointer ${
                             currentTab === 'login'
-                                ? 'bg-white text-amber-900 shadow-xs'
-                                : 'text-stone-500 hover:text-stone-800'
+                                ? 'bg-white text-sky-900 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
                         }`}
                     >
                         Đăng nhập
@@ -90,10 +90,10 @@ export default function AuthModal({
                     <button
                         type="button"
                         onClick={() => handleSwitchTab('register')}
-                        className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                        className={`flex-1 rounded-3xl py-2 text-xs font-bold transition-all cursor-pointer ${
                             currentTab === 'register'
-                                ? 'bg-white text-amber-900 shadow-xs'
-                                : 'text-stone-500 hover:text-stone-800'
+                                ? 'bg-white text-sky-900 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
                         }`}
                     >
                         Đăng ký tài khoản

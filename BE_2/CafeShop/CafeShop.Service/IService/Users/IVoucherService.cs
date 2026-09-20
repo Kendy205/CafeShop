@@ -1,4 +1,4 @@
-﻿using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +22,5 @@ namespace CafeShop.Service.IService.Users
             decimal shippingFee
         );
 
-        // Admin Methods
-        Task<object> GetAllVouchersAsync(int pageNumber, int pageSize);
-        Task<VoucherDto?> GetVoucherByIdAsync(int id);
-        Task<VoucherDto> CreateVoucherAsync(CreateVoucherDto dto);
-        Task<VoucherDto> UpdateVoucherAsync(int id, UpdateVoucherDto dto);
-        Task<bool> ToggleActiveAsync(int id);
-        Task DeleteVoucherAsync(int id);
-        Task AssignVoucherToUserAsync(AssignUserVoucherDto dto);
     }
 }

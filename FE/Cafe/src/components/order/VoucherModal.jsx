@@ -32,13 +32,13 @@ export default function VoucherModal({ vouchers, onSelect, onClose }) {
                 {/* Header */}
                 <div className="mb-3 flex items-center justify-between">
                     <div>
-                        <h3 className="text-base font-bold text-stone-800">🎟️ Chọn mã giảm giá</h3>
-                        <p className="text-xs text-stone-500">Áp dụng một mã ưu đãi cho đơn hàng này</p>
+                        <h3 className="text-base font-bold text-slate-800">🎟️ Chọn mã giảm giá</h3>
+                        <p className="text-xs text-slate-500">Áp dụng một mã ưu đãi cho đơn hàng này</p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200 hover:text-stone-800"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800"
                     >
                         ✕
                     </button>
@@ -52,14 +52,14 @@ export default function VoucherModal({ vouchers, onSelect, onClose }) {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Tìm kiếm mã hoặc ưu đãi..."
-                            className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3.5 py-2 text-xs outline-none focus:border-amber-500 focus:bg-white focus:ring-1 focus:ring-amber-200"
+                            className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs outline-none focus:border-sky-500 focus:bg-white focus:ring-1 focus:ring-sky-200"
                         />
                     </div>
                 )}
 
                 {/* Danh sách voucher */}
                 {filteredVouchers.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-stone-400">
+                    <div className="py-8 text-center text-sm text-slate-400">
                         {list.length === 0
                             ? 'Hiện không có mã giảm giá khả dụng.'
                             : 'Không tìm thấy mã giảm giá phù hợp.'}
@@ -86,32 +86,32 @@ export default function VoucherModal({ vouchers, onSelect, onClose }) {
                                         onSelect(code)
                                         onClose()
                                     }}
-                                    className="group flex cursor-pointer items-center justify-between rounded-2xl border border-stone-200/90 bg-white p-3.5 transition-all hover:border-amber-500 hover:bg-amber-50/60 hover:shadow-sm"
+                                    className="group flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:border-sky-500 hover:bg-sky-50/60 hover:shadow-sm"
                                 >
                                     <div className="flex-1 pr-3">
                                         <div className="flex flex-wrap items-center gap-1.5">
-                                            <span className="rounded-lg bg-amber-100 px-2.5 py-0.5 font-mono text-xs font-bold text-amber-900">
+                                            <span className="rounded-2xl bg-sky-100 px-2.5 py-0.5 font-mono text-xs font-bold text-sky-900">
                                                 {code}
                                             </span>
-                                            <span className="rounded-full bg-amber-800 px-2 py-0.5 text-[10px] font-semibold text-white">
+                                            <span className="rounded-full bg-sky-800 px-2 py-0.5 text-[10px] font-semibold text-white">
                                                 {discountBadge}
                                             </span>
                                             {v.applyType && (
-                                                <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] text-stone-600">
+                                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">
                                                     {applyLabel}
                                                 </span>
                                             )}
                                         </div>
-                                        {desc && <p className="mt-1.5 text-xs text-stone-600 leading-snug">{desc}</p>}
+                                        {desc && <p className="mt-1.5 text-xs text-slate-600 leading-snug">{desc}</p>}
                                         {minOrder > 0 && (
-                                            <p className="mt-1 text-[11px] font-medium text-stone-400">
+                                            <p className="mt-1 text-[11px] font-medium text-slate-400">
                                                 Đơn tối thiểu {formatVnd(minOrder)}
                                             </p>
                                         )}
                                     </div>
                                     <button
                                         type="button"
-                                        className="shrink-0 rounded-xl bg-amber-800 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-all group-hover:bg-amber-900"
+                                        className="shrink-0 rounded-3xl bg-sky-800 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-all group-hover:bg-sky-900"
                                     >
                                         Dùng mã
                                     </button>
@@ -128,7 +128,7 @@ export default function VoucherModal({ vouchers, onSelect, onClose }) {
                         onSelect('')
                         onClose()
                     }}
-                    className="mt-3.5 w-full rounded-xl border border-stone-200 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50"
+                    className="mt-3.5 w-full rounded-3xl border border-slate-200 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
                 >
                     Không dùng mã
                 </button>
