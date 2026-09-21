@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { getProducts } from '../../redux/actions/user/productAction'
 import { getCategories } from '../../redux/actions/user/categoryAction'
 import ProductGrid from '../../components/product/ProductGrid'
+import ProductSearchBox from '../../components/product/ProductSearchBox'
 import AppPagination from '../../components/common/AppPagination'
 import LoadingLink from '../../components/loading/LoadingLink'
 import hero from '../../assets/ChatGPT Image 16_14_44 8 thg 9, 2026.png'
@@ -26,9 +27,17 @@ function getCategoryIcon(catName) {
 
 const SORT_OPTIONS = [
     { value: '', label: 'Mới nhất' },
+    { value: 'rating_desc', label: 'Đánh giá cao nhất ⭐' },
     { value: 'price_asc', label: 'Giá tăng dần' },
     { value: 'price_desc', label: 'Giá giảm dần' },
     { value: 'name_asc', label: 'Tên A → Z' },
+]
+
+const RATING_OPTIONS = [
+    { value: '', label: '⭐ Tất cả sao' },
+    { value: '5', label: '5 sao ⭐⭐⭐⭐⭐' },
+    { value: '4', label: 'Từ 4 sao trở lên ⭐' },
+    { value: '3', label: 'Từ 3 sao trở lên ⭐' },
 ]
 
 export default function HomePage() {
@@ -43,7 +52,7 @@ export default function HomePage() {
     const [sortBy, setSortBy] = useState('')
     const [minPrice, setMinPrice] = useState('')
     const [maxPrice, setMaxPrice] = useState('')
-    const [heroSearchInput, setHeroSearchInput] = useState('')
+    const [minRating, setMinRating] = useState('')
 
     // Fetch danh mục 1 lần khi mount
     useEffect(() => {
@@ -61,9 +70,10 @@ export default function HomePage() {
                 sortBy: sortBy || undefined,
                 minPrice: minPrice !== '' ? Number(minPrice) : undefined,
                 maxPrice: maxPrice !== '' ? Number(maxPrice) : undefined,
+                minRating: minRating !== '' ? Number(minRating) : undefined,
             })
         )
-    }, [dispatch, pageNumber, keyword, selectedCategoryId, sortBy, minPrice, maxPrice])
+    }, [dispatch, pageNumber, keyword, selectedCategoryId, sortBy, minPrice, maxPrice, minRating])
 
     // Reset về trang 1 khi đổi filter
     const handleFilterChange = (setter) => (val) => {
@@ -71,18 +81,8 @@ export default function HomePage() {
         setter(val)
     }
 
-    // Xử lý tìm kiếm từ Hero Section
-    const handleHeroSearch = (e) => {
-        e.preventDefault()
-        const q = heroSearchInput.trim()
-        if (q) {
-            navigate(`/search?q=${encodeURIComponent(q)}`)
-        }
-    }
-
     // Xử lý click tag gợi ý
     const handleQuickTagClick = (tag) => {
-        setHeroSearchInput(tag)
         navigate(`/search?q=${encodeURIComponent(tag)}`)
     }
 
@@ -93,9 +93,10 @@ export default function HomePage() {
         setSortBy('')
         setMinPrice('')
         setMaxPrice('')
+        setMinRating('')
     }
 
-    const hasActiveFilter = selectedCategoryId || sortBy || minPrice || maxPrice || keyword
+    const hasActiveFilter = selectedCategoryId || sortBy || minPrice || maxPrice || keyword || minRating
 
     return (
         <div className="space-y-12 pb-16">
@@ -128,44 +129,16 @@ export default function HomePage() {
                             Tùy chỉnh độ ngọt, mức đá và nhận hàng nóng hổi trong chốc lát!
                         </p>
 
-                        {/* Thanh Tìm Kiếm Nổi (Floating Search Bar) */}
-                        <form
-                            onSubmit={handleHeroSearch}
-                            className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:items-center max-w-xl"
-                        >
-                            <div className="relative flex-1">
-                                <input
-                                    type="text"
-                                    value={heroSearchInput}
-                                    onChange={(e) => setHeroSearchInput(e.target.value)}
-                                    placeholder="Tìm món: Cà phê sữa, bạc xỉu, trà đào..."
-                                    className="w-full rounded-2xl border border-white/20 bg-white/95 px-4 py-3.5 pl-11 text-sm font-medium text-slate-800 placeholder-slate-400 shadow-lg shadow-black/10 backdrop-blur-md focus:border-sky-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-                                />
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">
-                                    🔍
-                                </span>
-                                {heroSearchInput && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setHeroSearchInput('')}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
-                                        title="Xóa tìm kiếm"
-                                    >
-                                        ✕
-                                    </button>
-                                )}
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-950/50 hover:from-sky-600 hover:to-sky-800 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shrink-0 cursor-pointer"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                                    <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-                                </svg>
-                                <span>Tìm kiếm</span>
-                            </button>
-                        </form>
+                        {/* Thanh Tìm Kiếm Nổi (Floating Search Bar with Autocomplete & Suggestions) */}
+                        <div className="mt-7 max-w-xl">
+                            <ProductSearchBox
+                                variant="hero"
+                                placeholder="Tìm món: Cà phê sữa, bạc xỉu, trà đào..."
+                                onSearch={(q) => {
+                                    if (q) navigate(`/search?q=${encodeURIComponent(q)}`)
+                                }}
+                            />
+                        </div>
 
                         {/* Quick Tags Gợi Ý */}
                         <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs text-sky-200/80">
@@ -336,6 +309,19 @@ export default function HomePage() {
                         >
                             {SORT_OPTIONS.map((o) => (
                                 <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+
+                        {/* Rating filter dropdown */}
+                        <select
+                            id="homepage-rating"
+                            value={minRating}
+                            onChange={(e) => handleFilterChange(setMinRating)(e.target.value)}
+                            className="rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs font-medium text-slate-700 outline-none cursor-pointer focus:border-sky-600 focus:ring-1 focus:ring-sky-200 transition-colors"
+                            title="Lọc theo đánh giá sao"
+                        >
+                            {RATING_OPTIONS.map((r) => (
+                                <option key={r.value} value={r.value}>{r.label}</option>
                             ))}
                         </select>
                     </div>

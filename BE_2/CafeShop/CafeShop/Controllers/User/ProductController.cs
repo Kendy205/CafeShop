@@ -1,4 +1,4 @@
-﻿using CafeShop.DTO.Admin;
+using CafeShop.DTO.Admin;
 using CafeShop.DTO.Product;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
@@ -17,7 +17,7 @@ namespace CafeShop.Controllers.User
             _productService = productService;
         }
 
-        // GET /api/Product?keyword=&categoryId=&minPrice=&maxPrice=&sortBy=&pageNumber=1&pageSize=8
+        // GET /api/Product?keyword=&categoryId=&minPrice=&maxPrice=&sortBy=&minRating=&pageNumber=1&pageSize=8
         [HttpGet]
         public async Task<IActionResult> GetAllProducts(
             [FromQuery] string? keyword = null,
@@ -25,12 +25,13 @@ namespace CafeShop.Controllers.User
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
             [FromQuery] string? sortBy = null,
+            [FromQuery] int? minRating = null,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 8)
         {
             try
             {
-                var result = await _productService.GetAllAsync(keyword, categoryId, minPrice, maxPrice, sortBy, pageNumber, pageSize);
+                var result = await _productService.GetAllAsync(keyword, categoryId, minPrice, maxPrice, sortBy, minRating, pageNumber, pageSize);
                 return Ok(ApiResponse<PagedResult<ProductResponseDto>>.Succeeded(result, 200, "Lay danh sach san pham thanh cong"));
             }
             catch (Exception ex)
@@ -63,7 +64,7 @@ namespace CafeShop.Controllers.User
         {
             try
             {
-                var pagedResult = await _productService.GetAllAsync(null, null, null, null, null, 1, 200);
+                var pagedResult = await _productService.GetAllAsync(null, null, null, null, null, null, 1, 200);
                 var categories = pagedResult.Items
                     .Where(p => !string.IsNullOrEmpty(p.CategoryName))
                     .GroupBy(p => new { p.CategoryId, p.CategoryName })
@@ -76,6 +77,39 @@ namespace CafeShop.Controllers.User
                     .ToList();
 
                 return Ok(ApiResponse<List<CategoryDto>>.Succeeded(categories, 200, "Lay danh muc thanh cong"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
+            }
+        }
+
+        // GET /api/Product/suggestions
+        [HttpGet("suggestions")]
+        public async Task<IActionResult> GetSuggestions()
+        {
+            try
+            {
+                var suggestions = await _productService.GetSearchSuggestionsAsync();
+                return Ok(ApiResponse<SearchSuggestionDto>.Succeeded(suggestions, 200, "Lay goi y tim kiem thanh cong"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
+            }
+        }
+
+        // GET /api/Product/autocomplete?keyword=xxx
+        [HttpGet("autocomplete")]
+        public async Task<IActionResult> GetAutocomplete([FromQuery] string keyword)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return Ok(ApiResponse<IEnumerable<ProductAutocompleteDto>>.Succeeded(new List<ProductAutocompleteDto>(), 200, ""));
+                
+                var results = await _productService.GetAutocompleteSuggestionsAsync(keyword);
+                return Ok(ApiResponse<IEnumerable<ProductAutocompleteDto>>.Succeeded(results, 200, "Lay goi y autocomplete thanh cong"));
             }
             catch (Exception ex)
             {

@@ -4,13 +4,23 @@ import { useSearchParams } from 'react-router-dom'
 import { getProducts } from '../../redux/actions/user/productAction'
 import { getCategories } from '../../redux/actions/user/categoryAction'
 import ProductGrid from '../../components/product/ProductGrid'
+import ProductSearchBox from '../../components/product/ProductSearchBox'
 import AppPagination from '../../components/common/AppPagination'
 
 const SORT_OPTIONS = [
     { value: '', label: 'Mới nhất' },
+    { value: 'rating_desc', label: 'Đánh giá cao nhất ⭐' },
     { value: 'price_asc', label: 'Giá tăng dần' },
     { value: 'price_desc', label: 'Giá giảm dần' },
     { value: 'name_asc', label: 'Tên A → Z' },
+]
+
+const RATING_OPTIONS = [
+    { value: '', label: '⭐ Tất cả sao' },
+    { value: '5', label: '5 sao ⭐⭐⭐⭐⭐' },
+    { value: '4', label: 'Từ 4 sao trở lên ⭐' },
+    { value: '3', label: 'Từ 3 sao trở lên ⭐' },
+    { value: '2', label: 'Từ 2 sao trở lên ⭐' },
 ]
 
 function getCategoryIcon(catName) {
@@ -31,11 +41,11 @@ function SearchResults({ q, setParams }) {
     const { items: categories } = useSelector((s) => s.category)
 
     const [pageNumber, setPageNumber] = useState(1)
-    const [keyword, setKeyword] = useState(q)
     const [selectedCategoryId, setSelectedCategoryId] = useState(null)
     const [sortBy, setSortBy] = useState('')
     const [minPrice, setMinPrice] = useState('')
     const [maxPrice, setMaxPrice] = useState('')
+    const [minRating, setMinRating] = useState('')
 
     // Fetch danh mục 1 lần khi mount
     useEffect(() => {
@@ -51,21 +61,16 @@ function SearchResults({ q, setParams }) {
                 sortBy: sortBy || undefined,
                 minPrice: minPrice !== '' ? Number(minPrice) : undefined,
                 maxPrice: maxPrice !== '' ? Number(maxPrice) : undefined,
+                minRating: minRating !== '' ? Number(minRating) : undefined,
                 pageNumber,
                 pageSize: 8,
             })
         )
-    }, [dispatch, q, pageNumber, selectedCategoryId, sortBy, minPrice, maxPrice])
+    }, [dispatch, q, pageNumber, selectedCategoryId, sortBy, minPrice, maxPrice, minRating])
 
     const handleFilterChange = (setter) => (val) => {
         setPageNumber(1)
         setter(val)
-    }
-
-    const handleSearch = (e) => {
-        e.preventDefault()
-        setParams({ q: keyword })
-        setPageNumber(1)
     }
 
     const resetFilters = () => {
@@ -73,10 +78,11 @@ function SearchResults({ q, setParams }) {
         setSortBy('')
         setMinPrice('')
         setMaxPrice('')
+        setMinRating('')
         setPageNumber(1)
     }
 
-    const hasActiveFilter = selectedCategoryId || sortBy || minPrice || maxPrice
+    const hasActiveFilter = selectedCategoryId || sortBy || minPrice || maxPrice || minRating
 
     return (
         <div className="space-y-6">
@@ -94,41 +100,18 @@ function SearchResults({ q, setParams }) {
                 )}
             </div>
 
-            {/* Thanh tìm kiếm */}
-            <form
-                className="flex gap-2"
-                onSubmit={handleSearch}
-            >
-                <div className="relative flex-1">
-                    <input
-                        id="search-keyword"
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-10 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition-colors shadow-xs"
-                        placeholder="Nhập tên món: cafe, trà sữa..."
-                    />
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">🔍</span>
-                    {keyword && (
-                        <button
-                            type="button"
-                            onClick={() => setKeyword('')}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                            ✕
-                        </button>
-                    )}
-                </div>
-                <button
-                    type="submit"
-                    className="rounded-2xl bg-gradient-to-r from-sky-700 to-sky-800 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:from-sky-800 hover:to-sky-900 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-                >
-                    Tìm kiếm
-                </button>
-            </form>
+            {/* Thanh tìm kiếm thông minh với Autocomplete & Suggestions */}
+            <ProductSearchBox
+                initialValue={q}
+                onSearch={(val) => {
+                    setParams(val ? { q: val } : {})
+                    setPageNumber(1)
+                }}
+            />
 
             {/* Bộ lọc nâng cao */}
             <div className="rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs space-y-4">
-                {/* Sort + Price */}
+                {/* Sort + Rating + Price */}
                 <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xs font-bold text-slate-500 shrink-0">⚙️ Bộ lọc:</span>
 
@@ -138,9 +121,23 @@ function SearchResults({ q, setParams }) {
                         value={sortBy}
                         onChange={(e) => handleFilterChange(setSortBy)(e.target.value)}
                         className="rounded-3xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none cursor-pointer focus:border-sky-500 focus:ring-1 focus:ring-sky-200 transition-colors"
+                        title="Sắp xếp theo"
                     >
                         {SORT_OPTIONS.map((o) => (
                             <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                    </select>
+
+                    {/* Min Rating Filter */}
+                    <select
+                        id="search-rating"
+                        value={minRating}
+                        onChange={(e) => handleFilterChange(setMinRating)(e.target.value)}
+                        className="rounded-3xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none cursor-pointer focus:border-sky-500 focus:ring-1 focus:ring-sky-200 transition-colors"
+                        title="Lọc theo đánh giá sao"
+                    >
+                        {RATING_OPTIONS.map((r) => (
+                            <option key={r.value} value={r.value}>{r.label}</option>
                         ))}
                     </select>
 

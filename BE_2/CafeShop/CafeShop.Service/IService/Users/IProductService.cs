@@ -15,9 +15,12 @@ namespace CafeShop.Services.IServices
             decimal? minPrice = null,
             decimal? maxPrice = null,
             string? sortBy = null,
+            int? minRating = null,
             int pageNumber = 1,
             int pageSize = 10); 
             
-        Task<ProductResponseDto> GetByIdAsync(int id);
+        Task<ProductResponseDto?> GetByIdAsync(int id);
+        Task<SearchSuggestionDto> GetSearchSuggestionsAsync();
+        Task<IEnumerable<ProductAutocompleteDto>> GetAutocompleteSuggestionsAsync(string keyword);
     }
 }

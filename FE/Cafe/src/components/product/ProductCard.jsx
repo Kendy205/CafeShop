@@ -84,10 +84,18 @@ export default function ProductCard({ product }) {
 
                 {/* ── Thông tin sản phẩm ── */}
                 <div className="p-4">
-                    {/* Tên món */}
-                    <h3 className="text-base font-bold text-slate-800 line-clamp-1 transition-colors group-hover:text-sky-900">
-                        {product.name}
-                    </h3>
+                    {/* Tên món & Đánh giá */}
+                    <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-bold text-slate-800 line-clamp-1 transition-colors group-hover:text-sky-900 flex-1">
+                            {product.name}
+                        </h3>
+                        {(product.rating != null || product.averageRating != null) && Number(product.rating || product.averageRating) > 0 && (
+                            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-extrabold text-amber-700 border border-amber-200">
+                                <span>⭐</span>
+                                <span>{Number(product.rating || product.averageRating).toFixed(1)}</span>
+                            </span>
+                        )}
+                    </div>
 
                     {/* Mô tả sản phẩm */}
                     {product.description ? (
