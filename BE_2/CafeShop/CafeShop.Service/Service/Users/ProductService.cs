@@ -102,7 +102,7 @@ namespace CafeShop.Services.Services
         {
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
                 p => p.ProductId == id && p.IsAvailable, // ONLY AVAILABLE
-                includeProperties: "Category,ProductSizes,ProductSizes.Size"
+                includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping"
             );
 
             if (product == null)

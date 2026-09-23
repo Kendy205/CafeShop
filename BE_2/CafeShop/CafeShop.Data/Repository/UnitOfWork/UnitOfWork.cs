@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.IMP;
+using CafeShop.Data.Repository.IMP;
 using CafeShop.Data.Repository.IRepository;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Repositories.Repository;
@@ -29,6 +29,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
         public IOrderDetailToppingRepository OrderDetailTopping { get; private set; }
 
         public IProductSizeRepository ProductSize { get; private set; }
+        public IProductToppingRepository ProductTopping { get; private set; }
         public IUserVoucherRepository UserVoucher { get; private set; }
         public IFeedbackRepository Feedback { get; private set; }
         public IShippingConfigRepository ShippingConfig { get; private set; }
@@ -51,6 +52,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
             CartItem = new CartItemRepository(_context);
             CartItemTopping = new CartItemToppingRepository(_context);
             ProductSize = new ProductSizeRepository(_context);
+            ProductTopping = new ProductToppingRepository(_context);
             UserVoucher = new UserVoucherRepository(_context);
             Feedback = new FeedbackRepository(_context);
             ShippingConfig = new ShippingConfigRepository(_context);

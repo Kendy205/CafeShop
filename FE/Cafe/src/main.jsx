@@ -10,9 +10,9 @@ import { injectStore } from './services/BaseService'
 injectStore(store)
 
 createRoot(document.getElementById('root')).render(
-    <StrictMode>
-        <BrowserRouter>
-            <App />
-        </BrowserRouter>
-    </StrictMode>
+
+    <BrowserRouter>
+        <App />
+    </BrowserRouter>
+
 )

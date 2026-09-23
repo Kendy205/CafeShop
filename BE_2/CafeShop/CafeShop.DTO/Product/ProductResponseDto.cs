@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CafeShop.DTO.Product
@@ -17,6 +17,7 @@ namespace CafeShop.DTO.Product
         public string? Description { get; set; }
 
         public List<ProductSizeDto> ProductSizes { get; set; } = new List<ProductSizeDto>();
+        public List<ProductToppingDto> ProductToppings { get; set; } = new List<ProductToppingDto>();
 
         public int TotalStock => ProductSizes != null && ProductSizes.Count > 0
             ? ProductSizes.Sum(s => s.StockQuantity)
@@ -32,6 +33,15 @@ namespace CafeShop.DTO.Product
         public int StockQuantity { get; set; } = 0;
         public bool IsOutOfStock => StockQuantity <= 0;
         public decimal Price { get; set; }
+    }
+
+    public class ProductToppingDto
+    {
+        public int ToppingId { get; set; }
+        public string ToppingName { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string Unit { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
     }
 
     public class CreateProductDto

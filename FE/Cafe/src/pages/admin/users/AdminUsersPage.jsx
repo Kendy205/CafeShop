@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Table, Input, Card, Tag, Switch, message, Tooltip, Avatar } from 'antd'
 import { SearchOutlined, UserOutlined } from '@ant-design/icons'
 import { fetchAdminUsers, toggleAdminUserStatus } from '../../../redux/actions/admin/adminUserAction'
-import CustomPagination from '../../../components/common/CustomPagination'
-import AppPagination from '../../../components/common/AppPagination'
+import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AdminTable from '../../../components/admin/common/AdminTable'
 
 export default function AdminUsersPage() {
     const dispatch = useDispatch()
@@ -117,61 +117,55 @@ export default function AdminUsersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800">Quản lý Khách hàng</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        Danh sách khách hàng đăng ký trên hệ thống.
-                    </p>
+            <AdminPageBanner
+                badge="Cơ Sở Dữ Liệu Khách Hàng"
+                title="Quản Lý Khách Hàng"
+                description="Theo dõi danh sách tài khoản người dùng, thông tin liên hệ, ngày tham gia và kiểm soát trạng thái hoạt động."
+                icon={<UserOutlined className="text-indigo-400 text-xl" />}
+                stats={
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
+                        <span className="text-slate-300 font-medium">Tổng khách hàng:</span>
+                        <strong className="text-white text-sm font-black">{total}</strong>
+                    </div>
+                }
+            />
+
+            {/* Filter Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+                <div className="relative flex-1 min-w-[220px] max-w-md">
+                    <input
+                        type="text"
+                        placeholder="Tìm theo tên, email, số điện thoại, username..."
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
+                        value={searchKeyword}
+                        onChange={handleSearchChange}
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
+                    {searchKeyword && (
+                        <button
+                            onClick={() => { setSearchKeyword(''); loadData(1, ''); }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
+
+                <div className="text-xs text-slate-500 font-semibold">
+                    Hiển thị: <strong className="text-sky-700">{items.length}</strong> / {total} tài khoản
                 </div>
             </div>
 
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden" bodyStyle={{ padding: 0 }}>
-                <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                    <Input
-                        placeholder="Tìm theo tên, SĐT, username..."
-                        prefix={<SearchOutlined className="text-slate-400" />}
-                        className="max-w-md rounded-3xl px-4 py-2 hover:border-sky-500 focus:border-sky-500"
-                        value={searchKeyword}
-                        onChange={handleSearchChange}
-                        allowClear
-                    />
-                    <Tag color="orange" className="rounded-full px-3 py-1 font-semibold border-none bg-sky-50 text-sky-700">
-                        Tổng số: {total}
-                    </Tag>
-                </div>
-
-                {loading ? (
-                    <div className="p-5 space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-16 w-full animate-pulse rounded-3xl bg-slate-100/80" />
-                        ))}
-                    </div>
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={items}
-                        rowKey={(record) => record.userId || record.id}
-                        pagination={false}
-                        className="custom-admin-table"
-                    />
-                )}
-
-                {total > 0 && (
-                    <CustomPagination
-                        current={page}
-                        pageSize={pageSize}
-                        total={total}
-                        onChange={handlePageChange}
-                    />
-                )}
-                <AppPagination
-                    current={page}
-                    pageSize={pageSize}
-                    total={total}
-                    onChange={handlePageChange}
-                />
-            </Card>
+            <AdminTable
+                columns={columns}
+                dataSource={items}
+                rowKey={(record) => record.userId || record.id}
+                loading={loading}
+                currentPage={page}
+                pageSize={pageSize}
+                totalItems={total}
+                onPageChange={handlePageChange}
+            />
         </div>
     )
 }

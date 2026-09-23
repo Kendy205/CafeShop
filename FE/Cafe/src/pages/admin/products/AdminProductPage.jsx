@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Table, Button, Input, Card, Tag, Space, Tooltip, Switch, Select, message } from 'antd'
-import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     fetchAdminProducts,
     toggleProductAvailability,
@@ -9,15 +9,18 @@ import {
 } from '../../../redux/actions/admin/adminProductAction'
 import { fetchAdminCategories } from '../../../redux/actions/admin/adminCategoryAction'
 import { fetchAdminSizes } from '../../../redux/actions/admin/adminSizeAction'
+import { fetchAdminToppings } from '../../../redux/actions/admin/adminToppingAction'
 import { formatVnd } from '../../../utils/helpers/format'
-import AppPagination from '../../../components/common/AppPagination'
 import ProductFormModal from '../../../components/admin/ProductFormModal'
+import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AdminTable from '../../../components/admin/common/AdminTable'
 
 export default function AdminProductPage() {
     const dispatch = useDispatch()
     const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.adminProduct)
     const { items: categories } = useSelector((s) => s.adminCategory)
     const { items: masterSizes } = useSelector((s) => s.adminSize)
+    const { items: masterToppings } = useSelector((s) => s.adminTopping)
 
     // filter states
     const [keyword, setKeyword] = useState('')
@@ -31,6 +34,7 @@ export default function AdminProductPage() {
     useEffect(() => {
         dispatch(fetchAdminCategories())
         dispatch(fetchAdminSizes())
+        dispatch(fetchAdminToppings())
     }, [dispatch])
 
     const loadData = useCallback(
@@ -230,79 +234,82 @@ export default function AdminProductPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800">Quản lý Sản phẩm</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        Thêm mới đồ uống, cấu hình giá bán và kho theo từng kích cỡ.
-                    </p>
-                </div>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center gap-2 rounded-3xl bg-gradient-to-r from-cyan-600 to-cyan-800 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-900/30 hover:scale-105 transition-all duration-300"
-                >
-                    <PlusOutlined /> Thêm Sản phẩm
-                </button>
-            </div>
+            {/* Header Banner cao cấp */}
+            <AdminPageBanner
+                badge="Quản Lý Thực Đơn & Kho Hàng"
+                title="Sản Phẩm & Thức Uống"
+                description="Thêm mới đồ uống, cấu hình hình ảnh, giá bán theo từng kích cỡ (S/M/L) và kiểm soát số lượng kho."
+                icon={<CoffeeOutlined className="text-amber-400 text-xl" />}
+                extra={
+                    <button
+                        onClick={() => openModal()}
+                        className="flex items-center gap-2 rounded-2xl bg-sky-500 hover:bg-sky-400 px-5 py-2.5 text-xs font-black text-white shadow-lg shadow-sky-500/30 transition-all cursor-pointer active:scale-95"
+                    >
+                        <PlusOutlined />
+                        <span>Thêm sản phẩm mới</span>
+                    </button>
+                }
+                stats={
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
+                        <span className="text-slate-300 font-medium">Tổng sản phẩm:</span>
+                        <strong className="text-white text-sm font-black">{total}</strong>
+                    </div>
+                }
+            />
 
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden" bodyStyle={{ padding: 0 }}>
-                <div className="p-5 border-b border-slate-100 bg-white flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2 w-full max-w-sm">
-                        <Input
-                            placeholder="Tìm tên sản phẩm..."
+            {/* Filter Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+                    <div className="relative flex-1 min-w-[200px] max-w-sm">
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm sản phẩm theo tên..."
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
-                            onPressEnter={handleSearch}
-                            className="rounded-3xl px-4 py-2 hover:border-cyan-500 focus:border-cyan-500"
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
                         />
-                        <Button
-                            type="primary"
-                            icon={<SearchOutlined />}
-                            onClick={handleSearch}
-                            className="rounded-3xl h-10 bg-cyan-600 hover:bg-cyan-700 shadow-none"
-                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
+                        {keyword && (
+                            <button
+                                onClick={() => { setKeyword(''); loadData(1); }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        )}
                     </div>
 
                     <Select
-                        placeholder="Lọc theo Danh mục"
+                        placeholder="Tất cả danh mục"
                         allowClear
                         value={categoryId}
-                        onChange={setCategoryId}
-                        className="min-w-[200px]"
+                        onChange={(val) => { setCategoryId(val); }}
+                        className="min-w-[180px]"
                         options={categories.map((c) => ({ value: c.categoryId, label: c.name }))}
                     />
-
-                    <div className="ml-auto">
-                        <Tag color="cyan" className="rounded-full px-3 py-1 font-semibold border-none bg-cyan-50 text-cyan-700 m-0">
-                            Tổng: {total} SP
-                        </Tag>
-                    </div>
                 </div>
 
-                {loading ? (
-                    <div className="p-5 space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-20 w-full animate-pulse rounded-3xl bg-slate-100/80" />
-                        ))}
-                    </div>
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={items}
-                        rowKey="productId"
-                        pagination={false}
-                        className="custom-admin-table"
-                    />
-                )}
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleSearch}
+                        className="rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-4 py-2 text-xs font-bold transition-all cursor-pointer"
+                    >
+                        Áp dụng lọc
+                    </button>
+                </div>
+            </div>
 
-                <AppPagination
-                    current={currentPage}
-                    pageSize={pageSize}
-                    total={total}
-                    totalPages={totalPages}
-                    onChange={(p) => setCurrentPage(p)}
-                />
-            </Card>
+            <AdminTable
+                columns={columns}
+                dataSource={items}
+                rowKey="productId"
+                loading={loading}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalItems={total}
+                onPageChange={(p) => setCurrentPage(p)}
+            />
 
             <ProductFormModal
                 open={isModalVisible}
@@ -311,6 +318,7 @@ export default function AdminProductPage() {
                 onSuccess={() => loadData(currentPage)}
                 categories={categories}
                 masterSizes={masterSizes}
+                masterToppings={masterToppings}
             />
         </div>
     )

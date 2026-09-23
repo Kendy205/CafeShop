@@ -149,7 +149,7 @@ namespace CafeShop.Controllers
             try
             {
                 // Controller gọi Service, không chứa bất kỳ logic tính toán nào
-                decimal fee = await _shippingService.CalculateFeeAsync(request.DistanceKm);
+                decimal fee = await _shippingService.CalculateFeeAsync(request.DistanceKm,request.OrderTotal);
 
                 return Ok(new ApiResponse<decimal>
                 {

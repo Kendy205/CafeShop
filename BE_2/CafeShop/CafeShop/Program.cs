@@ -3,6 +3,8 @@ using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
 using CafeShop.Service.IService.Users;
+using CafeShop.Service.IService.Notifications;
+using CafeShop.Hubs;
 
 using CafeShop.Service.Service;
 using CafeShop.Service.Service.Users;
@@ -10,6 +12,7 @@ using CafeShop.Services.IServices;
 using CafeShop.Services.Services;
 using CafeShop.Service.IService.Admin;
 using CafeShop.Service.Service.Admin;
+using CafeShop.Realtime;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,6 +55,7 @@ builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();
 builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<IAdminSizeService, AdminSizeService>();
 builder.Services.AddScoped<IAdminToppingService, AdminToppingService>();
+builder.Services.AddScoped<IAdminShippingConfigService, AdminShippingConfigService>();
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 builder.Services.AddScoped<IAdminVoucherService, AdminVoucherService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
@@ -60,16 +64,13 @@ builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IShippingService, ShippingService>();
+builder.Services.AddScoped<ISignalRService, SignalRService>();
 // CẤU HÌNH CORS 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("ReactPolicy", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
+builder.Services.AddCors(o => o.AddPolicy("FE", p => p
+    .WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174")
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()));
 //CẤU HÌNH JWT BẢO MẬT API 
 builder.Services.AddAuthentication(options =>
 {
@@ -88,6 +89,21 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
+    
+    // Cấu hình đọc token từ query string cho SignalR
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notification"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 // CẤU HÌNH CLOUDINARY CHO LƯU TRỮ ẢNH
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
@@ -100,9 +116,10 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
-app.UseCors("ReactPolicy");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -111,9 +128,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("FE");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notification");
 
 app.Run();

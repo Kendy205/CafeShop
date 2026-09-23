@@ -1,7 +1,10 @@
 import { Provider } from 'react-redux'
 import { Route, Routes } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import { store } from './redux/store'
 import Loading from './components/loading/Loading'
+import RealtimeNotificationHandler from './components/notification/RealtimeNotificationHandler'
 import UserTemplate from './templates/UserTemplate'
 import AdminTemplate from './templates/AdminTemplate'
 import ProtectedRoute from './utils/route/ProtectedRoute'
@@ -30,6 +33,8 @@ import AdminSettingsPage from './pages/admin/settings/AdminSettingsPage'
 function App() {
     return (
         <Provider store={store}>
+            <RealtimeNotificationHandler />
+            <ToastContainer position="top-right" autoClose={5000} />
             <Loading />
             <Routes>
                 <Route element={<UserTemplate />}>

@@ -114,14 +114,14 @@ export default function ProductCard({ product }) {
                             <span className="text-[11px] font-medium text-slate-400">Size:</span>
                             {sizes.map((s) => (
                                 <span
-                                    key={s.sizeId || s.name}
+                                    key={s.sizeId || s.sizeName || s.name}
                                     className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
                                         s.isOutOfStock
                                             ? 'bg-slate-100 text-slate-400 line-through'
                                             : 'bg-sky-50 text-sky-900 border border-sky-200/80'
                                     }`}
                                 >
-                                    {s.name}
+                                    {s.sizeName ?? s.name}
                                 </span>
                             ))}
                         </div>

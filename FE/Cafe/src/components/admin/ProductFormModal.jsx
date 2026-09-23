@@ -1,11 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Button, Checkbox, message, Modal, Select, Upload } from 'antd'
-import { PictureOutlined, UploadOutlined } from '@ant-design/icons'
+import { PictureOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     createAdminProduct,
     updateAdminProduct,
 } from '../../redux/actions/admin/adminProductAction'
+import { buildProductFormData } from '../../utils/helpers/ProductHelper'
+import AdminModalBanner from './common/AdminModalBanner'
+import AppButton from '../common/AppButton'
+import { Formik, Form, Field } from 'formik'
+import * as Yup from 'yup'
+
+const productSchema = Yup.object().shape({
+    name: Yup.string().required('Vui lòng nhập tên sản phẩm'),
+    categoryId: Yup.number().required('Vui lòng chọn danh mục'),
+    basePrice: Yup.number().min(0, 'Giá không được âm').required('Vui lòng nhập giá cơ bản'),
+    description: Yup.string().nullable(),
+    imageFile: Yup.mixed()
+})
 
 export default function ProductFormModal({
     open,
@@ -14,36 +27,16 @@ export default function ProductFormModal({
     onSuccess,
     categories = [],
     masterSizes = [],
+    masterToppings = [],
 }) {
     const dispatch = useDispatch()
     const submitting = useSelector((s) => s.adminProduct.submitting)
-
-    const [form, setForm] = useState({
-        name: '',
-        basePrice: '',
-        description: '',
-        categoryId: null,
-        imageFile: null,
-    })
     const [previewUrl, setPreviewUrl] = useState('')
-    const [selectedSizes, setSelectedSizes] = useState({})
 
-    useEffect(() => {
-        if (!open) return
-
+    const getInitialValues = () => {
         const matchedCategory = categories.find((c) => c.name === editingItem?.categoryName)
-        setForm({
-            name: editingItem ? editingItem.name : '',
-            basePrice: editingItem ? (editingItem.basePrice ?? '') : '',
-            description: editingItem ? editingItem.description || '' : '',
-            categoryId: editingItem
-                ? Number(editingItem.categoryId) || Number(matchedCategory?.categoryId) || null
-                : null,
-            imageFile: null,
-        })
-        setPreviewUrl(editingItem?.imageUrl || '')
-
         const sizesState = {}
+        
         masterSizes.forEach((ms) => {
             sizesState[ms.sizeId] = { isSelected: false, price: 0, stockQuantity: 0 }
         })
@@ -57,65 +50,31 @@ export default function ProductFormModal({
                 }
             })
         }
-        setSelectedSizes(sizesState)
-    }, [open, editingItem, categories, masterSizes])
 
-    const handleFileChange = (info) => {
-        const file = info.file.originFileObj || info.file
-        if (!file) return
+        const initialToppingIds = Array.isArray(editingItem?.productToppings)
+            ? editingItem.productToppings.map(t => t.toppingId)
+            : []
 
-        if (!file.type.startsWith('image/')) {
-            message.error('Chỉ được phép upload file ảnh!')
-            return
+        return {
+            name: editingItem?.name || '',
+            basePrice: editingItem?.basePrice ?? '',
+            description: editingItem?.description || '',
+            categoryId: editingItem ? (Number(editingItem.categoryId) || Number(matchedCategory?.categoryId) || null) : null,
+            imageFile: null,
+            sizes: sizesState,
+            toppingIds: initialToppingIds
         }
-
-        setForm((prev) => ({ ...prev, imageFile: file }))
-        const reader = new FileReader()
-        reader.onload = (e) => setPreviewUrl(e.target.result)
-        reader.readAsDataURL(file)
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (!form.name || !form.categoryId || form.basePrice === '' || form.basePrice === null) {
-            message.warning('Vui lòng nhập tên món, giá cơ bản và chọn danh mục!')
-            return
+    useEffect(() => {
+        if (open) {
+            setPreviewUrl(editingItem?.imageUrl || '')
         }
+    }, [open, editingItem])
 
-        if (Number(form.basePrice) < 0) {
-            message.warning('Giá cơ bản không được âm!')
-            return
-        }
-
-        const sizeListToSubmit = []
-        for (const sizeId in selectedSizes) {
-            if (selectedSizes[sizeId].isSelected) {
-                if (selectedSizes[sizeId].price < 0 || selectedSizes[sizeId].stockQuantity < 0) {
-                    message.warning('Giá và số lượng không được âm!')
-                    return
-                }
-                sizeListToSubmit.push({
-                    sizeId: parseInt(sizeId, 10),
-                    price: selectedSizes[sizeId].price,
-                    stockQuantity: selectedSizes[sizeId].stockQuantity,
-                })
-            }
-        }
-
-        if (sizeListToSubmit.length === 0) {
-            message.warning('Vui lòng chọn ít nhất 1 kích cỡ cho sản phẩm!')
-            return
-        }
-
-        const formData = new FormData()
-        formData.append('name', form.name.trim())
-        formData.append('basePrice', Number(form.basePrice))
-        formData.append('description', form.description || '')
-        formData.append('categoryId', form.categoryId)
-        if (form.imageFile) {
-            formData.append('imageFile', form.imageFile)
-        }
-        formData.append('productSizesJson', JSON.stringify(sizeListToSubmit))
+    const handleSubmit = async (values) => {
+        const formData = buildProductFormData(values, values.sizes, values.toppingIds)
+        if (!formData) return
 
         if (editingItem) {
             const res = await dispatch(updateAdminProduct({ id: editingItem.productId, formData }))
@@ -127,7 +86,7 @@ export default function ProductFormModal({
                 message.error(res.payload || 'Cập nhật thất bại')
             }
         } else {
-            if (!form.imageFile) {
+            if (!values.imageFile) {
                 message.warning('Vui lòng chọn ảnh cho sản phẩm!')
                 return
             }
@@ -144,226 +103,224 @@ export default function ProductFormModal({
 
     return (
         <Modal
-            title={
-                <div className="text-xl font-black text-slate-800 border-b border-slate-100 pb-4 mb-2">
-                    {editingItem ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
-                </div>
-            }
             open={open}
             onCancel={onClose}
             footer={null}
             centered
             width={700}
+            destroyOnClose
             className="custom-admin-modal"
-            closeIcon={
-                <div className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500">
-                    ✕
-                </div>
-            }
+            closeIcon={null}
         >
-            <form onSubmit={handleSubmit} className="space-y-6 pt-2 h-[60vh] overflow-y-auto custom-scrollbar pr-2">
-                <div className="flex flex-col items-center justify-center mb-2">
-                    <div className="relative group cursor-pointer mb-2">
-                        <div className="h-32 w-32 overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all group-hover:border-cyan-500 group-hover:bg-cyan-50">
-                            {previewUrl ? (
-                                <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="flex h-full flex-col items-center justify-center text-slate-400">
-                                    <PictureOutlined className="text-4xl mb-2 opacity-50" />
-                                    <span className="text-[11px] font-bold">Tải ảnh lên</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="absolute -bottom-3 -right-3">
-                            <Upload showUploadList={false} beforeUpload={() => false} onChange={handleFileChange}>
-                                <Button
-                                    shape="circle"
-                                    icon={<UploadOutlined />}
-                                    className="bg-white shadow-md border-slate-200 text-slate-600 hover:text-cyan-600 hover:border-cyan-600"
-                                />
-                            </Upload>
-                        </div>
-                    </div>
-                </div>
+            <AdminModalBanner 
+                title={editingItem ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
+                subtitle="Cập nhật thông tin chi tiết, giá cả và kích cỡ đồ uống"
+                icon={<CoffeeOutlined className="text-2xl" />}
+                badgeText={editingItem ? 'CẬP NHẬT' : 'THÊM MỚI'}
+                onClose={onClose}
+            />
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                            Tên Sản Phẩm <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            placeholder="VD: Trà sữa trân châu đường đen..."
-                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10 transition-all"
-                            required
-                        />
-                    </div>
+            <Formik
+                enableReinitialize
+                initialValues={getInitialValues()}
+                validationSchema={productSchema}
+                onSubmit={handleSubmit}
+            >
+                {({ values, errors, touched, setFieldValue }) => {
+                    const handleFileChange = (info) => {
+                        const file = info.file.originFileObj || info.file
+                        if (!file) return
+                        if (!file.type.startsWith('image/')) {
+                            message.error('Chỉ được phép upload file ảnh!')
+                            return
+                        }
+                        setFieldValue('imageFile', file)
+                        const reader = new FileReader()
+                        reader.onload = (e) => setPreviewUrl(e.target.result)
+                        reader.readAsDataURL(file)
+                    }
 
-                    <div className="sm:col-span-1">
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                            Danh Mục <span className="text-red-500">*</span>
-                        </label>
-                        <Select
-                            value={form.categoryId || undefined}
-                            onChange={(val) => setForm({ ...form, categoryId: Number(val) })}
-                            className="w-full h-12"
-                            placeholder="Chọn danh mục"
-                            options={categories.map((c) => ({ value: Number(c.categoryId), label: c.name }))}
-                        />
-                    </div>
-
-                    <div className="sm:col-span-1">
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">
-                            Giá Cơ Bản / Gốc (VNĐ) <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            min="0"
-                            step="1000"
-                            value={form.basePrice}
-                            onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
-                            placeholder="VD: 35000"
-                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10 transition-all font-mono"
-                            required
-                        />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">Mô Tả</label>
-                        <textarea
-                            value={form.description}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                            placeholder="Mô tả chi tiết sản phẩm..."
-                            rows={3}
-                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10 transition-all custom-scrollbar"
-                        />
-                    </div>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3 className="mb-4 text-base font-black text-slate-800 border-b border-slate-100 pb-2">
-                        Cấu Hình Kích Cỡ & Giá <span className="text-red-500">*</span>
-                    </h3>
-
-                    {masterSizes.length === 0 ? (
-                        <div className="text-center py-4 text-slate-400">
-                            Chưa có kích cỡ nào trong hệ thống. Vui lòng thêm Kích Cỡ trước.
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {masterSizes.map((ms) => {
-                                const state = selectedSizes[ms.sizeId] || {
-                                    isSelected: false,
-                                    price: 0,
-                                    stockQuantity: 0,
-                                }
-                                return (
-                                    <div
-                                        key={ms.sizeId}
-                                        className={`rounded-3xl border ${state.isSelected
-                                            ? 'border-cyan-500 bg-cyan-50/30'
-                                            : 'border-slate-200 bg-slate-50/30'
-                                            } p-4 transition-all duration-300`}
-                                    >
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <Checkbox
-                                                checked={state.isSelected}
-                                                onChange={(e) => {
-                                                    setSelectedSizes((prev) => ({
-                                                        ...prev,
-                                                        [ms.sizeId]: {
-                                                            ...prev[ms.sizeId],
-                                                            isSelected: e.target.checked,
-                                                        },
-                                                    }))
-                                                }}
-                                            />
-                                            <span
-                                                className={`font-bold text-base ${state.isSelected ? 'text-cyan-800' : 'text-slate-500'
-                                                    }`}
-                                            >
-                                                Size {ms.name}{' '}
-                                                <span className="text-xs text-slate-400 font-normal">
-                                                    ({ms.pricePercent * 100}% giá)
-                                                </span>
-                                            </span>
-                                        </div>
-
-                                        {state.isSelected && (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 pl-7">
-                                                <div>
-                                                    <label className="mb-1 block text-xs font-bold text-slate-500">
-                                                        Giá Bán (VNĐ)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={state.price === 0 ? '' : state.price}
-                                                        placeholder="0"
-                                                        onChange={(e) => {
-                                                            const val = parseInt(e.target.value, 10)
-                                                            setSelectedSizes((prev) => ({
-                                                                ...prev,
-                                                                [ms.sizeId]: {
-                                                                    ...prev[ms.sizeId],
-                                                                    price: isNaN(val) ? 0 : val,
-                                                                },
-                                                            }))
-                                                        }}
-                                                        className="w-full rounded-2xl border border-cyan-200 bg-white px-3 py-2 text-sm font-mono text-slate-800 outline-none focus:border-cyan-500"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="mb-1 block text-xs font-bold text-slate-500">
-                                                        Số lượng Tồn Kho
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={state.stockQuantity === 0 ? '' : state.stockQuantity}
-                                                        placeholder="0"
-                                                        onChange={(e) => {
-                                                            const val = parseInt(e.target.value, 10)
-                                                            setSelectedSizes((prev) => ({
-                                                                ...prev,
-                                                                [ms.sizeId]: {
-                                                                    ...prev[ms.sizeId],
-                                                                    stockQuantity: isNaN(val) ? 0 : val,
-                                                                },
-                                                            }))
-                                                        }}
-                                                        className="w-full rounded-2xl border border-cyan-200 bg-white px-3 py-2 text-sm font-mono text-slate-800 outline-none focus:border-cyan-500"
-                                                    />
-                                                </div>
+                    return (
+                        <Form className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto bg-white custom-scrollbar">
+                            <div className="flex flex-col items-center justify-center mb-2">
+                                <div className="relative group cursor-pointer mb-2">
+                                    <div className="h-32 w-32 overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all group-hover:border-cyan-500 group-hover:bg-cyan-50">
+                                        {previewUrl ? (
+                                            <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <div className="flex h-full flex-col items-center justify-center text-slate-400">
+                                                <PictureOutlined className="text-4xl mb-2 opacity-50" />
+                                                <span className="text-[11px] font-bold">Tải ảnh lên</span>
                                             </div>
                                         )}
                                     </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
+                                    <div className="absolute -bottom-3 -right-3">
+                                        <Upload showUploadList={false} beforeUpload={() => false} onChange={handleFileChange}>
+                                            <Button
+                                                shape="circle"
+                                                icon={<UploadOutlined />}
+                                                className="bg-white shadow-md border-slate-200 text-slate-600 hover:text-cyan-600 hover:border-cyan-600"
+                                            />
+                                        </Upload>
+                                    </div>
+                                </div>
+                                {!previewUrl && !editingItem && (
+                                    <p className="text-xs text-red-500 font-medium">Bắt buộc tải ảnh lên</p>
+                                )}
+                            </div>
 
-                <div className="sticky bottom-0 bg-white pt-4 pb-2 border-t border-slate-100 flex justify-end gap-3 mt-4 -mx-2 px-2">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-3xl px-6 py-2.5 font-bold text-slate-500 hover:bg-slate-100 transition-colors"
-                    >
-                        Hủy bỏ
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={submitting}
-                        className="rounded-3xl bg-gradient-to-r from-cyan-600 to-cyan-800 px-8 py-2.5 font-bold text-white shadow-lg shadow-cyan-900/30 hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 transition-all duration-300"
-                    >
-                        {submitting ? 'Đang lưu...' : 'Lưu Sản Phẩm'}
-                    </button>
-                </div>
-            </form>
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
+                                        Tên Sản Phẩm <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                        name="name"
+                                        placeholder="VD: Trà sữa trân châu đường đen..."
+                                        className={`custom-admin-input ${touched.name && errors.name ? 'custom-admin-input-error' : ''}`}
+                                    />
+                                    {touched.name && errors.name && <p className="mt-1 text-xs font-medium text-red-500">{errors.name}</p>}
+                                </div>
+
+                                <div className="sm:col-span-1">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
+                                        Danh Mục <span className="text-red-500">*</span>
+                                    </label>
+                                    <Select
+                                        value={values.categoryId || undefined}
+                                        onChange={(val) => setFieldValue('categoryId', Number(val))}
+                                        className="w-full h-[46px]"
+                                        placeholder="Chọn danh mục"
+                                        options={categories.map((c) => ({ value: Number(c.categoryId), label: c.name }))}
+                                        status={touched.categoryId && errors.categoryId ? 'error' : ''}
+                                    />
+                                    {touched.categoryId && errors.categoryId && <p className="mt-1 text-xs font-medium text-red-500">{errors.categoryId}</p>}
+                                </div>
+
+                                <div className="sm:col-span-1">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
+                                        Giá Cơ Bản (VNĐ) <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                        type="number"
+                                        name="basePrice"
+                                        placeholder="VD: 35000"
+                                        className={`custom-admin-input font-mono ${touched.basePrice && errors.basePrice ? 'custom-admin-input-error' : ''}`}
+                                    />
+                                    {touched.basePrice && errors.basePrice && <p className="mt-1 text-xs font-medium text-red-500">{errors.basePrice}</p>}
+                                </div>
+
+                                <div className="sm:col-span-2">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">Mô Tả</label>
+                                    <Field
+                                        as="textarea"
+                                        name="description"
+                                        placeholder="Mô tả chi tiết sản phẩm..."
+                                        rows={3}
+                                        className="custom-admin-input custom-scrollbar resize-none"
+                                    />
+                                </div>
+                                
+                                <div className="sm:col-span-2">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
+                                        Topping Khả Dụng (Tùy Chọn)
+                                    </label>
+                                    <Select
+                                        mode="multiple"
+                                        allowClear
+                                        placeholder="Chọn các topping có thể thêm vào sản phẩm này..."
+                                        value={values.toppingIds}
+                                        onChange={(vals) => setFieldValue('toppingIds', vals)}
+                                        className="w-full"
+                                        options={(masterToppings || []).map((t) => ({ value: Number(t.toppingId), label: t.name }))}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50/30 p-5 shadow-sm">
+                                <h3 className="mb-4 text-sm font-black uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-3">
+                                    Cấu Hình Kích Cỡ & Giá <span className="text-red-500">*</span>
+                                </h3>
+
+                                {masterSizes.length === 0 ? (
+                                    <div className="text-center py-4 text-slate-400">
+                                        Chưa có kích cỡ nào trong hệ thống. Vui lòng thêm Kích Cỡ trước.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {masterSizes.map((ms) => {
+                                            const state = values.sizes[ms.sizeId] || { isSelected: false, price: 0, stockQuantity: 0 }
+                                            return (
+                                                <div
+                                                    key={ms.sizeId}
+                                                    className={`rounded-2xl border ${state.isSelected
+                                                        ? 'border-cyan-500 bg-cyan-50/50'
+                                                        : 'border-slate-200 bg-white'
+                                                        } p-4 transition-all duration-300`}
+                                                >
+                                                    <div className="flex items-center gap-3 mb-3">
+                                                        <Checkbox
+                                                            checked={state.isSelected}
+                                                            onChange={(e) => {
+                                                                setFieldValue(`sizes.${ms.sizeId}.isSelected`, e.target.checked)
+                                                            }}
+                                                        />
+                                                        <span
+                                                            className={`font-black text-sm uppercase ${state.isSelected ? 'text-cyan-800' : 'text-slate-500'}`}
+                                                        >
+                                                            Size {ms.name}
+                                                        </span>
+                                                        <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                                            Tăng {ms.pricePercent}%
+                                                        </span>
+                                                    </div>
+
+                                                    {state.isSelected && (
+                                                        <div className="grid grid-cols-2 gap-4 pl-7">
+                                                            <div>
+                                                                <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">
+                                                                    Giá bán <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <div className="relative">
+                                                                    <Field
+                                                                        type="number"
+                                                                        name={`sizes.${ms.sizeId}.price`}
+                                                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-mono"
+                                                                    />
+                                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">đ</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="mb-1 block text-[10px] font-bold uppercase text-slate-500">
+                                                                    Số lượng kho <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <Field
+                                                                    type="number"
+                                                                    name={`sizes.${ms.sizeId}.stockQuantity`}
+                                                                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-mono"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
+                                <AppButton type="button" variant="ghost" onClick={onClose}>
+                                    Hủy bỏ
+                                </AppButton>
+                                <AppButton type="submit" variant="primary" disabled={submitting}>
+                                    {submitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
+                                </AppButton>
+                            </div>
+                        </Form>
+                    )
+                }}
+            </Formik>
         </Modal>
     )
 }
-

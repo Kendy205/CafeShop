@@ -18,7 +18,7 @@ import {
 } from '@ant-design/icons'
 import { Drawer } from 'antd'
 import { logout } from '../redux/slices/authSlice'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function AdminTemplate() {
     const dispatch = useDispatch()
@@ -28,12 +28,31 @@ export default function AdminTemplate() {
 
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
+    const [newOrderCount, setNewOrderCount] = useState(0)
+
+    useEffect(() => {
+        const handleNewOrder = () => {
+            setNewOrderCount((prev) => prev + 1)
+        }
+        window.addEventListener('app:admin-new-order', handleNewOrder)
+        return () => {
+            window.removeEventListener('app:admin-new-order', handleNewOrder)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (location.pathname === '/admin/orders') {
+            setNewOrderCount(0)
+        }
+    }, [location.pathname])
 
     const navItems = [
         { path: '/admin', label: 'Tổng quan', icon: <DashboardOutlined /> },
         { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: <ShoppingOutlined /> },
-        { path: '/admin/products', label: 'Quản lý Sản phẩm', icon: <CoffeeOutlined /> },
+        { path: '/admin/products', label: 'Sản phẩm', icon: <CoffeeOutlined /> },
         { path: '/admin/categories', label: 'Danh mục', icon: <AppstoreOutlined /> },
+        { path: '/admin/toppings', label: 'Topping', icon: <CoffeeOutlined /> },
+        { path: '/admin/sizes', label: 'Kích cỡ', icon: <AppstoreOutlined /> },
         { path: '/admin/vouchers', label: 'Mã giảm giá', icon: <TagOutlined /> },
         { path: '/admin/users', label: 'Khách hàng', icon: <TeamOutlined /> },
         { path: '/admin/settings', label: 'Cài đặt hệ thống', icon: <SettingOutlined /> },
@@ -204,11 +223,22 @@ export default function AdminTemplate() {
                     </div>
                     <div className="flex items-center gap-6">
                         {/* Notification Bell */}
-                        <button className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:text-sky-500 hover:shadow-md transition-all">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/admin/orders')}
+                            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:text-sky-500 hover:shadow-md transition-all cursor-pointer"
+                            title="Thông báo đơn hàng"
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                             </svg>
-                            <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                            {newOrderCount > 0 ? (
+                                <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-bounce">
+                                    {newOrderCount > 99 ? '99+' : newOrderCount}
+                                </span>
+                            ) : (
+                                <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" title="Đã kết nối Realtime"></span>
+                            )}
                         </button>
 
                         <div className="h-6 w-px bg-slate-200"></div>

@@ -9,16 +9,27 @@ export function formatVnd(value) {
 }
 
 export function calcLineTotal(item) {
+    if (!item) return 0
     if (item.totalItemPrice != null && item.totalItemPrice !== '') {
         return Number(item.totalItemPrice)
     }
     if (item.totalPrice != null && item.totalPrice !== '') return Number(item.totalPrice)
-    const unit = Number(item.unitPrice ?? item.sizePrice ?? item.basePrice ?? 0)
-    const qty = Number(item.quantity) || 0
-    const toppingSum = (item.toppings || []).reduce((sum, t) => {
-        return sum + Number(t.unitPrice ?? t.price ?? 0)
+
+    const qty = Number(item.quantity) || 1
+    const toppingSumPerLy = (item.toppings || []).reduce((sum, t) => {
+        const price = Number(t.price ?? t.unitPrice ?? 0)
+        const count = Number(t.quantity ?? 1)
+        return sum + price * count
     }, 0)
-    return unit * qty + toppingSum
+
+    // Nếu item có sizePrice hoặc basePrice (giá size/ly chưa gồm topping)
+    if (item.sizePrice != null || item.basePrice != null) {
+        const base = Number(item.sizePrice ?? item.basePrice ?? 0)
+        return (base + toppingSumPerLy) * qty
+    }
+
+    const unit = Number(item.unitPrice ?? 0)
+    return (unit + toppingSumPerLy) * qty
 }
 
 export function toppingLabel(t) {

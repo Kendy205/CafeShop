@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.IRepository;
+using CafeShop.Data.Repository.IRepository;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 
@@ -14,6 +14,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
     {
         IUserRepository User { get; }
         IProductSizeRepository ProductSize { get; }
+        IProductToppingRepository ProductTopping { get; }
         ICartItemToppingRepository CartItemTopping { get; }
         IAddressRepository Address { get; }
         ICategoryRepository Category { get; }

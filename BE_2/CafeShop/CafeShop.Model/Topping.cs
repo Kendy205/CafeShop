@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -22,5 +22,6 @@ namespace CafeShop.Model
         public int StockQuantity { get; set; } = 0; // Thêm dòng này
 
         public bool IsAvailable { get; set; } = true;
+        public virtual ICollection<ProductTopping>? ProductToppings { get; set; }
     }
 }

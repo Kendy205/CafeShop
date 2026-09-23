@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +14,16 @@ namespace CafeShop.Uitls
         public const string Delivering = "Delivering"; // Đang giao
         public const string Completed = "Completed";   // Hoàn thành
         public const string Cancelled = "Cancelled";   // Đã hủy
+
+        public static string ToVietnamese(string status) => status switch
+        {
+            Pending => "Chờ xác nhận",
+            Confirmed => "Đã xác nhận",
+            Preparing => "Đang chuẩn bị",
+            Delivering => "Đang giao hàng",
+            Completed => "Hoàn thành",
+            Cancelled => "Đã hủy",
+            _ => status
+        };
     }
 }

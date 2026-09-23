@@ -4,6 +4,7 @@ using CafeShop.DTO.Order;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
+using CafeShop.Service.IService.Notifications;
 using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
@@ -16,11 +17,13 @@ namespace CafeShop.Service.Service.Admin
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ISignalRService _signalRService;
 
-        public AdminOrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public AdminOrderService(IUnitOfWork unitOfWork, IMapper mapper, ISignalRService signalRService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _signalRService = signalRService;
         }
 
         public async Task<PagedResult<OrderResponseDto>> GetAllOrdersAsync(int pageNumber, int pageSize, string? status = null)
@@ -91,6 +94,12 @@ namespace CafeShop.Service.Service.Admin
                 _unitOfWork.Order.Update(order);
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
+
+                try
+                {
+                    await _signalRService.NotifyOrderStatusToUserAsync(order.UserId, order.OrderId, newStatus);
+                }
+                catch { /* Ignore notification error */ }
             }
             catch
             {

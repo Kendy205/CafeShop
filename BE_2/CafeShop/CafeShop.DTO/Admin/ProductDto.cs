@@ -29,6 +29,9 @@ namespace CafeShop.DTO.Admin
         // Trong FormData, việc gửi mảng phức tạp hơi khó. 
         // Thường chúng ta sẽ gửi chuỗi JSON rồi deserialize ở Backend.
         public string? ProductSizesJson { get; set; }
+        
+        // Mảng JSON cho Toppings. Chứa List<int> các ToppingId
+        public string? ProductToppingsJson { get; set; }
     }
 
     public class CreateProductSizeDto

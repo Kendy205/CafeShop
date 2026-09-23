@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { message, Modal, Switch, Table, Button, Input, Card, Tag, Space, Tooltip, Upload } from 'antd'
-import { EditOutlined, PlusOutlined, UploadOutlined, CoffeeOutlined, SearchOutlined } from '@ant-design/icons'
+import { message, Modal, Switch, Space, Tooltip, Button, Upload } from 'antd'
+import { EditOutlined, PlusOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     fetchAdminToppings,
     createAdminTopping,
@@ -9,8 +9,18 @@ import {
     toggleToppingAvailability,
 } from '../../../redux/actions/admin/adminToppingAction'
 import { formatVnd } from '../../../utils/helpers/format'
-import CustomPagination from '../../../components/common/CustomPagination'
-import AppPagination from '../../../components/common/AppPagination'
+import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AdminTable from '../../../components/admin/common/AdminTable'
+import AdminModalBanner from '../../../components/admin/common/AdminModalBanner'
+import AppButton from '../../../components/common/AppButton'
+import { Formik, Form, Field } from 'formik'
+import * as Yup from 'yup'
+
+const toppingSchema = Yup.object().shape({
+    name: Yup.string().required('Vui lòng nhập tên Topping'),
+    price: Yup.number().min(0, 'Giá không hợp lệ').required('Vui lòng nhập giá'),
+    imageFile: Yup.mixed()
+})
 
 export default function AdminToppingPage() {
     const dispatch = useDispatch()
@@ -18,11 +28,8 @@ export default function AdminToppingPage() {
 
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [form, setForm] = useState({ name: '', price: 0, imageFile: null })
     const [previewUrl, setPreviewUrl] = useState('')
     const [searchText, setSearchText] = useState('')
-
-    // Pagination states
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10
 
@@ -32,7 +39,6 @@ export default function AdminToppingPage() {
 
     const openModal = (item = null) => {
         setEditingItem(item)
-        setForm(item ? { name: item.name, price: item.price, imageFile: null } : { name: '', price: 0, imageFile: null })
         setPreviewUrl(item?.imageUrl || '')
         setIsModalVisible(true)
     }
@@ -40,41 +46,15 @@ export default function AdminToppingPage() {
     const closeModal = () => {
         setIsModalVisible(false)
         setEditingItem(null)
-        setForm({ name: '', price: 0, imageFile: null })
         setPreviewUrl('')
     }
 
-    const handleFileChange = (info) => {
-        const file = info.file.originFileObj || info.file
-        if (!file) return
-
-        if (!file.type.startsWith('image/')) {
-            message.error('Chỉ được phép upload file ảnh!')
-            return
-        }
-
-        setForm(prev => ({ ...prev, imageFile: file }))
-        const reader = new FileReader()
-        reader.onload = (e) => setPreviewUrl(e.target.result)
-        reader.readAsDataURL(file)
-    }
-
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (!form.name.trim()) {
-            message.warning('Vui lòng nhập tên Topping!')
-            return
-        }
-        if (form.price < 0) {
-            message.warning('Giá không hợp lệ!')
-            return
-        }
-
+    const handleSubmit = async (values, { resetForm }) => {
         const formData = new FormData()
-        formData.append('name', form.name.trim())
-        formData.append('price', form.price)
-        if (form.imageFile) {
-            formData.append('imageFile', form.imageFile)
+        formData.append('name', values.name.trim())
+        formData.append('price', values.price)
+        if (values.imageFile) {
+            formData.append('imageFile', values.imageFile)
         }
 
         if (editingItem) {
@@ -82,11 +62,12 @@ export default function AdminToppingPage() {
             if (updateAdminTopping.fulfilled.match(res)) {
                 message.success('Cập nhật thành công!')
                 closeModal()
+                resetForm()
             } else {
                 message.error(res.payload || 'Cập nhật thất bại')
             }
         } else {
-            if (!form.imageFile) {
+            if (!values.imageFile) {
                 message.warning('Vui lòng chọn ảnh cho Topping!')
                 return
             }
@@ -94,6 +75,7 @@ export default function AdminToppingPage() {
             if (createAdminTopping.fulfilled.match(res)) {
                 message.success('Thêm mới thành công!')
                 closeModal()
+                resetForm()
             } else {
                 message.error(res.payload || 'Thêm mới thất bại')
             }
@@ -110,11 +92,8 @@ export default function AdminToppingPage() {
     }
 
     const filteredItems = items.filter(t => t.name.toLowerCase().includes(searchText.toLowerCase()))
-
-    // Client-side pagination
     const paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-    // Reset page when search changes
     useEffect(() => {
         setCurrentPage(1)
     }, [searchText])
@@ -191,140 +170,180 @@ export default function AdminToppingPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800">Quản lý Topping</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        Thêm các loại trân châu, thạch, kem cheese để khách hàng có thể mua kèm đồ uống.
-                    </p>
+            <AdminPageBanner
+                badge="Món Ăn Kèm & Topping"
+                title="Topping Thức Uống"
+                description="Thêm các loại trân châu hoàng kim, thạch đào, kem cheese... để khách hàng thỏa thích mix cùng đồ uống."
+                icon={<CoffeeOutlined className="text-emerald-400 text-xl" />}
+                extra={
+                    <AppButton onClick={() => openModal()} className="!px-5 !bg-emerald-500 hover:!bg-emerald-600 shadow-emerald-500/30">
+                        <PlusOutlined />
+                        <span>Thêm Topping mới</span>
+                    </AppButton>
+                }
+                stats={
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
+                        <span className="text-slate-300 font-medium">Tổng topping:</span>
+                        <strong className="text-white text-sm font-black">{items.length}</strong>
+                    </div>
+                }
+            />
+
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+                <div className="relative flex-1 min-w-[220px] max-w-md">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm topping theo tên..."
+                        className="custom-admin-input pl-9 focus:border-emerald-500 focus:ring-emerald-100"
+                        value={searchText}
+                        onChange={e => { setSearchText(e.target.value); setCurrentPage(1); }}
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
+                    {searchText && (
+                        <button
+                            onClick={() => setSearchText('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    )}
                 </div>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center gap-2 rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-800 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/30 hover:scale-105 transition-all duration-300"
-                >
-                    <PlusOutlined /> Thêm Topping mới
-                </button>
+
+                <div className="text-xs text-slate-500 font-semibold">
+                    Đang hiển thị: <strong className="text-emerald-700">{filteredItems.length}</strong> loại topping
+                </div>
             </div>
 
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden" bodyStyle={{ padding: 0 }}>
-                <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                    <Input
-                        placeholder="Tìm kiếm topping..."
-                        prefix={<SearchOutlined className="text-slate-400" />}
-                        className="max-w-md rounded-3xl px-4 py-2 hover:border-emerald-500 focus:border-emerald-500"
-                        value={searchText}
-                        onChange={e => setSearchText(e.target.value)}
-                    />
-                    <Tag color="green" className="rounded-full px-3 py-1 font-semibold border-none bg-emerald-50 text-emerald-700">
-                        Tổng cộng: {items.length}
-                    </Tag>
-                </div>
-                {loading ? (
-                    <div className="p-5 space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-12 w-full animate-pulse rounded-3xl bg-slate-100/80" />
-                        ))}
-                    </div>
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={paginatedItems}
-                        rowKey="toppingId"
-                        pagination={false}
-                        className="custom-admin-table"
-                    />
-                )}
-                <AppPagination
-                    current={currentPage}
-                    pageSize={pageSize}
-                    total={filteredItems.length}
-                    onChange={(page) => setCurrentPage(page)}
-                />
-            </Card>
+            <AdminTable
+                columns={columns}
+                dataSource={paginatedItems}
+                rowKey="toppingId"
+                loading={loading}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalItems={filteredItems.length}
+                onPageChange={setCurrentPage}
+            />
 
             <Modal
-                title={<div className="text-xl font-black text-slate-800 border-b border-slate-100 pb-4 mb-2">{editingItem ? 'Sửa Topping' : 'Thêm Topping mới'}</div>}
                 open={isModalVisible}
                 onCancel={closeModal}
                 footer={null}
                 centered
                 width={500}
+                destroyOnClose
                 className="custom-admin-modal"
-                closeIcon={<div className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500">✕</div>}
+                closeIcon={null}
             >
-                <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-                    <div className="flex flex-col items-center justify-center mb-6">
-                        <div className="relative group cursor-pointer mb-3">
-                            <div className="h-28 w-28 overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all group-hover:border-emerald-500 group-hover:bg-emerald-50">
-                                {previewUrl ? (
-                                    <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="flex h-full flex-col items-center justify-center text-slate-400">
-                                        <CoffeeOutlined className="text-3xl mb-1 opacity-50" />
-                                        <span className="text-[10px] font-semibold">Tải ảnh lên</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="absolute -bottom-3 -right-3">
-                                <Upload
-                                    showUploadList={false}
-                                    beforeUpload={() => false}
-                                    onChange={handleFileChange}
-                                >
-                                    <Button
-                                        shape="circle"
-                                        icon={<UploadOutlined />}
-                                        className="bg-white shadow-md border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-600"
-                                    />
-                                </Upload>
-                            </div>
-                        </div>
-                    </div>
+                <AdminModalBanner 
+                    title={editingItem ? 'Sửa Topping' : 'Thêm Topping Mới'}
+                    subtitle="Thiết lập tên topping và mức giá phụ thu"
+                    icon={<CoffeeOutlined className="text-2xl" />}
+                    badgeText={editingItem ? 'CẬP NHẬT' : 'THÊM MỚI'}
+                    onClose={closeModal}
+                />
 
-                    <div>
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">Tên Topping <span className="text-red-500">*</span></label>
-                        <input
-                            type="text"
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            placeholder="VD: Trân châu đen, Thạch phô mai..."
-                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">Giá bán (VNĐ) <span className="text-red-500">*</span></label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                min="0"
-                                value={form.price}
-                                onChange={(e) => setForm({ ...form, price: Number(e.target.value) || 0 })}
-                                className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 pr-12 text-slate-800 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all font-mono text-lg font-semibold"
-                                required
-                            />
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                                đ
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-6 mt-2">
-                        <button
-                            type="button"
-                            onClick={closeModal}
-                            className="rounded-3xl px-6 py-2.5 font-bold text-slate-500 hover:bg-slate-100 transition-colors"
-                        >
-                            Hủy bỏ
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="rounded-3xl bg-gradient-to-r from-emerald-600 to-emerald-800 px-8 py-2.5 font-bold text-white shadow-lg shadow-emerald-900/30 hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 transition-all duration-300"
-                        >
-                            {submitting ? 'Đang lưu...' : 'Lưu Topping'}
-                        </button>
-                    </div>
-                </form>
+                <Formik
+                    enableReinitialize
+                    initialValues={{
+                        name: editingItem?.name || '',
+                        price: editingItem?.price ?? 0,
+                        imageFile: null
+                    }}
+                    validationSchema={toppingSchema}
+                    onSubmit={handleSubmit}
+                >
+                    {({ errors, touched, setFieldValue }) => {
+                        const handleFileChange = (info) => {
+                            const file = info.file.originFileObj || info.file
+                            if (!file) return
+                            if (!file.type.startsWith('image/')) {
+                                message.error('Chỉ được phép upload file ảnh!')
+                                return
+                            }
+                            setFieldValue('imageFile', file)
+                            const reader = new FileReader()
+                            reader.onload = (e) => setPreviewUrl(e.target.result)
+                            reader.readAsDataURL(file)
+                        }
+
+                        return (
+                            <Form className="px-6 py-6 space-y-5 bg-white">
+                                <div className="flex flex-col items-center justify-center mb-6">
+                                    <div className="relative group cursor-pointer mb-3">
+                                        <div className="h-28 w-28 overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 transition-all group-hover:border-emerald-500 group-hover:bg-emerald-50">
+                                            {previewUrl ? (
+                                                <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <div className="flex h-full flex-col items-center justify-center text-slate-400">
+                                                    <CoffeeOutlined className="text-3xl mb-1 opacity-50" />
+                                                    <span className="text-[10px] font-semibold">Tải ảnh lên</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="absolute -bottom-3 -right-3">
+                                            <Upload
+                                                showUploadList={false}
+                                                beforeUpload={() => false}
+                                                onChange={handleFileChange}
+                                            >
+                                                <Button
+                                                    shape="circle"
+                                                    icon={<UploadOutlined />}
+                                                    className="bg-white shadow-md border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-600"
+                                                />
+                                            </Upload>
+                                        </div>
+                                    </div>
+                                    {!previewUrl && !editingItem && (
+                                        <p className="text-xs text-red-500 font-medium">Bắt buộc phải tải ảnh lên</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                        Tên Topping <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                        name="name"
+                                        placeholder="VD: Trân châu đen, Thạch phô mai..."
+                                        className={`custom-admin-input focus:border-emerald-500 focus:ring-emerald-200 ${touched.name && errors.name ? 'custom-admin-input-error' : ''}`}
+                                    />
+                                    {touched.name && errors.name && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">{errors.name}</p>
+                                    )}
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                        Giá bán (VNĐ) <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <Field
+                                            type="number"
+                                            name="price"
+                                            placeholder="0"
+                                            className={`custom-admin-input pr-10 focus:border-emerald-500 focus:ring-emerald-200 font-mono ${touched.price && errors.price ? 'custom-admin-input-error' : ''}`}
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">đ</span>
+                                    </div>
+                                    {touched.price && errors.price && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">{errors.price}</p>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-6 mt-2">
+                                    <AppButton type="button" variant="ghost" onClick={closeModal}>
+                                        Hủy bỏ
+                                    </AppButton>
+                                    <AppButton type="submit" variant="primary" disabled={submitting} className="!bg-emerald-500 hover:!bg-emerald-600 shadow-emerald-500/30">
+                                        {submitting ? 'Đang lưu...' : 'Lưu Topping'}
+                                    </AppButton>
+                                </div>
+                            </Form>
+                        )
+                    }}
+                </Formik>
             </Modal>
         </div>
     )

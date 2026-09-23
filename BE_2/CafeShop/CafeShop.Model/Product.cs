@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -29,6 +29,7 @@ namespace CafeShop.Model
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }
         public virtual ICollection<ProductSize>? ProductSizes { get; set; }
+        public virtual ICollection<ProductTopping>? ProductToppings { get; set; }
         public virtual ICollection<Feedback>? Feedbacks { get; set; }
     }
 }

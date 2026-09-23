@@ -6,6 +6,7 @@ using CafeShop.Repositories.IRepository;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
 using CafeShop.Service.IService.Users;
+using CafeShop.Service.IService.Notifications;
 using CafeShop.Services.IServices;
 using CafeShop.Uitls;
 using System;
@@ -21,17 +22,19 @@ namespace CafeShop.Services.Services
         private readonly IVoucherService _voucherService;
         private readonly IShippingService _shippingService;
         private readonly IMapper _mapper;
+        private readonly ISignalRService _signalRService;
 
         // Tọa độ quán của bạn (Dùng để kiểm tra chống hack phí ship)
         private const double CAFE_LAT = 21.0285;
         private const double CAFE_LNG = 105.8542;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IVoucherService voucherService, IShippingService shippingService)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IVoucherService voucherService, IShippingService shippingService, ISignalRService signalRService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _voucherService = voucherService;
             _shippingService = shippingService;
+            _signalRService = signalRService;
         }
 
         // ================= XỬ LÝ ĐẶT HÀNG (GỘP CHUNG MUA NGAY & TỪ GIỎ HÀNG) =================
@@ -116,6 +119,14 @@ namespace CafeShop.Services.Services
 
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
+
+                try
+                {
+                    var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == userId);
+                    string customerName = user?.FullName ?? "Khách hàng";
+                    await _signalRService.NotifyNewOrderToAdminsAsync(order.OrderId, customerName);
+                }
+                catch { /* Ignore notification error */ }
 
                 return _mapper.Map<OrderResponseDto>(order);
             }

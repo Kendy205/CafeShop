@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.UnitOfWork;
+using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.Service.IService;
 using System;
 using System.Collections.Generic;
@@ -19,16 +19,18 @@ namespace CafeShop.Service.Service
 
         public async Task<decimal> CalculateFeeAsync(double distanceKm, decimal? orderTotal = null)
         {
-            //if (orderTotal != null && orderTotal >= 200000)
-            //{
-            //    return 0; // Đơn trên 200k miễn phí ship luôn
-            //}
             // 1. Lấy cấu hình từ Database thông qua Repository
             // Lấy dòng cấu hình đầu tiên (thường bảng này chỉ có 1 dòng duy nhất)
             var config = await _unitOfWork.ShippingConfig.GetFirstOrDefaultAsync();
 
             if (config == null)
                 throw new Exception("Hệ thống chưa thiết lập cấu hình phí giao hàng.");
+
+            // Kiểm tra Freeship
+            if (config.IsFreeShippingEnabled && orderTotal.HasValue && orderTotal.Value >= config.FreeShippingThreshold)
+            {
+                return 0;
+            }
 
             // 2. Chặn lỗi logic (Bán kính quá xa)
             //if (distanceKm > config.MaxDistanceKm)

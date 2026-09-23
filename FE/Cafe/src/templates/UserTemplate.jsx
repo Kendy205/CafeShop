@@ -1,6 +1,6 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
     CoffeeOutlined,
     EnvironmentOutlined,
@@ -36,12 +36,30 @@ function NavItem({ to, icon, label, className = '' }) {
 export default function UserTemplate() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const location = useLocation()
     const { isAuthenticated, user, role } = useSelector((s) => s.auth)
-    const cartCount = useSelector((s) => s.cart.items.reduce((n, i) => n + (Number(i.quantity) || 0), 0))
+    const cartCount = useSelector((s) => s.cart.items.length)
+    const [orderUpdateCount, setOrderUpdateCount] = useState(0)
 
     useEffect(() => {
         if (isAuthenticated) dispatch(getCart())
     }, [isAuthenticated, dispatch])
+
+    useEffect(() => {
+        const handleUpdate = () => {
+            setOrderUpdateCount((prev) => prev + 1)
+        }
+        window.addEventListener('app:user-order-update', handleUpdate)
+        return () => {
+            window.removeEventListener('app:user-order-update', handleUpdate)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (location.pathname === '/orders') {
+            setOrderUpdateCount(0)
+        }
+    }, [location.pathname])
 
     return (
         <div className={`flex min-h-screen flex-col ${THEME.colors.background}`}>
@@ -65,7 +83,20 @@ export default function UserTemplate() {
                         {isAuthenticated && (
                             <>
                                 <NavItem to="/addresses" icon={<EnvironmentOutlined />} label="Địa chỉ" />
-                                <NavItem to="/orders"    icon={<OrderedListOutlined />} label="Đơn hàng" />
+                                <LoadingLink
+                                    to="/orders"
+                                    className="relative inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600"
+                                >
+                                    <span className="relative inline-flex text-lg leading-none">
+                                        <OrderedListOutlined />
+                                        {orderUpdateCount > 0 && (
+                                            <span className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-bounce">
+                                                {orderUpdateCount > 9 ? '9+' : orderUpdateCount}
+                                            </span>
+                                        )}
+                                    </span>
+                                    <span className="hidden sm:inline font-medium">Đơn hàng</span>
+                                </LoadingLink>
                                 <NavItem to="/vouchers"  icon={<TagOutlined />}         label="Voucher" />
                             </>
                         )}

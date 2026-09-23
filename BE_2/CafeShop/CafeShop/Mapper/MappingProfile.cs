@@ -9,6 +9,7 @@ using CafeShop.DTO.Size;
 using CafeShop.DTO.Topping;
 using CafeShop.DTO.User;
 using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Admin;
 using CafeShop.Model;
 
 namespace CafeShop.Mapper
@@ -22,6 +23,7 @@ namespace CafeShop.Mapper
             // ==========================================
             CreateMap<Product, ProductResponseDto>()
                 .ForMember(dest => dest.ProductSizes, opt => opt.MapFrom(src => src.ProductSizes))
+                .ForMember(dest => dest.ProductToppings, opt => opt.MapFrom(src => src.ProductToppings))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : ""));
             //Ánh xạ bảng trung gian ProductSize sang DTO
             CreateMap<ProductSize, ProductSizeDto>()
@@ -29,6 +31,13 @@ namespace CafeShop.Mapper
             // Logic mới: Nếu Price có giá trị thì lấy Price, nếu null thì lấy BasePrice
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src =>
                 src.Price.HasValue ? src.Price.Value : (src.Product != null ? src.Product.BasePrice : 0)));
+                
+            CreateMap<ProductTopping, ProductToppingDto>()
+                .ForMember(dest => dest.ToppingName, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.Name : ""))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.Price ?? 0 : 0))
+                .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.Unit : ""))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Topping != null ? src.Topping.ImageUrl : ""));
+                
             CreateMap<CreateProductDto, Product>();
 
             // ==========================================
@@ -90,6 +99,11 @@ namespace CafeShop.Mapper
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
                     src.User != null ? src.User.FullName : "Người dùng ẩn danh"));
 
+            // ==========================================
+            // 8. ShippingConfig
+            // ==========================================
+            CreateMap<ShippingConfig, ShippingConfigDto>().ReverseMap();
+            CreateMap<UpdateShippingConfigDto, ShippingConfig>();
 
         }
     }

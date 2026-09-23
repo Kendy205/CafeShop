@@ -30,7 +30,7 @@ namespace CafeShop.Service.Service.Admin
         public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)
         {
             var products = await _unitOfWork.Product.GetAllAsync(
-                            includeProperties: "Category,ProductSizes,ProductSizes.Size");
+                            includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping");
             var query = products.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -79,7 +79,7 @@ namespace CafeShop.Service.Service.Admin
         {
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
                 p => p.ProductId == id,
-                includeProperties: "Category,ProductSizes,ProductSizes.Size"
+                includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping"
             );
 
             if (product == null)
@@ -137,6 +137,31 @@ namespace CafeShop.Service.Service.Admin
                 catch (JsonException ex)
                 {
                     throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.ProductToppingsJson))
+            {
+                try
+                {
+                    var toppingIds = JsonSerializer.Deserialize<List<int>>(request.ProductToppingsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (toppingIds != null)
+                    {
+                        foreach (var tId in toppingIds)
+                        {
+                            var pt = new ProductTopping
+                            {
+                                ProductId = product.ProductId,
+                                ToppingId = tId
+                            };
+                            await _unitOfWork.ProductTopping.AddAsync(pt);
+                        }
+                        await _unitOfWork.SaveAsync();
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    throw new Exception($"Lỗi parse chuỗi ProductToppingsJson: {ex.Message}");
                 }
             }
 
@@ -202,6 +227,36 @@ namespace CafeShop.Service.Service.Admin
                 catch (JsonException ex)
                 {
                     throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.ProductToppingsJson))
+            {
+                try
+                {
+                    var toppingIds = JsonSerializer.Deserialize<List<int>>(request.ProductToppingsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (toppingIds != null)
+                    {
+                        var existingToppings = await _unitOfWork.ProductTopping.GetAllAsync(pt => pt.ProductId == id);
+                        foreach (var et in existingToppings)
+                        {
+                            _unitOfWork.ProductTopping.Remove(et);
+                        }
+
+                        foreach (var tId in toppingIds)
+                        {
+                            var pt = new ProductTopping
+                            {
+                                ProductId = product.ProductId,
+                                ToppingId = tId
+                            };
+                            await _unitOfWork.ProductTopping.AddAsync(pt);
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    throw new Exception($"Lỗi parse chuỗi ProductToppingsJson: {ex.Message}");
                 }
             }
 

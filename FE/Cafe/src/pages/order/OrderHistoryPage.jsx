@@ -500,6 +500,17 @@ export default function OrderHistoryPage() {
         fetchOrders(page, selectedStatus)
     }, [fetchOrders, page, selectedStatus])
 
+    // Lắng nghe sự kiện Realtime khi Admin cập nhật trạng thái đơn hàng
+    useEffect(() => {
+        const handleOrderUpdate = () => {
+            fetchOrders(page, selectedStatus)
+        }
+        window.addEventListener('app:user-order-update', handleOrderUpdate)
+        return () => {
+            window.removeEventListener('app:user-order-update', handleOrderUpdate)
+        }
+    }, [fetchOrders, page, selectedStatus])
+
     const handleTabChange = (tabKey) => {
         if (tabKey === selectedStatus) return
         setSelectedStatus(tabKey)

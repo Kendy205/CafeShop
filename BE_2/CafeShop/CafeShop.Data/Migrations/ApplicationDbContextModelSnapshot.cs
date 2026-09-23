@@ -484,6 +484,21 @@ namespace CafeShop.Data.Migrations
                     b.ToTable("ProductSizes");
                 });
 
+            modelBuilder.Entity("CafeShop.Model.ProductTopping", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToppingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductId", "ToppingId");
+
+                    b.HasIndex("ToppingId");
+
+                    b.ToTable("ProductToppings");
+                });
+
             modelBuilder.Entity("CafeShop.Model.ShippingConfig", b =>
                 {
                     b.Property<int>("Id")
@@ -500,6 +515,12 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<decimal>("ExtraFeePerKm")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal>("FreeShippingThreshold")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<bool>("IsFreeShippingEnabled")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<double>("MaxDistanceKm")
                         .HasColumnType("double");
@@ -949,6 +970,25 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("Size");
                 });
 
+            modelBuilder.Entity("CafeShop.Model.ProductTopping", b =>
+                {
+                    b.HasOne("CafeShop.Model.Product", "Product")
+                        .WithMany("ProductToppings")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CafeShop.Model.Topping", "Topping")
+                        .WithMany("ProductToppings")
+                        .HasForeignKey("ToppingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Topping");
+                });
+
             modelBuilder.Entity("CafeShop.Model.UserVoucher", b =>
                 {
                     b.HasOne("CafeShop.Model.Voucher", "Voucher")
@@ -999,11 +1039,18 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("ProductSizes");
+
+                    b.Navigation("ProductToppings");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Size", b =>
                 {
                     b.Navigation("ProductSizes");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Topping", b =>
+                {
+                    b.Navigation("ProductToppings");
                 });
 
             modelBuilder.Entity("CafeShop.Model.User", b =>

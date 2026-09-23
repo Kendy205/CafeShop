@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getProductDetail } from '../../redux/actions/user/productAction'
-import { getAvailableToppings } from '../../redux/actions/user/toppingAction'
 import { addToCart } from '../../redux/actions/user/cartAction'
 import { clearProductDetail } from '../../redux/slices/user/productSlice'
 import { openAuthModal } from '../../redux/slices/authSlice'
@@ -128,6 +127,9 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
             setLocalError('Size này hiện đã hết hàng, vui lòng chọn size khác')
             return
         }
+        const toppingUnitSum = selectedToppings.reduce((s, t) => s + Number(t.price || 0) * (t.quantity || 1), 0)
+        const baseDrinkPrice = Number(selectedSize?.price ?? detail.basePrice ?? 0)
+
         navigate('/checkout', {
             state: {
                 buyNow: true,
@@ -135,9 +137,12 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                     {
                         productId: detail.productId,
                         name: detail.name,
+                        imageUrl: detail.imageUrl,
                         sizeId: selectedSize?.sizeId ?? null,
                         sizeName: selectedSize?.name,
-                        sizePrice: selectedSize?.price ?? detail.basePrice,
+                        sizePrice: baseDrinkPrice,
+                        unitPrice: baseDrinkPrice + toppingUnitSum,
+                        totalItemPrice: linePreview,
                         quantity,
                         toppings: selectedToppings,
                     },
@@ -234,7 +239,7 @@ function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, pro
                                                 : 'border-slate-200 bg-white hover:border-sky-700'
                                         }`}
                                 >
-                                    {s.name} · {formatVnd(s.price)} {isSizeOOS && '(Hết hàng)'}
+                                    {(s.sizeName || s.name || 'Size')} · {formatVnd(s.price)} {isSizeOOS && '(Hết hàng)'}
                                 </button>
                             )
                         })}
@@ -548,15 +553,12 @@ export default function ProductDetailPage() {
     const { id } = useParams()
     const dispatch = useDispatch()
     const { detail, detailLoading, error } = useSelector((s) => s.product)
-    const masterToppings = useSelector((s) => s.topping.items)
-    const toppingError = useSelector((s) => s.topping.error)
     const isAuthenticated = useSelector((s) => s.auth.isAuthenticated)
     const [summary, setSummary] = useState(null)
 
     useEffect(() => {
         dispatch(clearProductDetail())
         dispatch(getProductDetail(id))
-        dispatch(getAvailableToppings())
 
         // Lấy thống kê đánh giá của sản phẩm: GET /api/Feedback/product/{productId}/summary
         if (id) {
@@ -573,13 +575,23 @@ export default function ProductDetailPage() {
         }
     }, [dispatch, id])
 
-    const sizes = Array.isArray(detail?.productSizes)
-        ? detail.productSizes
-        : (Array.isArray(detail?.sizes) ? detail.sizes : [])
+    const sizes = useMemo(() => {
+        const rawSizes = Array.isArray(detail?.productSizes)
+            ? detail.productSizes
+            : (Array.isArray(detail?.sizes) ? detail.sizes : [])
+        return rawSizes.map((s) => {
+            const sizeLabel = s.sizeName ?? s.name ?? 'Size'
+            return {
+                ...s,
+                name: sizeLabel,
+                sizeName: sizeLabel,
+            }
+        })
+    }, [detail?.productSizes, detail?.sizes])
 
-    const toppings = Array.isArray(detail?.toppings) && detail.toppings.length
-        ? detail.toppings
-        : masterToppings
+    const toppings = Array.isArray(detail?.productToppings) && detail.productToppings.length > 0
+        ? detail.productToppings
+        : []
 
     if (detailLoading) {
         return (
@@ -623,7 +635,7 @@ export default function ProductDetailPage() {
                     detail={detail}
                     sizes={sizes}
                     toppings={toppings}
-                    error={error || toppingError}
+                    error={error}
                     isAuthenticated={isAuthenticated}
                     productId={id}
                     summary={summary}

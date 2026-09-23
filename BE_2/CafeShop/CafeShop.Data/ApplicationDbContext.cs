@@ -1,4 +1,4 @@
-﻿using CafeShop.Model;
+using CafeShop.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -22,6 +22,7 @@ namespace CafeShop.Data
         public DbSet<Size> Sizes { get; set; }
         public DbSet<ProductSize> ProductSizes { get; set; }
         public DbSet<Topping> Toppings { get; set; }
+        public DbSet<ProductTopping> ProductToppings { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
@@ -39,6 +40,8 @@ namespace CafeShop.Data
             // Bắt buộc khai báo Khóa chính kép cho bảng trung gian
             modelBuilder.Entity<ProductSize>()
                 .HasKey(ps => new { ps.ProductId, ps.SizeId });
+            modelBuilder.Entity<ProductTopping>()
+                .HasKey(pt => new { pt.ProductId, pt.ToppingId });
             // Ngăn lỗi Cascade Delete khi cấu hình khóa ngoại cho Feedback
             modelBuilder.Entity<Feedback>()
                 .HasOne(f => f.OrderDetail)
