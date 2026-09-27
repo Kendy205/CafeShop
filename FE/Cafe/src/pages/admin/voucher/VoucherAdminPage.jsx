@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { message, Switch } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import {
     createAdminVoucher,
     getAdminVouchers,
@@ -180,29 +181,31 @@ export default function VoucherAdminPage() {
                             title: 'Hành động',
                             render: (r) => (
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-sky-700 hover:border-sky-300 transition-all cursor-pointer shadow-2xs"
-                                        onClick={() => {
-                                            setEditing(r)
-                                            setOpen(true)
-                                        }}
-                                        title="Chỉnh sửa voucher"
-                                    >
-                                        <EditOutlined />
-                                        <span>Sửa</span>
-                                    </button>
-
-                                    {r.targetType === VoucherTargetType.USER && (
+                                    <AdminTooltip title="Chỉnh sửa voucher">
                                         <button
                                             type="button"
-                                            className="inline-flex items-center gap-1.5 rounded-2xl border border-purple-200 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 text-xs font-bold text-purple-700 hover:border-purple-300 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
-                                            onClick={() => openAssignModal(r)}
-                                            title="Tặng mã ưu đãi này riêng cho khách hàng"
+                                            className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-sky-700 hover:border-sky-300 transition-all cursor-pointer shadow-2xs"
+                                            onClick={() => {
+                                                setEditing(r)
+                                                setOpen(true)
+                                            }}
                                         >
-                                            <GiftOutlined className="text-purple-600" />
-                                            <span>Tặng User</span>
+                                            <EditOutlined />
+                                            <span>Sửa</span>
                                         </button>
+                                    </AdminTooltip>
+
+                                    {r.targetType === VoucherTargetType.USER && (
+                                        <AdminTooltip title="Tặng mã ưu đãi này riêng cho khách hàng">
+                                            <button
+                                                type="button"
+                                                className="inline-flex items-center gap-1.5 rounded-2xl border border-purple-200 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 text-xs font-bold text-purple-700 hover:border-purple-300 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                                                onClick={() => openAssignModal(r)}
+                                            >
+                                                <GiftOutlined className="text-purple-600" />
+                                                <span>Tặng User</span>
+                                            </button>
+                                        </AdminTooltip>
                                     )}
                                 </div>
                             ),

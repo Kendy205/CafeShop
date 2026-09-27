@@ -13,6 +13,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
     public interface IUnitOfWork : IDisposable
     {
         IUserRepository User { get; }
+        INewsRepository News { get; }
         IProductSizeRepository ProductSize { get; }
         IProductToppingRepository ProductTopping { get; }
         ICartItemToppingRepository CartItemTopping { get; }
@@ -30,6 +31,10 @@ namespace CafeShop.Data.Repository.UnitOfWork
         IUserVoucherRepository UserVoucher { get; }
         IFeedbackRepository Feedback { get; }
         IShippingConfigRepository ShippingConfig { get; }
+        IRoleRepository Role { get; }
+        IPermissionRepository Permission { get; }
+        IUserRoleRepository UserRole { get; }
+        IRolePermissionRepository RolePermission { get; }
         Task<int> SaveAsync();
         Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync();
     }

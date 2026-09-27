@@ -55,6 +55,7 @@ export default function AdminTemplate() {
         { path: '/admin/sizes', label: 'Kích cỡ', icon: <AppstoreOutlined /> },
         { path: '/admin/vouchers', label: 'Mã giảm giá', icon: <TagOutlined /> },
         { path: '/admin/users', label: 'Khách hàng', icon: <TeamOutlined /> },
+        { path: '/admin/news', label: 'Tin tức', icon: <AppstoreOutlined /> },
         { path: '/admin/settings', label: 'Cài đặt hệ thống', icon: <SettingOutlined /> },
     ]
 

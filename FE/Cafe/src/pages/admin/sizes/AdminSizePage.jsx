@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { message, Modal, Space, Tooltip, Button } from 'antd'
+import { message, Modal, Space, Button } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { EditOutlined, DeleteOutlined, PlusOutlined, ColumnWidthOutlined } from '@ant-design/icons'
 import {
     fetchAdminSizes,
@@ -131,22 +132,22 @@ export default function AdminSizePage() {
             align: 'right',
             render: (_, record) => (
                 <Space size="middle">
-                    <Tooltip title="Chỉnh sửa">
+                    <AdminTooltip title="Chỉnh sửa kích cỡ">
                         <Button
                             type="text"
-                            icon={<EditOutlined className="text-blue-600" />}
-                            className="bg-blue-50 hover:bg-blue-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                            icon={<EditOutlined className="text-sky-600" />}
+                            className="bg-sky-50 hover:bg-sky-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
                             onClick={() => openModal(record)}
                         />
-                    </Tooltip>
-                    <Tooltip title="Xóa">
+                    </AdminTooltip>
+                    <AdminTooltip title="Xóa kích cỡ">
                         <Button
                             type="text"
-                            icon={<DeleteOutlined className="text-red-600" />}
-                            className="bg-red-50 hover:bg-red-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                            icon={<DeleteOutlined className="text-rose-500" />}
+                            className="bg-rose-50 hover:bg-rose-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
                             onClick={() => handleDelete(record.sizeId)}
                         />
-                    </Tooltip>
+                    </AdminTooltip>
                 </Space>
             ),
         },

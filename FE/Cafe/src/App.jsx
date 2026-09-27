@@ -30,6 +30,7 @@ import AdminProductPage from './pages/admin/products/AdminProductPage'
 import AdminOrderPage from './pages/admin/orders/AdminOrderPage'
 import AdminUsersPage from './pages/admin/users/AdminUsersPage'
 import AdminSettingsPage from './pages/admin/settings/AdminSettingsPage'
+import AdminNewsPage from './pages/admin/news/AdminNewsPage'
 function App() {
     return (
         <Provider store={store}>
@@ -66,6 +67,7 @@ function App() {
                         <Route path="orders" element={<AdminOrderPage />} />
                         <Route path="users" element={<AdminUsersPage />} />
                         <Route path="settings" element={<AdminSettingsPage />} />
+                        <Route path="news" element={<AdminNewsPage />} />
                     </Route>
                 </Route>
             </Routes>

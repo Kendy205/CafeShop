@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Table, Input, Card, Tag, Switch, message, Tooltip, Avatar } from 'antd'
+import { Table, Input, Card, Tag, Switch, message, Avatar } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { SearchOutlined, UserOutlined } from '@ant-design/icons'
 import { fetchAdminUsers, toggleAdminUserStatus } from '../../../redux/actions/admin/adminUserAction'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
@@ -101,7 +102,7 @@ export default function AdminUsersPage() {
             key: 'isActive',
             align: 'center',
             render: (_, record) => (
-                <Tooltip title={record.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
+                <AdminTooltip title={record.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
                     <Switch
                         checked={record.isActive}
                         onChange={() => handleToggleStatus(record.userId || record.id)}
@@ -110,7 +111,7 @@ export default function AdminUsersPage() {
                         unCheckedChildren="Đã khóa"
                         className="custom-switch"
                     />
-                </Tooltip>
+                </AdminTooltip>
             )
         }
     ]

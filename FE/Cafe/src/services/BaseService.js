@@ -11,11 +11,11 @@ export const http = axios.create({
 })
 
 function isPublicAuthPath(url) {
-    const u = String(url || '')
+    const u = String(url || '').toLowerCase()
     return (
-        u.includes('Auth/login') ||
-        u.includes('Auth/register') ||
-        u.includes('Auth/refresh')
+        u.includes('auth/login') ||
+        u.includes('auth/register') ||
+        u.includes('auth/refresh-token')
     )
 }
 
@@ -140,8 +140,8 @@ http.interceptors.response.use(
 
         try {
             const { data: body } = await axios.post(
-                `${DOMAIN}/api/Auth/refresh`,
-                { accessToken, refreshToken, token: accessToken },
+                `${DOMAIN}/api/auth/refresh-token`,
+                { accessToken, refreshToken },
                 { headers: { 'Content-Type': 'application/json' } }
             )
 

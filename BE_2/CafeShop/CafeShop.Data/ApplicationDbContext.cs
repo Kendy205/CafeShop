@@ -32,6 +32,10 @@ namespace CafeShop.Data
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<UserVoucher> UserVouchers { get; set; }
         public DbSet<ShippingConfig> ShippingConfigs { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,6 +52,36 @@ namespace CafeShop.Data
                 .WithMany(o => o.Feedbacks)
                 .HasForeignKey(f => f.OrderDetailId)
                 .OnDelete(DeleteBehavior.Restrict); // Hoặc DeleteBehavior.NoAction
+
+            // Cấu hình RBAC
+            modelBuilder.Entity<Role>()
+                .HasIndex(r => r.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Permission>()
+                .HasIndex(p => p.Code)
+                .IsUnique();
+
+            modelBuilder.Entity<UserRole>()
+                .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            modelBuilder.Entity<RolePermission>()
+                .HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+            // Cấu hình News
+            modelBuilder.Entity<News>()
+                .HasIndex(n => n.Slug)
+                .IsUnique();
+            modelBuilder.Entity<News>()
+                .HasIndex(n => n.Status);
+            modelBuilder.Entity<News>()
+                .HasIndex(n => n.PublishedAt);
+
+            modelBuilder.Entity<News>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

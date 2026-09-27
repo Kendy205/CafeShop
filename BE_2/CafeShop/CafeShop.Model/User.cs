@@ -32,5 +32,6 @@ namespace CafeShop.Model
         public virtual ICollection<Feedback>? Feedbacks { get; set; }
         public virtual ICollection<Address>? Addresses { get; set; }
         public virtual Cart? Cart { get; set; }
+        public virtual ICollection<UserRole>? UserRoles { get; set; }
     }
 }

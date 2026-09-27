@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { message, Modal, Switch, Space, Tooltip, Button, Upload } from 'antd'
+import { message, Modal, Switch, Space, Button, Upload } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { EditOutlined, PlusOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     fetchAdminToppings,
@@ -156,14 +157,14 @@ export default function AdminToppingPage() {
             width: 100,
             align: 'right',
             render: (_, record) => (
-                <Tooltip title="Chỉnh sửa">
+                <AdminTooltip title="Chỉnh sửa topping">
                     <Button
                         type="text"
-                        icon={<EditOutlined className="text-emerald-600" />}
-                        className="bg-emerald-50 hover:bg-emerald-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                        icon={<EditOutlined className="text-sky-600" />}
+                        className="bg-sky-50 hover:bg-sky-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
                         onClick={() => openModal(record)}
                     />
-                </Tooltip>
+                </AdminTooltip>
             ),
         },
     ]

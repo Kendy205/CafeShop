@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Modal, Table, Button, Input, Card, Tag, Space, Tooltip, Switch, Select, message } from 'antd'
+import { Modal, Table, Button, Input, Card, Tag, Space, Switch, Select, message } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     fetchAdminProducts,
@@ -139,11 +140,11 @@ export default function AdminProductPage() {
                     )}
                     <div className="flex flex-wrap gap-1.5 max-w-[200px]">
                         {record.productSizes?.map((sz) => (
-                            <Tooltip key={sz.sizeId} title={`Tồn kho: ${sz.stockQuantity ?? 0}`}>
+                            <AdminTooltip key={sz.sizeId} title={`Tồn kho: ${sz.stockQuantity ?? 0}`}>
                                 <span className="inline-flex items-center rounded-2xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-800 border border-sky-200">
                                     {sz.name ?? sz.sizeName ?? '?'}: {formatVnd(sz.price)}
                                 </span>
-                            </Tooltip>
+                            </AdminTooltip>
                         ))}
                     </div>
                 </div>
@@ -211,22 +212,22 @@ export default function AdminProductPage() {
             align: 'right',
             render: (_, record) => (
                 <Space size="middle">
-                    <Tooltip title="Chỉnh sửa">
+                    <AdminTooltip title="Chỉnh sửa sản phẩm">
                         <Button
                             type="text"
-                            icon={<EditOutlined className="text-blue-600" />}
-                            className="bg-blue-50 hover:bg-blue-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                            icon={<EditOutlined className="text-sky-600" />}
+                            className="bg-sky-50 hover:bg-sky-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
                             onClick={() => openModal(record)}
                         />
-                    </Tooltip>
-                    <Tooltip title="Xóa">
+                    </AdminTooltip>
+                    <AdminTooltip title="Xóa sản phẩm">
                         <Button
                             type="text"
-                            icon={<DeleteOutlined className="text-red-600" />}
-                            className="bg-red-50 hover:bg-red-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                            icon={<DeleteOutlined className="text-rose-500" />}
+                            className="bg-rose-50 hover:bg-rose-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
                             onClick={() => handleDelete(record.productId)}
                         />
-                    </Tooltip>
+                    </AdminTooltip>
                 </Space>
             ),
         },

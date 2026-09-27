@@ -14,32 +14,42 @@ export function extractRoleFromAuthPayload(payload) {
     return typeof raw === 'string' ? raw.trim() : String(raw)
 }
 
-export function getRoleFromAccessToken(accessToken) {
-    if (!accessToken) return null
+export function getRolesAndPermissionsFromToken(accessToken) {
+    if (!accessToken) return { roles: [], permissions: [] }
     try {
         const decoded = jwtDecode(accessToken)
-        const raw =
-            decoded.role ??
-            decoded.Role ??
-            decoded[ROLE_CLAIM] ??
-            (Array.isArray(decoded.roles) ? decoded.roles[0] : null)
-        if (raw == null || raw === '') return null
-        return typeof raw === 'string' ? raw.trim() : String(raw)
+        let roles = decoded.role ?? decoded.Role ?? decoded[ROLE_CLAIM] ?? decoded.roles ?? []
+        if (typeof roles === 'string') {
+            roles = [roles]
+        }
+        if (!Array.isArray(roles)) {
+            roles = roles ? [String(roles)] : []
+        }
+        let permissions = decoded.Permission ?? decoded.permission ?? decoded.Permissions ?? decoded.permissions ?? []
+        if (typeof permissions === 'string') {
+            permissions = [permissions]
+        }
+        if (!Array.isArray(permissions)) {
+            permissions = permissions ? [String(permissions)] : []
+        }
+        return { roles, permissions }
     } catch {
-        return null
+        return { roles: [], permissions: [] }
     }
 }
 
 export function resolveRoleFromAuth(payload, accessToken) {
-    return extractRoleFromAuthPayload(payload) ?? getRoleFromAccessToken(accessToken)
+    const fromToken = getRolesAndPermissionsFromToken(accessToken)
+    return fromToken.roles // return array of roles
 }
 
 export function normalizeRole(role) {
-    if (role == null) return null
-    return String(role).trim().toUpperCase()
+    if (role == null) return []
+    if (Array.isArray(role)) return role.map((r) => String(r).trim().toUpperCase())
+    return [String(role).trim().toUpperCase()]
 }
 
 export function isAdminRole(role) {
-    const r = normalizeRole(role)
-    return r === 'ADMIN' || r === 'ADMINISTRATOR'
+    const roles = normalizeRole(role)
+    return roles.includes('ADMIN') || roles.includes('ADMINISTRATOR')
 }

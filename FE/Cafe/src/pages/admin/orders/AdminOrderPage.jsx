@@ -175,6 +175,7 @@ export default function AdminOrderPage() {
                                 <th className="px-5 py-3.5 text-left">Thời gian</th>
                                 <th className="px-5 py-3.5 text-right">Tổng tiền</th>
                                 <th className="px-5 py-3.5 text-center">Trạng thái</th>
+                                <th className="px-5 py-3.5 text-center">Cập nhật</th>
                                 <th className="px-5 py-3.5 text-center">Hành động</th>
                             </tr>
                         </thead>
@@ -182,7 +183,7 @@ export default function AdminOrderPage() {
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i}>
-                                        {Array.from({ length: 6 }).map((__, j) => (
+                                        {Array.from({ length: 7 }).map((__, j) => (
                                             <td key={j} className="px-5 py-4">
                                                 <div className="h-4 rounded-2xl bg-slate-100 animate-pulse" />
                                             </td>
@@ -191,7 +192,7 @@ export default function AdminOrderPage() {
                                 ))
                             ) : orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-5 py-16 text-center text-slate-400">
+                                    <td colSpan={7} className="px-5 py-16 text-center text-slate-400">
                                         <span className="text-3xl block mb-2">📭</span>
                                         <span className="text-sm font-medium">Không có đơn hàng nào</span>
                                     </td>

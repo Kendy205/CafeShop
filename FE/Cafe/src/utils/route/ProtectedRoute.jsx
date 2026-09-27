@@ -23,8 +23,9 @@ export default function ProtectedRoute({ allowedRoles }) {
 
     if (allowedRoles && allowedRoles.length > 0) {
         const current = normalizeRole(role)
-        const allow = allowedRoles.map(normalizeRole)
-        if (!current || !allow.includes(current)) {
+        const allow = allowedRoles.flatMap(normalizeRole)
+        const hasAccess = current.some((r) => allow.includes(r))
+        if (!hasAccess) {
             return <Navigate to="/" replace />
         }
     }

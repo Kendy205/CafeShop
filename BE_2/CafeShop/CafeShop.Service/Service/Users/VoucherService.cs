@@ -7,6 +7,7 @@ using CafeShop.Service.IService.Users;
 using CafeShop.Uitls;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CafeShop.Service.IService;
 
 namespace CafeShop.Services.Services
 {
@@ -15,13 +16,14 @@ namespace CafeShop.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserVoucherService _userVoucherService;
         private readonly IMapper _mapper;
+        private readonly IShippingService _shippingService;
 
-        public VoucherService(IUnitOfWork unitOfWork, IMapper mapper, IUserVoucherService userVoucherService)
+        public VoucherService(IUnitOfWork unitOfWork, IMapper mapper, IUserVoucherService userVoucherService, IShippingService shippingService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userVoucherService = userVoucherService;
-
+            _shippingService = shippingService;
         }
 
         // =========================================================================
@@ -128,12 +130,15 @@ namespace CafeShop.Services.Services
 
                     decimal unitPrice = product.BasePrice;
 
-                    if (item.SizeId.HasValue)
+                    if (item.SizeId.HasValue && item.SizeId.Value > 0)
                     {
-                        var sizeInfo = await _unitOfWork.Size.GetFirstOrDefaultAsync(s => s.SizeId == item.SizeId.Value);
-                        if (sizeInfo != null && sizeInfo.PercentIncrease > 0)
+                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                            ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value
+                        );
+
+                        if (productSize != null && productSize.Price.HasValue)
                         {
-                            unitPrice += product.BasePrice * (sizeInfo.PercentIncrease / 100m);
+                            unitPrice = productSize.Price.Value;
                         }
                     }
 
@@ -161,8 +166,8 @@ namespace CafeShop.Services.Services
                 orderTotal = cart.CartItems.Sum(x => x.UnitPrice * x.Quantity);
             }
 
-            // 2. Tính phí ship giả lập theo khoảng cách
-            decimal shippingFee = CalculateShippingFee(request.DistanceKm);
+            // 2. Tính phí ship 
+            decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm, orderTotal);
 
             // 3. Tìm voucher
             var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.Code == request.VoucherCode);
@@ -283,14 +288,7 @@ namespace CafeShop.Services.Services
             return Math.Min(discount, orderTotal);
         }
 
-        private decimal CalculateShippingFee(double distanceKm)
-        {
-            if (distanceKm <= 0) return 0;
-            if (distanceKm <= 3) return 15000;
 
-            decimal extraKm = (decimal)Math.Ceiling(distanceKm - 3);
-            return 15000 + (extraKm * 5000);
-        }
 
         public async Task<(int VoucherId, decimal DiscountAmount)> ConsumeVoucherAsync(
          string voucherCode,

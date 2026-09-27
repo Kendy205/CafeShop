@@ -48,3 +48,9 @@ build/
 # =========================
 .DS_Store
 Thumbs.db
+
+# Môi trường và cấu hình bảo mật
+.env
+
+# File dữ liệu SQL (Nên chặn nếu chứa dữ liệu khách hàng thật. Nếu chỉ là cấu trúc bảng trống, bạn có thể không cần ghi dòng này)
+backup.sql

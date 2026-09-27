@@ -3,7 +3,6 @@ description: core
 ---
 
 ---
-
 ## description: Quy trình chuẩn bắt buộc dành cho AI Agent khi phát triển, sửa lỗi, refactor, test và đặc tả API trong dự án CafeShop Backend (.NET 8)
 
 # CAFE SHOP BACKEND — AGENT WORKFLOW
@@ -23,7 +22,6 @@ Quy trình này áp dụng cho **MỌI nhiệm vụ** trong dự án CafeShop Ba
 * Tích hợp SignalR / Cloudinary / bên thứ ba
 
 ---
-
 # 0. NGUYÊN TẮC QUAN TRỌNG NHẤT — READ BEFORE CODE
 
 ## 0.1. KHÔNG ĐƯỢC TỰ SUY ĐOÁN CẤU TRÚC PROJECT
@@ -825,14 +823,11 @@ Kiểm tra:
 ```text
 MappingProfile.cs
 ```
-
 Đảm bảo mapping:
 
 ```text
 Entity → Response DTO
 Request DTO → Entity
 ```
-
 Được cấu hình.
-
 Không mặc định rằng AutoMapp

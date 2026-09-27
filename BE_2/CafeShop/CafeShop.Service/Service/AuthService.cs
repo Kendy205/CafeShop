@@ -14,6 +14,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CafeShop.Services.Services
 {
@@ -66,8 +68,10 @@ namespace CafeShop.Services.Services
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto)
         {
-            // Tìm theo Username, không cần Include bảng Role nữa
-            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.Username == dto.Username);
+            // Lấy User và Include UserRoles, Role
+            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(
+                u => u.Username == dto.Username, 
+                includeProperties: "UserRoles,UserRoles.Role,UserRoles.Role.RolePermissions,UserRoles.Role.RolePermissions.Permission");
             if (user == null)
             {
                 throw new UnauthorizedAccessException("Sai tên đăng nhập hoặc mật khẩu!");
@@ -110,9 +114,11 @@ namespace CafeShop.Services.Services
                 throw new UnauthorizedAccessException("Access Token không hợp lệ!");
             }
 
-            // Tìm user dựa trên Username được lưu trong Claims
+            // Tìm user dựa trên Username được lưu trong Claims và include Roles
             var username = principal.FindFirst(ClaimTypes.Name)?.Value;
-            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.Username == username);
+            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(
+                u => u.Username == username,
+                includeProperties: "UserRoles,UserRoles.Role,UserRoles.Role.RolePermissions,UserRoles.Role.RolePermissions.Permission");
 
             if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
@@ -152,17 +158,51 @@ namespace CafeShop.Services.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
 
-            // Lấy Role trực tiếp từ string, nếu rỗng thì mặc định là USER
-            var role = !string.IsNullOrEmpty(user.Role) ? user.Role : CafeShop.Uitls.SystemRole.User;
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.Username) // Đổi thành ClaimTypes.Name cho chuẩn Username
+            };
+
+            bool hasRoles = false;
+            if (user.UserRoles != null && user.UserRoles.Any())
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role != null && !string.IsNullOrEmpty(userRole.Role.Name))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                        hasRoles = true;
+
+                        // Thêm Permission Claims
+                        if (userRole.Role.RolePermissions != null)
+                        {
+                            foreach (var rp in userRole.Role.RolePermissions)
+                            {
+                                if (rp.Permission != null && !string.IsNullOrEmpty(rp.Permission.Code))
+                                {
+                                    // Tránh trùng lặp quyền nếu 1 User có nhiều Role cùng sở hữu 1 Permission
+                                    if (!claims.Any(c => c.Type == "Permission" && c.Value == rp.Permission.Code))
+                                    {
+                                        claims.Add(new Claim("Permission", rp.Permission.Code));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fallback: Nếu không có role nào trong db mới, lấy theo string Role cũ
+            if (!hasRoles)
+            {
+                var role = !string.IsNullOrEmpty(user.Role) ? user.Role : CafeShop.Uitls.SystemRole.User;
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username), // Đổi thành ClaimTypes.Name cho chuẩn Username
-                    new Claim(ClaimTypes.Role, role)
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"],

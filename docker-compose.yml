@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: cafeshop_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      # Ánh xạ file backup.sql vào thư mục initdb để tự động nạp dữ liệu khi database được khởi tạo lần đầu
+      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
+    # Không expose cổng 3306 ra host để tăng tính bảo mật
+    # ports:
+    #   - "3306:3306"
+    networks:
+      - cafeshop_network
+
+  backend:
+    build:
+      context: ./BE_2/CafeShop
+      dockerfile: Dockerfile
+    container_name: cafeshop_backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080" # Ánh xạ cổng HTTP thay vì HTTPS
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
+    depends_on:
+      - mysql_db
+    networks:
+      - cafeshop_network
+
+  frontend:
+    build:
+      context: ./FE/Cafe
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: cafeshop_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80" # Nginx phục vụ ở cổng 80, expose ra 5173
+    networks:
+      - cafeshop_network
+
+volumes:
+  db_data:
+
+networks:
+  cafeshop_network:
+    driver: bridge
