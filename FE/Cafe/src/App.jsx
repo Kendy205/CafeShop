@@ -31,6 +31,8 @@ import AdminOrderPage from './pages/admin/orders/AdminOrderPage'
 import AdminUsersPage from './pages/admin/users/AdminUsersPage'
 import AdminSettingsPage from './pages/admin/settings/AdminSettingsPage'
 import AdminNewsPage from './pages/admin/news/AdminNewsPage'
+import NotFoundPage from './pages/error/NotFoundPage'
+
 function App() {
     return (
         <Provider store={store}>
@@ -54,6 +56,8 @@ function App() {
                         <Route path="/orders" element={<OrderHistoryPage />} />
                         <Route path="/vouchers" element={<MyVouchersPage />} />
                     </Route>
+                    {/* 404 Catch-all Route for Client */}
+                    <Route path="*" element={<NotFoundPage />} />
                 </Route>
 
                 <Route element={<ProtectedRoute allowedRoles={ADMIN_ROLES} />}>

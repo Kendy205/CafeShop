@@ -16,9 +16,7 @@ services:
       - db_data:/var/lib/mysql
       # Ánh xạ file backup.sql vào thư mục initdb để tự động nạp dữ liệu khi database được khởi tạo lần đầu
       - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
-    # Không expose cổng 3306 ra host để tăng tính bảo mật
-    # ports:
-    #   - "3306:3306"
+
     networks:
       - cafeshop_network
 
