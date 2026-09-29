@@ -20,29 +20,27 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<DashboardSummaryDto> GetSummaryMetricsAsync(DateTime? startDate, DateTime? endDate)
         {
-            var users = await _unitOfWork.User.GetAllAsync();
-            var orders = await _unitOfWork.Order.GetAllAsync(includeProperties: "OrderDetails");
+            var totalRevenue = await _unitOfWork.Order.GetTotalRevenueAsync(startDate, endDate);
+            var totalProductsSold = await _unitOfWork.Order.GetTotalProductsSoldAsync(startDate, endDate);
             
-            if (startDate.HasValue)
-            {
-                users = users.Where(u => u.CreatedAt >= startDate.Value).ToList();
-                orders = orders.Where(o => o.OrderDate >= startDate.Value).ToList();
-            }
-            if (endDate.HasValue)
-            {
-                users = users.Where(u => u.CreatedAt <= endDate.Value).ToList();
-                orders = orders.Where(o => o.OrderDate <= endDate.Value).ToList();
-            }
+            System.Linq.Expressions.Expression<Func<CafeShop.Model.Order, bool>> orderFilter = o => 
+                (!startDate.HasValue || o.OrderDate >= startDate.Value) &&
+                (!endDate.HasValue || o.OrderDate <= endDate.Value);
+            var totalOrders = await _unitOfWork.Order.CountAsync(orderFilter);
 
-            // Only count completed orders for revenue
-            var completedOrders = orders.Where(o => o.CurrentStatus == "Completed" || o.CurrentStatus == "delivered").ToList();
+            // Đếm user mới trong khoảng thời gian (Loại trừ Admin qua bảng UserRoles)
+            System.Linq.Expressions.Expression<Func<CafeShop.Model.User, bool>> userFilter = u =>
+                !u.UserRoles!.Any(ur => ur.Role != null && ur.Role.Name == SystemRole.Admin) &&
+                (!startDate.HasValue || u.CreatedAt >= startDate.Value) &&
+                (!endDate.HasValue || u.CreatedAt <= endDate.Value);
+            var newUsersCount = await _unitOfWork.User.CountAsync(userFilter);
 
             var summary = new DashboardSummaryDto
             {
-                TotalRevenue = completedOrders.Sum(o => o.TotalAmount),
-                TotalOrders = orders.Count(),
-                NewUsersCount = users.Count(u => u.Role != SystemRole.Admin), // Assuming users are not admin
-                TotalProductsSold = completedOrders.SelectMany(o => o.OrderDetails).Sum(od => od.Quantity)
+                TotalRevenue = totalRevenue,
+                TotalOrders = totalOrders,
+                NewUsersCount = newUsersCount,
+                TotalProductsSold = totalProductsSold
             };
 
             return summary;
@@ -50,88 +48,39 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<List<TopProductDto>> GetTopProductsAsync(int top, DateTime? startDate, DateTime? endDate)
         {
-            var orders = await _unitOfWork.Order.GetAllAsync(includeProperties: "OrderDetails,OrderDetails.Product");
+            var topSellingProducts = await _unitOfWork.Order.GetTopSellingProductsForAdminAsync(top, startDate, endDate);
 
-            if (startDate.HasValue)
+            var topProducts = topSellingProducts.Select(tp => new TopProductDto
             {
-                orders = orders.Where(o => o.OrderDate >= startDate.Value).ToList();
-            }
-            if (endDate.HasValue)
-            {
-                orders = orders.Where(o => o.OrderDate <= endDate.Value).ToList();
-            }
-
-            var completedOrders = orders.Where(o => o.CurrentStatus == "Completed" || o.CurrentStatus == "delivered").ToList();
-
-            var allOrderDetails = completedOrders.SelectMany(o => o.OrderDetails).ToList();
-
-            var topProducts = allOrderDetails
-                .GroupBy(od => od.ProductId)
-                .Select(g => new TopProductDto
-                {
-                    ProductId = g.Key,
-                    ProductName = g.FirstOrDefault()?.Product?.Name ?? "Unknown",
-                    TotalSold = g.Sum(od => od.Quantity),
-                    TotalRevenue = g.Sum(od => od.UnitPrice * od.Quantity)
-                })
-                .OrderByDescending(p => p.TotalSold)
-                .Take(top)
-                .ToList();
+                ProductId = tp.Product.ProductId,
+                ProductName = tp.Product.Name ?? "Unknown Product",
+                TotalSold = tp.TotalQuantity,
+                TotalRevenue = tp.TotalRevenue
+            }).ToList();
 
             return topProducts;
         }
 
         public async Task<List<RevenueChartDto>> GetRevenueChartDataAsync(DateTime? startDate, DateTime? endDate)
         {
-            var orders = await _unitOfWork.Order.GetAllAsync();
-
-            if (startDate.HasValue)
+            var chartData = await _unitOfWork.Order.GetRevenueChartDataAsync(startDate, endDate);
+            
+            return chartData.Select(c => new RevenueChartDto
             {
-                orders = orders.Where(o => o.OrderDate >= startDate.Value).ToList();
-            }
-            if (endDate.HasValue)
-            {
-                orders = orders.Where(o => o.OrderDate <= endDate.Value).ToList();
-            }
-
-            var completedOrders = orders.Where(o => o.CurrentStatus == "Completed" || o.CurrentStatus == "delivered").ToList();
-
-            var chartData = completedOrders
-                .GroupBy(o => o.OrderDate.ToString("yyyy-MM-dd"))
-                .Select(g => new RevenueChartDto
-                {
-                    Label = g.Key,
-                    Revenue = g.Sum(o => o.TotalAmount)
-                })
-                .OrderBy(d => d.Label)
-                .ToList();
-
-            return chartData;
+                Label = c.Label,
+                Revenue = c.Revenue
+            }).ToList();
         }
 
         public async Task<List<OrderStatusStatDto>> GetOrderStatusStatsAsync(DateTime? startDate, DateTime? endDate)
         {
-            var orders = await _unitOfWork.Order.GetAllAsync();
+            var stats = await _unitOfWork.Order.GetOrderStatusStatsAsync(startDate, endDate);
 
-            if (startDate.HasValue)
+            return stats.Select(s => new OrderStatusStatDto
             {
-                orders = orders.Where(o => o.OrderDate >= startDate.Value).ToList();
-            }
-            if (endDate.HasValue)
-            {
-                orders = orders.Where(o => o.OrderDate <= endDate.Value).ToList();
-            }
-
-            var stats = orders
-                .GroupBy(o => o.CurrentStatus)
-                .Select(g => new OrderStatusStatDto
-                {
-                    Status = g.Key ?? "Unknown",
-                    Count = g.Count()
-                })
-                .ToList();
-
-            return stats;
+                Status = s.Status,
+                Count = s.Count
+            }).ToList();
         }
     }
 }

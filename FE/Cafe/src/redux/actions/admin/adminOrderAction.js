@@ -28,9 +28,9 @@ export const fetchAdminOrderDetail = createAsyncThunk(
 
 export const updateAdminOrderStatus = createAsyncThunk(
     'adminOrder/updateStatus',
-    async ({ orderId, status }, { rejectWithValue }) => {
+    async ({ orderId, status, cancelReason = null }, { rejectWithValue }) => {
         try {
-            const res = await adminOrderService.updateStatus(orderId, status)
+            const res = await adminOrderService.updateStatus(orderId, status, cancelReason)
             return { orderId, status, data: unwrapApi(res) }
         } catch (error) {
             return rejectWithValue(pickErrorMessage(error, 'Cập nhật trạng thái thất bại'))

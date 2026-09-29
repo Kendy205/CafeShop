@@ -32,14 +32,28 @@ namespace CafeShop.Data
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<UserVoucher> UserVouchers { get; set; }
         public DbSet<ShippingConfig> ShippingConfigs { get; set; }
+        public DbSet<Payment> Payments { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            base.ConfigureConventions(configurationBuilder);
+            
+            // Lỗi 10: Cấu hình mặc định decimal(18,0) cho toàn bộ tiền tệ VNĐ
+            configurationBuilder.Properties<decimal>().HavePrecision(18, 0);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Lỗi 7: Thêm Unique Index cho Username, Email, Code
+            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+            modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
+            modelBuilder.Entity<Voucher>().HasIndex(v => v.Code).IsUnique();
 
             // Bắt buộc khai báo Khóa chính kép cho bảng trung gian
             modelBuilder.Entity<ProductSize>()
@@ -52,6 +66,13 @@ namespace CafeShop.Data
                 .WithMany(o => o.Feedbacks)
                 .HasForeignKey(f => f.OrderDetailId)
                 .OnDelete(DeleteBehavior.Restrict); // Hoặc DeleteBehavior.NoAction
+                
+            // Ngăn lỗi Cascade Delete khi cấu hình khóa ngoại Product cho OrderDetail
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Product)
+                .WithMany()
+                .HasForeignKey(od => od.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Cấu hình RBAC
             modelBuilder.Entity<Role>()

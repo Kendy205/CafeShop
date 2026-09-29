@@ -15,7 +15,7 @@ namespace CafeShop.Service.IService.Users
         Task<VoucherResponseDto> CheckVoucherAsync(int userId, CheckVoucherRequestDto request);
 
         // Áp dụng và trừ lượt dùng (chạy bên trong Transaction của Checkout/BuyNow)
-        Task<(int VoucherId, decimal DiscountAmount)> ConsumeVoucherAsync(
+        Task<(int VoucherId, decimal DiscountAmount, string ApplyType)> ConsumeVoucherAsync(
             string voucherCode,
             int userId,
             decimal orderTotal,

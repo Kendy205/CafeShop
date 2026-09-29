@@ -26,6 +26,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
         IOrderRepository Order { get; }
         IOrderDetailRepository OrderDetail { get; }
         IOrderDetailToppingRepository OrderDetailTopping { get; }
+        IOrderStatusHistoryRepository OrderStatusHistory { get; }
         ICartRepository Cart { get; }
         ICartItemRepository CartItem { get; }
         IUserVoucherRepository UserVoucher { get; }

@@ -246,7 +246,7 @@ export function StatusBadge({ status }) {
 function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) {
     const {
         orderId, orderDate, totalAmount, shippingFee, distanceKm,
-        discountAmount, currentStatus, paymentMethod, note,
+        orderDiscount, shippingDiscount, subTotal, currentStatus, paymentMethod, note,
     } = order
 
     // Hỗ trợ cả items (đặc tả mới) và fallback orderDetails
@@ -411,15 +411,29 @@ function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) 
             {/* Chi tiết phụ phí & Tổng thanh toán */}
             <div className="border-t border-slate-100 bg-slate-50/40 px-5 py-4">
                 <div className="space-y-1 text-xs text-slate-600">
+                    {subTotal != null && Number(subTotal) > 0 && (
+                        <div className="flex justify-between">
+                            <span className="text-slate-500">Tạm tính món:</span>
+                            <span>{formatVnd(subTotal)}</span>
+                        </div>
+                    )}
+
                     <div className="flex justify-between">
                         <span className="text-slate-500">Phí giao hàng {distanceKm ? `(${distanceKm} km)` : ''}:</span>
                         <span>{formatVnd(shippingFee ?? 0)}</span>
                     </div>
 
-                    {discountAmount != null && Number(discountAmount) > 0 && (
+                    {orderDiscount != null && Number(orderDiscount) > 0 && (
                         <div className="flex justify-between text-green-700 font-semibold">
-                            <span>Giảm giá Voucher:</span>
-                            <span>−{formatVnd(discountAmount)}</span>
+                            <span>Giảm giá món ăn:</span>
+                            <span>−{formatVnd(orderDiscount)}</span>
+                        </div>
+                    )}
+
+                    {shippingDiscount != null && Number(shippingDiscount) > 0 && (
+                        <div className="flex justify-between text-green-700 font-semibold">
+                            <span>Giảm cước ship:</span>
+                            <span>−{formatVnd(shippingDiscount)}</span>
                         </div>
                     )}
 

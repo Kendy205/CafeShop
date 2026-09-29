@@ -10,25 +10,6 @@ import { clearAdminOrderDetail } from '../../../redux/slices/admin/adminOrderSli
 import AppPagination from '../../../components/common/AppPagination'
 import { STATUS_CONFIG, ORDER_STATUS_TABS, getStatusConfig } from '../../../utils/constants/OrderConstants'
 
-const NEXT_STATUSES = {
-    Pending: ['Confirmed', 'Cancelled'],
-    Confirmed: ['Preparing', 'Cancelled'],
-    Preparing: ['Delivering', 'Cancelled'],
-    Delivering: ['Completed', 'Cancelled'],
-}
-
-function formatCurrency(val) {
-    if (!val && val !== 0) return '—'
-    return Number(val).toLocaleString('vi-VN') + 'đ'
-}
-
-function formatDate(str) {
-    if (!str) return '—'
-    return new Date(str).toLocaleString('vi-VN', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-    })
-}
 
 import OrderDetailModal from '../../../components/admin/OrderAdmin/OrderDetailModal'
 import OrderTableRow from '../../../components/admin/OrderAdmin/OrderTableRow'
@@ -59,10 +40,10 @@ export default function AdminOrderPage() {
         )
     }, [dispatch, pageNumber, activeStatus, keyword])
 
-    const handleQuickUpdateStatus = useCallback(async (orderId, targetStatus) => {
+    const handleQuickUpdateStatus = useCallback(async (orderId, targetStatus, cancelReason = null) => {
         try {
             setUpdatingOrderId(orderId)
-            const res = await dispatch(updateAdminOrderStatus({ orderId, status: targetStatus }))
+            const res = await dispatch(updateAdminOrderStatus({ orderId, status: targetStatus, cancelReason }))
             if (updateAdminOrderStatus.fulfilled.match(res)) {
                 message.success(`Đã cập nhật đơn #${orderId} sang "${getStatusConfig(targetStatus).label}"`)
                 fetchOrders()

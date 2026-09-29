@@ -13,14 +13,25 @@ namespace CafeShop.Service.Service
     public class NewsService : INewsService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRedisCacheService _redisCache;
+        private readonly TimeSpan _defaultCacheExpiration = TimeSpan.FromMinutes(5);
 
-        public NewsService(IUnitOfWork unitOfWork)
+        public NewsService(IUnitOfWork unitOfWork, IRedisCacheService redisCache)
         {
             _unitOfWork = unitOfWork;
+            _redisCache = redisCache;
         }
 
         public async Task<PagedResult<NewsListResponseDto>> GetPublicNewsAsync(string? keyword = null, int pageNumber = 1, int pageSize = 10)
         {
+            string cacheKey = $"cafeshop:news:all:page:{pageNumber}:size:{pageSize}:keyword:{keyword ?? "none"}";
+            
+            var cachedResult = await _redisCache.GetAsync<PagedResult<NewsListResponseDto>>(cacheKey);
+            if (cachedResult != null)
+            {
+                return cachedResult;
+            }
+
             var filter = (System.Linq.Expressions.Expression<Func<News, bool>>)(n => 
                 !n.IsDeleted && 
                 n.Status == NewsStatus.Published &&
@@ -49,17 +60,29 @@ namespace CafeShop.Service.Service
                 ViewCount = n.ViewCount
             }).ToList();
 
-            return new PagedResult<NewsListResponseDto>
+            var pagedResult = new PagedResult<NewsListResponseDto>
             {
                 Items = result,
                 Total = total,
                 Page = pageNumber,
                 PageSize = pageSize
             };
+
+            await _redisCache.SetAsync(cacheKey, pagedResult, _defaultCacheExpiration);
+            return pagedResult;
         }
 
         public async Task<NewsResponseDto> GetPublicNewsByIdAsync(int id)
         {
+            string cacheKey = $"cafeshop:news:id:{id}";
+            var cachedResult = await _redisCache.GetAsync<NewsResponseDto>(cacheKey);
+            if (cachedResult != null)
+            {
+                // Note: We might want to increment ViewCount asynchronously or bypass cache for strictly accurate view counts
+                // For this implementation, we will serve from cache and maybe update DB view count in background or skip it for simplicity
+                return cachedResult;
+            }
+
             var news = await _unitOfWork.News.GetFirstOrDefaultAsync(
                 n => n.NewsId == id && !n.IsDeleted && n.Status == NewsStatus.Published,
                 includeProperties: "User");
@@ -70,11 +93,17 @@ namespace CafeShop.Service.Service
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
 
-            return MapToResponseDto(news);
+            var responseDto = MapToResponseDto(news);
+            await _redisCache.SetAsync(cacheKey, responseDto, _defaultCacheExpiration);
+            return responseDto;
         }
 
         public async Task<NewsResponseDto> GetPublicNewsBySlugAsync(string slug)
         {
+            string cacheKey = $"cafeshop:news:slug:{slug}";
+            var cachedResult = await _redisCache.GetAsync<NewsResponseDto>(cacheKey);
+            if (cachedResult != null) return cachedResult;
+
             var news = await _unitOfWork.News.GetFirstOrDefaultAsync(
                 n => n.Slug == slug && !n.IsDeleted && n.Status == NewsStatus.Published,
                 includeProperties: "User");
@@ -85,7 +114,9 @@ namespace CafeShop.Service.Service
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
 
-            return MapToResponseDto(news);
+            var responseDto = MapToResponseDto(news);
+            await _redisCache.SetAsync(cacheKey, responseDto, _defaultCacheExpiration);
+            return responseDto;
         }
 
         private NewsResponseDto MapToResponseDto(News news)

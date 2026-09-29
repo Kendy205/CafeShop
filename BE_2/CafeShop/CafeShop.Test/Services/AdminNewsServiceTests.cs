@@ -28,9 +28,10 @@ namespace CafeShop.Test.Services
             _mockUnitOfWork = new Mock<IUnitOfWork>();
             _mockNewsRepo = new Mock<INewsRepository>();
             _mockPhotoService = new Mock<IPhotoService>();
+            var _mockRedisCache = new Mock<IRedisCacheService>();
             
             _mockUnitOfWork.Setup(u => u.News).Returns(_mockNewsRepo.Object);
-            _adminNewsService = new AdminNewsService(_mockUnitOfWork.Object, _mockPhotoService.Object);
+            _adminNewsService = new AdminNewsService(_mockUnitOfWork.Object, _mockPhotoService.Object, _mockRedisCache.Object);
         }
 
         [Fact]

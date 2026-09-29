@@ -64,12 +64,12 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<bool> ToggleUserStatusAsync(int id)
         {
-            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == id);
+            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == id, includeProperties: "UserRoles.Role");
             if (user == null)
                 throw new ArgumentException("Người dùng không tồn tại!");
 
             // Prevent Admin from blocking other Admins for safety
-            if (user.Role == SystemRole.Admin)
+            if (user.UserRoles != null && user.UserRoles.Any(ur => ur.Role != null && ur.Role.Name == SystemRole.Admin))
                 throw new ArgumentException("Không thể khóa tài khoản quản trị viên!");
 
             user.IsActive = !user.IsActive;

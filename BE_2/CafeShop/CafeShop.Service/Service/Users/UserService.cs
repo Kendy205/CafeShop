@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.User;
 using CafeShop.Model;
@@ -115,6 +115,9 @@ namespace CafeShop.Service.Service
 
             // Cập nhật mật khẩu mới
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            
+            // Lỗi 21: Thu hồi token khi đổi mật khẩu để đăng xuất mọi thiết bị
+            user.RefreshToken = null;
 
             _unitOfWork.User.Update(user);
             await _unitOfWork.SaveAsync();

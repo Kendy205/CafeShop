@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace CafeShop.Model
 {
@@ -13,6 +14,7 @@ namespace CafeShop.Model
         public int VoucherId { get; set; }
 
         public int UsageLimitPerUser { get; set; } = 1; // User này được dùng mấy lần (thường là 1)
+        [ConcurrencyCheck]
         public int UsedCount { get; set; } = 0;         // User này đã dùng mấy lần
         public bool IsUsed => UsedCount >= UsageLimitPerUser;
 

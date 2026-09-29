@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Product;
 using CafeShop.DTO.Admin;
@@ -19,87 +20,50 @@ namespace CafeShop.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
+        private readonly IRedisCacheService _redisCache;
+        private readonly TimeSpan _defaultCacheExpiration = TimeSpan.FromMinutes(5);
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService, IRedisCacheService redisCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _photoService = photoService;
+            _redisCache = redisCache;
         }
 
 
 
         public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int? minRating = null, int pageNumber = 1, int pageSize = 10)
         {
-            // 1. Lấy toàn bộ dữ liệu (nếu hệ thống lớn, bạn nên tối ưu lại hàm này trong Repository để trả về IQueryable)
-            var products = await _unitOfWork.Product.GetAllAsync(
-                            filter: p => p.IsAvailable, // ONLY AVAILABLE
-                            includeProperties: "Category,ProductSizes,ProductSizes.Size,Feedbacks");
-            var query = products.AsQueryable();
+            string cacheKey = $"cafeshop:products:all:kw:{keyword ?? "none"}:cat:{categoryId ?? 0}:minP:{minPrice ?? 0}:maxP:{maxPrice ?? 0}:sort:{sortBy ?? "none"}:minR:{minRating ?? 0}:page:{pageNumber}:size:{pageSize}";
+            var cachedResult = await _redisCache.GetAsync<PagedResult<ProductResponseDto>>(cacheKey);
+            if (cachedResult != null) return cachedResult;
 
-            // 2. Lọc theo từ khóa (Tên đồ uống, mô tả, danh mục) - Fuzzy Search mảng
-            if (!string.IsNullOrWhiteSpace(keyword))
-            {
-                var kw = keyword.ToLower();
-                query = query.Where(p => 
-                    p.Name.ToLower().Contains(kw) || 
-                    (p.Description != null && p.Description.ToLower().Contains(kw)) ||
-                    (p.Category != null && p.Category.Name.ToLower().Contains(kw))
-                );
-            }
+            var (products, totalCount) = await _unitOfWork.Product.GetProductsWithPagingAsync(
+                keyword, categoryId, minPrice, maxPrice, sortBy, minRating, pageNumber, pageSize,
+                includeProperties: "Category,ProductSizes,ProductSizes.Size,Feedbacks");
 
-            // 3. Lọc theo danh mục (Cà phê, Trà sữa...)
-            if (categoryId.HasValue && categoryId > 0)
-            {
-                query = query.Where(p => p.CategoryId == categoryId);
-            }
+            // 2. Dùng AutoMapper chuyển đổi Model -> DTO
+            var mappedData = _mapper.Map<IEnumerable<ProductResponseDto>>(products);
 
-            // 4. Lọc theo khoảng giá
-            if (minPrice.HasValue)
-                query = query.Where(p => p.BasePrice >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.BasePrice <= maxPrice.Value);
-
-            // Lọc theo đánh giá (Rating)
-            if (minRating.HasValue)
-            {
-                query = query.Where(p => p.Feedbacks != null && p.Feedbacks.Any() && p.Feedbacks.Average(f => f.Rating) >= minRating.Value);
-            }
-
-            // 5. Sắp xếp (Sort)
-            query = sortBy?.ToLower() switch
-            {
-                "price_asc" => query.OrderBy(p => p.BasePrice),
-                "price_desc" => query.OrderByDescending(p => p.BasePrice),
-                "name_asc" => query.OrderBy(p => p.Name),
-                "rating_desc" => query.OrderByDescending(p => p.Feedbacks != null && p.Feedbacks.Any() ? p.Feedbacks.Average(f => f.Rating) : 0),
-                _ => query.OrderByDescending(p => p.ProductId) // Mặc định: Mới nhất xếp trước
-            };
-
-            // 6. Tính toán tổng số lượng để trả về cho Frontend làm nút phân trang
-            int totalRecords = query.Count();
-
-            // 7. Cắt lấy dữ liệu của trang hiện tại (Skip & Take)
-            var pagedData = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            // 8. Dùng AutoMapper chuyển đổi Model -> DTO
-            var mappedData = _mapper.Map<IEnumerable<ProductResponseDto>>(pagedData);
-
-            return new PagedResult<ProductResponseDto>
+            var result = new PagedResult<ProductResponseDto>
             {
                 Items = mappedData,
-                Total = totalRecords,
+                Total = totalCount,
                 Page = pageNumber,
                 PageSize = pageSize
             };
+
+            await _redisCache.SetAsync(cacheKey, result, _defaultCacheExpiration);
+            return result;
         }
 
         public async Task<ProductResponseDto?> GetByIdAsync(int id)
         {
+            string cacheKey = $"cafeshop:products:id:{id}";
+            var cachedResult = await _redisCache.GetAsync<ProductResponseDto>(cacheKey);
+            if (cachedResult != null) return cachedResult;
+
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
                 p => p.ProductId == id && p.IsAvailable, // ONLY AVAILABLE
                 includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping"
@@ -108,23 +72,14 @@ namespace CafeShop.Services.Services
             if (product == null)
                 return null;
 
-            return _mapper.Map<ProductResponseDto>(product);
+            var result = _mapper.Map<ProductResponseDto>(product);
+            await _redisCache.SetAsync(cacheKey, result, _defaultCacheExpiration);
+            return result;
         }
         public async Task<SearchSuggestionDto> GetSearchSuggestionsAsync()
         {
-            var allProducts = await _unitOfWork.Product.GetAllAsync(filter: p => p.IsAvailable, includeProperties: "Category,ProductSizes,ProductSizes.Size,Feedbacks");
-            var orderDetails = await _unitOfWork.OrderDetail.GetAllAsync();
-
-            var topSellingProductIds = orderDetails
-                .GroupBy(od => od.ProductId)
-                .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(od => od.Quantity) })
-                .OrderByDescending(x => x.TotalQuantity)
-                .Take(5)
-                .Select(x => x.ProductId)
-                .ToList();
-
-            var topSellingProducts = allProducts.Where(p => topSellingProductIds.Contains(p.ProductId)).ToList();
-            var newestProducts = allProducts.OrderByDescending(p => p.ProductId).Take(5).ToList();
+            var topSellingProducts = await _unitOfWork.Product.GetTopSellingProductsAsync(5);
+            var newestProducts = await _unitOfWork.Product.GetNewestProductsAsync(5);
 
             return new SearchSuggestionDto
             {
@@ -135,12 +90,9 @@ namespace CafeShop.Services.Services
 
         public async Task<IEnumerable<ProductAutocompleteDto>> GetAutocompleteSuggestionsAsync(string keyword)
         {
-            var products = await _unitOfWork.Product.GetAllAsync(filter: p => p.IsAvailable);
-            var kw = keyword.ToLower();
+            var filteredProducts = await _unitOfWork.Product.GetAutocompleteProductsAsync(keyword, 5);
             
-            var filtered = products
-                .Where(p => p.Name.ToLower().Contains(kw))
-                .Take(5)
+            var result = filteredProducts
                 .Select(p => new ProductAutocompleteDto
                 {
                     ProductId = p.ProductId,
@@ -150,7 +102,7 @@ namespace CafeShop.Services.Services
                 })
                 .ToList();
 
-            return filtered;
+            return result;
         }
     }
 }

@@ -58,7 +58,8 @@ export default function OrderSuccessPage() {
     const totalAmount = order?.totalAmount ?? order?.total
     const shippingFee = order?.shippingFee ?? 0
     const distanceKm = order?.distanceKm
-    const discountAmount = order?.discountAmount ?? 0
+    const orderDiscount = order?.orderDiscount ?? 0
+    const shippingDiscount = order?.shippingDiscount ?? 0
 
     // Mảng items theo đặc tả API
     const items = useMemo(() => {
@@ -287,10 +288,16 @@ export default function OrderSuccessPage() {
                             <span className="font-semibold text-slate-800">{formatVnd(shippingFee)}</span>
                         </div>
 
-                        {discountAmount > 0 && (
+                        {orderDiscount > 0 && (
                             <div className="flex justify-between text-emerald-700 font-bold">
-                                <span>Giảm giá Voucher:</span>
-                                <span>−{formatVnd(discountAmount)}</span>
+                                <span>Giảm giá món ăn:</span>
+                                <span>−{formatVnd(orderDiscount)}</span>
+                            </div>
+                        )}
+                        {shippingDiscount > 0 && (
+                            <div className="flex justify-between text-emerald-700 font-bold">
+                                <span>Giảm cước ship:</span>
+                                <span>−{formatVnd(shippingDiscount)}</span>
                             </div>
                         )}
                     </div>

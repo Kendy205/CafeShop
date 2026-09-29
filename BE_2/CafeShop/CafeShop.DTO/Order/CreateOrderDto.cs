@@ -67,7 +67,9 @@ namespace CafeShop.DTO.Order
         public string PaymentMethod { get; set; } = string.Empty;
         public string? Note { get; set; }
         public int? VoucherId { get; set; }
-        public decimal DiscountAmount { get; set; }
+        public decimal SubTotal { get; set; }
+        public decimal OrderDiscount { get; set; }
+        public decimal ShippingDiscount { get; set; }
         public decimal TotalAmount { get; set; }
 
         public List<OrderDetailDto> Items { get; set; } = new();
@@ -101,4 +103,14 @@ namespace CafeShop.DTO.Order
         public string? ImageUrl { get; set; }
     }
 
+    public class OrderStatusHistoryDto
+    {
+        public int HistoryId { get; set; }
+        public int OrderId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public int ChangedBy { get; set; }
+        public string? ChangedByName { get; set; }
+        public DateTime ChangedAt { get; set; }
+        public string? Note { get; set; }
+    }
 }

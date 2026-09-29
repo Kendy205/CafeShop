@@ -290,7 +290,7 @@ namespace CafeShop.Services.Services
 
 
 
-        public async Task<(int VoucherId, decimal DiscountAmount)> ConsumeVoucherAsync(
+        public async Task<(int VoucherId, decimal DiscountAmount, string ApplyType)> ConsumeVoucherAsync(
          string voucherCode,
          int userId,
          decimal orderTotal,
@@ -322,7 +322,7 @@ namespace CafeShop.Services.Services
                 _unitOfWork.UserVoucher.Update(userVoucher);
             }
 
-            return (voucher.VoucherId, discount);
+            return (voucher.VoucherId, discount, voucher.ApplyType);
         }
     }
 

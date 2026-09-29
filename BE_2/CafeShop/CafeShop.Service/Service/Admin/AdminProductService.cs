@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Product;
 using CafeShop.DTO.Admin;
@@ -19,57 +20,38 @@ namespace CafeShop.Service.Service.Admin
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
+        private readonly IRedisCacheService _redisCache;
 
-        public AdminProductService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService)
+        public AdminProductService(IUnitOfWork unitOfWork, IMapper mapper, IPhotoService photoService, IRedisCacheService redisCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _photoService = photoService;
+            _redisCache = redisCache;
+        }
+
+        private async Task InvalidateProductCacheAsync(int? productId = null)
+        {
+            if (productId.HasValue)
+            {
+                await _redisCache.RemoveAsync($"cafeshop:products:id:{productId.Value}");
+            }
+            // Invalidate the default page cache as a best effort
+            await _redisCache.RemoveAsync("cafeshop:products:all:kw:none:cat:0:minP:0:maxP:0:sort:none:minR:0:page:1:size:10");
         }
 
         public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)
         {
-            var products = await _unitOfWork.Product.GetAllAsync(
-                            includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping");
-            var query = products.AsQueryable();
+            var (products, totalCount) = await _unitOfWork.Product.GetAdminProductsWithPagingAsync(
+                keyword, categoryId, minPrice, maxPrice, sortBy, pageNumber, pageSize,
+                includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping");
 
-            if (!string.IsNullOrWhiteSpace(keyword))
-            {
-                query = query.Where(p => p.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (categoryId.HasValue && categoryId > 0)
-            {
-                query = query.Where(p => p.CategoryId == categoryId);
-            }
-
-            if (minPrice.HasValue)
-                query = query.Where(p => p.BasePrice >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.BasePrice <= maxPrice.Value);
-
-            query = sortBy?.ToLower() switch
-            {
-                "price_asc" => query.OrderBy(p => p.BasePrice),
-                "price_desc" => query.OrderByDescending(p => p.BasePrice),
-                "name_asc" => query.OrderBy(p => p.Name),
-                _ => query.OrderByDescending(p => p.ProductId) 
-            };
-
-            int totalRecords = query.Count();
-
-            var pagedData = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var mappedData = _mapper.Map<IEnumerable<ProductResponseDto>>(pagedData);
+            var mappedData = _mapper.Map<IEnumerable<ProductResponseDto>>(products);
 
             return new PagedResult<ProductResponseDto>
             {
                 Items = mappedData,
-                Total = totalRecords,
+                Total = totalCount,
                 Page = pageNumber,
                 PageSize = pageSize
             };
@@ -166,6 +148,7 @@ namespace CafeShop.Service.Service.Admin
             }
 
             var updatedProduct = await GetByIdAsync(product.ProductId);
+            await InvalidateProductCacheAsync();
             return updatedProduct!;
         }
 
@@ -261,6 +244,7 @@ namespace CafeShop.Service.Service.Admin
             }
 
             await _unitOfWork.SaveAsync();
+            await InvalidateProductCacheAsync(product.ProductId);
             var updatedProduct = await GetByIdAsync(product.ProductId);
             return updatedProduct!;
         }
@@ -273,6 +257,7 @@ namespace CafeShop.Service.Service.Admin
             product.IsAvailable = !product.IsAvailable;
             _unitOfWork.Product.Update(product);
             await _unitOfWork.SaveAsync();
+            await InvalidateProductCacheAsync(id);
         }
 
         public async Task DeleteAsync(int id)
@@ -284,6 +269,7 @@ namespace CafeShop.Service.Service.Admin
                 product.IsAvailable = false;
                 _unitOfWork.Product.Update(product);
                 await _unitOfWork.SaveAsync();
+                await InvalidateProductCacheAsync(id);
             }
         }
     }

@@ -13,7 +13,7 @@ namespace CafeShop.DTO.Product
         public int CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public bool IsAvailable { get; set; }
-        public int StockQuantity { get; set; }
+        public int? StockQuantity { get; set; }
         public string? Description { get; set; }
 
         public List<ProductSizeDto> ProductSizes { get; set; } = new List<ProductSizeDto>();
@@ -21,7 +21,7 @@ namespace CafeShop.DTO.Product
 
         public int TotalStock => ProductSizes != null && ProductSizes.Count > 0
             ? ProductSizes.Sum(s => s.StockQuantity)
-            : StockQuantity;
+            : (StockQuantity ?? 0);
 
         public bool IsOutOfStock => TotalStock <= 0 || !IsAvailable;
     }

@@ -47,7 +47,6 @@ namespace CafeShop.Services.Services
                 Username = username,
                 PasswordHash = passwordHash,
                 FullName = dto.FullName,
-                Role = CafeShop.Uitls.SystemRole.User,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -55,13 +54,22 @@ namespace CafeShop.Services.Services
             // TẠO LUÔN GIỎ HÀNG TRỐNG CHO KHÁCH HÀNG MỚI
             var newCart = new Cart
             {
-                User = newUser, // Gán object newUser vào, EF Core sẽ tự động map ID
-                Status = "active"
+                User = newUser,
+                Status = CafeShop.Uitls.CartStatus.Active
             };
 
             await _unitOfWork.User.AddAsync(newUser);
-            await _unitOfWork.Cart.AddAsync(newCart); // Nhớ đảm bảo IUnitOfWork đã khai báo Cart nhé
+            await _unitOfWork.Cart.AddAsync(newCart);
             await _unitOfWork.SaveAsync();
+
+            // Tự động gán Role mặc định là USER sau khi tạo xong
+            var defaultRole = await _unitOfWork.Role.GetFirstOrDefaultAsync(r => r.Name == CafeShop.Uitls.SystemRole.User);
+            if (defaultRole != null)
+            {
+                var userRole = new UserRole { UserId = newUser.UserId, RoleId = defaultRole.RoleId };
+                await _unitOfWork.UserRole.AddAsync(userRole);
+                await _unitOfWork.SaveAsync();
+            }
 
             return "Đăng ký thành công!";
         }
@@ -193,13 +201,11 @@ namespace CafeShop.Services.Services
                 }
             }
 
-            // Fallback: Nếu không có role nào trong db mới, lấy theo string Role cũ
+            // Fallback: Mặc định là User nếu chưa có quyền
             if (!hasRoles)
             {
-                var role = !string.IsNullOrEmpty(user.Role) ? user.Role : CafeShop.Uitls.SystemRole.User;
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim(ClaimTypes.Role, CafeShop.Uitls.SystemRole.User));
             }
-
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),

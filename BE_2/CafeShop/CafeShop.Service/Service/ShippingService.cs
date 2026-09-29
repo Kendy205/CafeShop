@@ -33,8 +33,8 @@ namespace CafeShop.Service.Service
             }
 
             // 2. Chặn lỗi logic (Bán kính quá xa)
-            //if (distanceKm > config.MaxDistanceKm)
-            //    throw new ArgumentException($"Quán chỉ hỗ trợ giao hàng trong bán kính {config.MaxDistanceKm}km. Mong bạn thông cảm!");
+            if (distanceKm > config.MaxDistanceKm)
+                throw new ArgumentException($"Quán chỉ hỗ trợ giao hàng trong bán kính {config.MaxDistanceKm}km. Mong bạn thông cảm!");
 
             // 3. Tính phí cơ bản
             decimal finalFee = config.BaseFee;

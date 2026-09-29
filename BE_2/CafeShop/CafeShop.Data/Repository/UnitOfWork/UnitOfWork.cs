@@ -28,6 +28,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
         public IOrderRepository Order { get; private set; }
         public IOrderDetailRepository OrderDetail { get; private set; }
         public IOrderDetailToppingRepository OrderDetailTopping { get; private set; }
+        public IOrderStatusHistoryRepository OrderStatusHistory { get; private set; }
 
         public IProductSizeRepository ProductSize { get; private set; }
         public IProductToppingRepository ProductTopping { get; private set; }
@@ -54,6 +55,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
             Order = new OrderRepository(_context);
             OrderDetail = new OrderDetailRepository(_context);
             OrderDetailTopping = new OrderDetailToppingRepository(_context);
+            OrderStatusHistory = new OrderStatusHistoryRepository(_context);
             Cart = new CartRepository(_context);
             CartItem = new CartItemRepository(_context);
             CartItemTopping = new CartItemToppingRepository(_context);

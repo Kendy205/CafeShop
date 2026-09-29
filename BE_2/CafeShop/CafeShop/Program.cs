@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Distributed;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,14 @@ builder.Services.AddAutoMapper(config =>
 });
 // Repository
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Redis Configuration
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetSection("Redis")["ConnectionString"];
+    options.InstanceName = "CafeShop_";
+});
+builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 //User Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -49,6 +58,7 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserVoucherService, UserVoucherService>();
 builder.Services.AddScoped<IOrderDetailToppingService, OrderDetailToppingService>();
+builder.Services.AddScoped<IOrderStatusHistoryService, OrderStatusHistoryService>();
 
 // Admin Services
 builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();

@@ -15,11 +15,13 @@ namespace CafeShop.Service.Service.Admin
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPhotoService _photoService;
+        private readonly IRedisCacheService _redisCache;
 
-        public AdminNewsService(IUnitOfWork unitOfWork, IPhotoService photoService)
+        public AdminNewsService(IUnitOfWork unitOfWork, IPhotoService photoService, IRedisCacheService redisCache)
         {
             _unitOfWork = unitOfWork;
             _photoService = photoService;
+            _redisCache = redisCache;
         }
 
         private string GenerateSlug(string title)
@@ -128,6 +130,10 @@ namespace CafeShop.Service.Service.Admin
             await _unitOfWork.SaveAsync();
 
             var createdNews = await _unitOfWork.News.GetFirstOrDefaultAsync(n => n.NewsId == news.NewsId, includeProperties: "User");
+            
+            // Note: Since IDistributedCache doesn't natively support Delete by prefix, 
+            // list caches will expire by TTL. For specific item, it's newly created so no cache exists yet.
+            
             return MapToResponseDto(createdNews!);
         }
 
@@ -172,6 +178,12 @@ namespace CafeShop.Service.Service.Admin
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
 
+            // Invalidate cache
+            await _redisCache.RemoveAsync($"cafeshop:news:id:{news.NewsId}");
+            await _redisCache.RemoveAsync($"cafeshop:news:slug:{news.Slug}");
+            // Invalidate the default page cache as a best effort
+            await _redisCache.RemoveAsync("cafeshop:news:all:page:1:size:10:keyword:none");
+
             return MapToResponseDto(news);
         }
 
@@ -185,6 +197,11 @@ namespace CafeShop.Service.Service.Admin
             
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
+
+            // Invalidate cache
+            await _redisCache.RemoveAsync($"cafeshop:news:id:{news.NewsId}");
+            await _redisCache.RemoveAsync($"cafeshop:news:slug:{news.Slug}");
+            await _redisCache.RemoveAsync("cafeshop:news:all:page:1:size:10:keyword:none");
         }
 
 

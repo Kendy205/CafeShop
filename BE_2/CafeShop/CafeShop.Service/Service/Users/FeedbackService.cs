@@ -74,8 +74,8 @@ namespace CafeShop.Service.Service.Users
             if (pageSize < 1) pageSize = 10;
 
             // Lấy danh sách Feedback của món này, kèm theo thông tin User (để lấy tên hiển thị)
-            var feedbacks = await _unitOfWork.Feedback.GetAllAsync(
-                filter: f => f.ProductId == productId,
+            var feedbacks = await _unitOfWork.Feedback.GetAllAsNoTrackingAsync(
+                filter: f => f.ProductId == productId && f.IsVisible,
                 includeProperties: "User", // Bắt buộc Include để AutoMapper lấy được Tên User
                 orderBy: q => q.OrderByDescending(f => f.CreatedAt), // Mới nhất lên đầu
                 pageNumber: pageNumber,
@@ -97,25 +97,23 @@ namespace CafeShop.Service.Service.Users
         // ================== THỐNG KÊ ĐIỂM SAO ==================
         public async Task<FeedbackSummaryDto> GetFeedbackSummaryAsync(int productId)
         {
-            var feedbacks = await _unitOfWork.Feedback.GetAllAsync(f => f.ProductId == productId);
+            var summaryData = await _unitOfWork.Feedback.GetFeedbackSummaryForProductAsync(productId);
 
             var summary = new FeedbackSummaryDto
             {
                 ProductId = productId,
-                TotalReviews = feedbacks.Count()
+                TotalReviews = summaryData.TotalReviews
             };
 
             if (summary.TotalReviews > 0)
             {
-                // Tính điểm trung bình (Làm tròn 1 chữ số thập phân, vd: 4.5)
-                summary.AverageRating = Math.Round(feedbacks.Average(f => f.Rating), 1);
+                summary.AverageRating = Math.Round(summaryData.AverageRating, 1);
 
-                // Đếm chi tiết từng mức sao
-                summary.FiveStarCount = feedbacks.Count(f => f.Rating == 5);
-                summary.FourStarCount = feedbacks.Count(f => f.Rating == 4);
-                summary.ThreeStarCount = feedbacks.Count(f => f.Rating == 3);
-                summary.TwoStarCount = feedbacks.Count(f => f.Rating == 2);
-                summary.OneStarCount = feedbacks.Count(f => f.Rating == 1);
+                summary.FiveStarCount = summaryData.Five;
+                summary.FourStarCount = summaryData.Four;
+                summary.ThreeStarCount = summaryData.Three;
+                summary.TwoStarCount = summaryData.Two;
+                summary.OneStarCount = summaryData.One;
             }
 
             return summary;

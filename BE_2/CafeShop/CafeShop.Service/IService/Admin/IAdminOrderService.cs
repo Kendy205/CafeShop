@@ -8,6 +8,6 @@ namespace CafeShop.Service.IService.Admin
     {
         Task<PagedResult<OrderResponseDto>> GetAllOrdersAsync(int pageNumber, int pageSize, string? status = null);
         Task<OrderResponseDto> GetOrderDetailsAsync(int orderId);
-        Task UpdateOrderStatusAsync(int orderId, string newStatus);
+        Task UpdateOrderStatusAsync(int adminId, int orderId, string newStatus, string? cancelReason = null);
     }
 }

@@ -20,6 +20,16 @@ services:
     networks:
       - cafeshop_network
 
+  redis:
+    image: redis:7-alpine
+    container_name: cafeshop_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cafeshop_network
   backend:
     build:
       context: ./BE_2/CafeShop
@@ -32,8 +42,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
+      - Redis__ConnectionString=redis:6379
     depends_on:
       - mysql_db
+      - redis
     networks:
       - cafeshop_network
 
@@ -52,6 +64,7 @@ services:
 
 volumes:
   db_data:
+  redis_data:
 
 networks:
   cafeshop_network:

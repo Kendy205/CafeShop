@@ -23,6 +23,16 @@ namespace CafeShop.Controllers.Admin
             _orderService = orderService;
         }
 
+        private int GetAdminId()
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdString, out int userId))
+            {
+                return userId;
+            }
+            throw new UnauthorizedAccessException("Phiên đăng nhập không hợp lệ!");
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageNumber = 1,
@@ -66,7 +76,8 @@ namespace CafeShop.Controllers.Admin
                 if (!ModelState.IsValid)
                     return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ", 400));
 
-                await _orderService.UpdateOrderStatusAsync(id, request.NewStatus);
+                int adminId = GetAdminId();
+                await _orderService.UpdateOrderStatusAsync(adminId, id, request.NewStatus, request.CancelReason);
                 return Ok(ApiResponse<object>.Succeeded(null, 200, "Cập nhật trạng thái đơn hàng thành công"));
             }
             catch (ArgumentException ex)

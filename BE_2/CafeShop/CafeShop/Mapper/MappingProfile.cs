@@ -24,7 +24,8 @@ namespace CafeShop.Mapper
             CreateMap<Product, ProductResponseDto>()
                 .ForMember(dest => dest.ProductSizes, opt => opt.MapFrom(src => src.ProductSizes))
                 .ForMember(dest => dest.ProductToppings, opt => opt.MapFrom(src => src.ProductToppings))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : ""));
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : ""))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.ProductSizes != null && src.ProductSizes.Any() ? (int?)null : src.StockQuantity));
             //Ánh xạ bảng trung gian ProductSize sang DTO
             CreateMap<ProductSize, ProductSizeDto>()
             .ForMember(dest => dest.SizeName, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : ""))
@@ -52,9 +53,9 @@ namespace CafeShop.Mapper
             // ==========================================
             CreateMap<Order, OrderResponseDto>()
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetails))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : ""))
-                .ForMember(dest => dest.UserPhone, opt => opt.MapFrom(src => src.User != null ? src.User.PhoneNumber : ""))
-                .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => src.Address != null ? src.Address.FullAddress : ""));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.RecipientName) ? src.RecipientName : (src.User != null ? src.User.FullName : "")))
+                .ForMember(dest => dest.UserPhone, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.Phone) ? src.Phone : (src.User != null ? src.User.PhoneNumber : "")))
+                .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.FullAddress) ? src.FullAddress : (src.Address != null ? src.Address.FullAddress : "")));
             CreateMap<OrderDetail, OrderDetailDto>()
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : ""))
