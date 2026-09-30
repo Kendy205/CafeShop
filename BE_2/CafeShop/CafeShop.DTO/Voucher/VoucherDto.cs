@@ -1,4 +1,4 @@
-﻿using CafeShop.DTO.Order;
+using CafeShop.DTO.Order;
 using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
@@ -47,6 +47,9 @@ namespace CafeShop.DTO.Voucher
     public class CreateVoucherDto
     {
         public string Code { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string TargetType { get; set; } = VoucherTypeTarget.PUBLIC;
+        public string ApplyType { get; set; } = VoucherApplyType.ORDER;
         public string DiscountType { get; set; } = DiscountApplyType.FIXED; // Fixed hoặc Percent
         public decimal DiscountValue { get; set; }
         public decimal MinOrderValue { get; set; }

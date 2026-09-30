@@ -83,7 +83,7 @@ export default function ProductFormModal({
                 onClose()
                 onSuccess?.()
             } else {
-                message.error(res.payload || 'Cập nhật thất bại')
+                /* API Error Modal will handle this */
             }
         } else {
             if (!values.imageFile) {
@@ -96,7 +96,7 @@ export default function ProductFormModal({
                 onClose()
                 onSuccess?.()
             } else {
-                message.error(res.payload || 'Thêm thất bại')
+                /* API Error Modal will handle this */
             }
         }
     }

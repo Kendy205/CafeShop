@@ -160,7 +160,7 @@ export default function AddressManager({ hideTitle = false }) {
                 resetForm()
                 dispatch(getAddresses())
             } else {
-                message.error(res.payload || 'Cập nhật địa chỉ thất bại!')
+                /* API Error Modal will handle this */
             }
         } else {
             const res = await dispatch(createAddress(payload))
@@ -169,7 +169,7 @@ export default function AddressManager({ hideTitle = false }) {
                 resetForm()
                 dispatch(getAddresses())
             } else {
-                message.error(res.payload || 'Thêm địa chỉ thất bại!')
+                /* API Error Modal will handle this */
             }
         }
     }
@@ -181,7 +181,7 @@ export default function AddressManager({ hideTitle = false }) {
             message.success('Đã đặt làm địa chỉ mặc định!')
             dispatch(getAddresses())
         } else {
-            message.error(res.payload || 'Không thể đặt mặc định!')
+            /* API Error Modal will handle this */
         }
     }
 
@@ -201,7 +201,7 @@ export default function AddressManager({ hideTitle = false }) {
                     if (editingId === addr.addressId) resetForm()
                     dispatch(getAddresses())
                 } else {
-                    message.error(res.payload || 'Xóa địa chỉ thất bại!')
+                    /* API Error Modal will handle this */
                 }
             },
         })

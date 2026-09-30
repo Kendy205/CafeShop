@@ -76,7 +76,7 @@ export default function AdminProductPage() {
         if (toggleProductAvailability.fulfilled.match(res)) {
             message.success(`Đã ${checked ? 'bật' : 'tắt'} hiển thị sản phẩm!`)
         } else {
-            message.error(res.payload || 'Đổi trạng thái thất bại')
+            /* API Error Modal will handle this */
         }
     }
 
@@ -94,7 +94,7 @@ export default function AdminProductPage() {
                     message.success('Xóa sản phẩm thành công!')
                     loadData(currentPage)
                 } else {
-                    message.error(res.payload || 'Xóa thất bại')
+                    /* API Error Modal will handle this */
                 }
             },
         })

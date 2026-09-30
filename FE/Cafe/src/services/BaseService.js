@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { DOMAIN, REFRESH_TOKEN, TOKEN } from '../utils/constants/System'
 import { resolveRoleFromAuth } from '../utils/auth/authRole'
-import { startGlobalLoading, stopGlobalLoading } from '../redux/slices/uiSlice'
+
 
 export const http = axios.create({
     baseURL: DOMAIN,
@@ -28,13 +28,13 @@ export const injectStore = (store) => {
 
 function dispatchStartLoading() {
     if (appStore) {
-        appStore.dispatch(startGlobalLoading())
+        appStore.dispatch({ type: 'ui/startGlobalLoading' })
     }
 }
 
 function dispatchStopLoading() {
     if (appStore) {
-        appStore.dispatch(stopGlobalLoading())
+        appStore.dispatch({ type: 'ui/stopGlobalLoading' })
     }
 }
 
@@ -90,6 +90,18 @@ http.interceptors.response.use(
         const originalRequest = error.config
         const status = error.response?.status
         const shouldStopLoading = Boolean(originalRequest?.__globalLoadingCountered)
+        
+        // ── Xử lý Global Api Error ──
+        if (status && status >= 400 && status !== 401) {
+            const body = error.response?.data
+            const msg = body?.Message || body?.message || error.message || 'Lỗi không xác định từ máy chủ'
+            if (appStore) {
+                appStore.dispatch({
+                    type: 'ui/showApiError',
+                    payload: { message: msg, statusCode: status }
+                })
+            }
+        }
 
         if (status !== 401 || !originalRequest) {
             if (shouldStopLoading) dispatchStopLoading()

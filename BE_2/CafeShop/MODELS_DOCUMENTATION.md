@@ -1,6 +1,6 @@
 # TÀI LIỆU ĐẶC TẢ CHI TIẾT TOÀN BỘ MODEL DỰ ÁN CAFESHOP (CẬP NHẬT MỚI NHẤT)
 
-Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có trong thư mục `CafeShop.Model`, bao gồm cấu trúc các trường (Fields), kiểu dữ liệu, các ràng buộc (Constraints) và quan hệ liên kết (Navigation Properties). Dữ liệu này được quét và tạo tự động dựa trên source code mới nhất của dự án.
+Tài liệu này mô tả chi tiết toàn bộ **25 file Model** hiện có trong thư mục `CafeShop.Model`, bao gồm cấu trúc các trường (Fields), kiểu dữ liệu, các ràng buộc (Constraints) và quan hệ liên kết (Navigation Properties). Dữ liệu này được quét và tạo tự động dựa trên source code mới nhất của dự án.
 
 ---
 
@@ -8,7 +8,7 @@ Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có tro
 1. [Nhóm 1: Người Dùng, Phân Quyền & Địa Chỉ (`User`, `Role`, `Permission`, `UserRole`, `RolePermission`, `Address`)](#1-nhóm-1-người-dùng-phân-quyền--địa-chỉ)
 2. [Nhóm 2: Thực Đơn & Sản Phẩm (`Category`, `Product`, `Size`, `Topping`, `ProductSize`, `ProductTopping`)](#2-nhóm-2-thực-đơn--sản-phẩm)
 3. [Nhóm 3: Giỏ Hàng (`Cart`, `CartItem`, `CartItemTopping`)](#3-nhóm-3-giỏ-hàng)
-4. [Nhóm 4: Đơn Hàng & Vận Hành (`Order`, `OrderDetail`, `OrderDetailTopping`, `OrderStatusHistory`, `ShippingConfig`)](#4-nhóm-4-đơn-hàng--vận-hành)
+4. [Nhóm 4: Đơn Hàng & Vận Hành (`Order`, `OrderDetail`, `OrderDetailTopping`, `OrderStatusHistory`, `ShippingConfig`, `Payment`)](#4-nhóm-4-đơn-hàng--vận-hành)
 5. [Nhóm 5: Khuyến Mãi (`Voucher`, `UserVoucher`)](#5-nhóm-5-khuyến-mãi)
 6. [Nhóm 6: Tương Tác & Nội Dung (`Feedback`, `News`)](#6-nhóm-6-tương-tác--nội-dung)
 
@@ -27,10 +27,8 @@ Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có tro
 | `FullName` | `string?` |  | 
 | `PhoneNumber` | `string?` |  | 
 | `Email` | `string?` |  | 
-| `Address` | `string?` |  | 
 | `AvatarUrl` | `string?` |  | 
 | `AvatarPublicId`| `string?` |  | 
-| `Role` | `string?` | Cột Role cũ (có thể đang dần bị thay thế bởi UserRole) | 
 | `RefreshToken` | `string?` |  | 
 | `RefreshTokenExpiryTime` | `DateTime?` |  | 
 | `IsActive` | `bool` | Default: `true` | 
@@ -152,7 +150,6 @@ Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có tro
 | :--- | :--- | :--- | 
 | `SizeId` | `int` | `[Key]` | 
 | `Name` | `string` | `[Required]`, Max(10) | 
-| `PercentIncrease`| `decimal` | `[Required]`, Range(0 - 100) | 
 
 - **Navigation Properties:** `ProductSizes`.
 
@@ -259,17 +256,23 @@ Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có tro
 | `OrderId` | `int` | `[Key]` | 
 | `UserId` | `int` | FK -> User | 
 | `AddressId` | `int` | FK -> Address | 
+| `RecipientName` | `string?` | Max(150) | 
+| `Phone` | `string?` | Max(20) | 
+| `FullAddress` | `string?` | Max(500) | 
 | `OrderDate` | `DateTime` | Default: `DateTime.UtcNow` | 
+| `SubTotal` | `decimal` |  | 
 | `TotalAmount` | `decimal` |  | 
 | `PaymentMethod` | `string?` |  | 
+| `PaymentStatus` | `string` | Default: `"Unpaid"` | 
 | `CurrentStatus` | `string?` |  | 
 | `Note` | `string?` | Max(500) | 
 | `VoucherId` | `int?` | FK -> Voucher | 
-| `DiscountAmount`| `decimal` |  | 
+| `OrderDiscount` | `decimal` |  | 
+| `ShippingDiscount`| `decimal` |  | 
 | `ShippingFee` | `decimal` |  | 
 | `DistanceKm` | `double` |  | 
 
-- **Navigation Properties:** `User`, `Voucher`, `Address`, `OrderDetails`, `StatusHistories`.
+- **Navigation Properties:** `User`, `Voucher`, `Address`, `OrderDetails`, `StatusHistories`, `Payments`.
 
 ---
 
@@ -321,7 +324,27 @@ Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có tro
 
 ---
 
-### 4.5. `ShippingConfig.cs` - Cấu hình Ship
+### 4.5. `Payment.cs` - Thanh toán đơn hàng
+- **Chi tiết các trường:**
+
+| Tên thuộc tính | Kiểu dữ liệu | Ràng buộc / Default | 
+| :--- | :--- | :--- | 
+| `PaymentId` | `int` | `[Key]` | 
+| `OrderId` | `int` | FK -> Order | 
+| `PaymentMethod` | `string` | `[MaxLength(30)]` (Ví dụ: COD, VNPay, Momo) | 
+| `PaymentProvider`| `string?` | `[MaxLength(50)]` | 
+| `TransactionCode`| `string?` | `[MaxLength(100)]` | 
+| `Amount` | `decimal` |  | 
+| `PaymentStatus` | `string` | `[MaxLength(20)]`, Default: `"pending"` | 
+| `PaidAt` | `DateTime?`|  | 
+| `ErrorMessage` | `string?` | `[MaxLength(500)]` | 
+| `CreatedAt` | `DateTime` | Default: `DateTime.UtcNow` | 
+
+- **Navigation Properties:** `Order`.
+
+---
+
+### 4.6. `ShippingConfig.cs` - Cấu hình Ship
 - **Chi tiết các trường:**
 
 | Tên thuộc tính | Kiểu dữ liệu | Ràng buộc / Default | 
@@ -400,6 +423,7 @@ Tài liệu này mô tả chi tiết toàn bộ **24 file Model** hiện có tro
 | `Rating` | `int` | `[Required]`, Range(1 - 5) | 
 | `Comment` | `string?` | Max(500) | 
 | `CreatedAt` | `DateTime` | Default: `DateTime.UtcNow` | 
+| `IsVisible` | `bool` |  | 
 
 - **Navigation Properties:** `Product`, `User`, `OrderDetail`.
 

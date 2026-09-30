@@ -56,7 +56,7 @@ namespace CafeShop.Repositories.Repository
 
             if (minRating.HasValue)
             {
-                query = query.Where(p => p.Feedbacks != null && p.Feedbacks.Any() && p.Feedbacks.Average(f => f.Rating) >= minRating.Value);
+                query = query.Where(p => (p.Feedbacks.Average(f => (double?)f.Rating) ?? 0) >= minRating.Value);
             }
 
             query = sortBy?.ToLower() switch
@@ -64,7 +64,7 @@ namespace CafeShop.Repositories.Repository
                 "price_asc" => query.OrderBy(p => p.BasePrice),
                 "price_desc" => query.OrderByDescending(p => p.BasePrice),
                 "name_asc" => query.OrderBy(p => p.Name),
-                "rating_desc" => query.OrderByDescending(p => p.Feedbacks != null && p.Feedbacks.Any() ? p.Feedbacks.Average(f => f.Rating) : 0),
+                "rating_desc" => query.OrderByDescending(p => p.Feedbacks.Average(f => (double?)f.Rating) ?? 0),
                 _ => query.OrderByDescending(p => p.ProductId) 
             };
 

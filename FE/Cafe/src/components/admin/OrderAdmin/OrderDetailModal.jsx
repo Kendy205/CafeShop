@@ -44,7 +44,7 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
             onStatusUpdated?.()
             onClose()
         } else {
-            message.error(res.payload || 'Cập nhật trạng thái thất bại')
+            /* API Error Modal will handle this */
         }
     }
 

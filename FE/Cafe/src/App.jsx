@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { store } from './redux/store'
 import Loading from './components/loading/Loading'
+import ApiErrorModal from './components/error/ApiErrorModal'
 import RealtimeNotificationHandler from './components/notification/RealtimeNotificationHandler'
 import UserTemplate from './templates/UserTemplate'
 import AdminTemplate from './templates/AdminTemplate'
@@ -39,6 +40,7 @@ function App() {
             <RealtimeNotificationHandler />
             <ToastContainer position="top-right" autoClose={5000} />
             <Loading />
+            <ApiErrorModal />
             <Routes>
                 <Route element={<UserTemplate />}>
                     <Route path="/" element={<HomePage />} />

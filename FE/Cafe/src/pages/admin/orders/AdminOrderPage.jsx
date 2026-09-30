@@ -48,7 +48,7 @@ export default function AdminOrderPage() {
                 message.success(`Đã cập nhật đơn #${orderId} sang "${getStatusConfig(targetStatus).label}"`)
                 fetchOrders()
             } else {
-                message.error(res.payload || 'Cập nhật trạng thái thất bại')
+                /* API Error Modal will handle this */
             }
         } finally {
             setUpdatingOrderId(null)

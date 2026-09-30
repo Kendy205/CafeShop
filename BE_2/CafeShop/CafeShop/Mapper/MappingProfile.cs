@@ -92,6 +92,8 @@ namespace CafeShop.Mapper
                 .ForMember(dest => dest.TargetType, opt => opt.MapFrom(src => src.TargetType.ToString()))
                 .ForMember(dest => dest.ApplyType, opt => opt.MapFrom(src => src.ApplyType.ToString()))
                 .ForMember(dest => dest.DiscountType, opt => opt.MapFrom(src => src.DiscountType.ToString()));
+            CreateMap<CreateVoucherDto, Voucher>();
+            CreateMap<UpdateVoucherDto, Voucher>();
 
             // ==========================================
             // 7. Feedback

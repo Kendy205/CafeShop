@@ -53,7 +53,7 @@ export default function AdminSizePage() {
                 closeModal()
                 resetForm()
             } else {
-                message.error(res.payload || 'Cập nhật thất bại')
+                /* API Error Modal will handle this */
             }
         } else {
             const res = await dispatch(createAdminSize(values))
@@ -62,7 +62,7 @@ export default function AdminSizePage() {
                 closeModal()
                 resetForm()
             } else {
-                message.error(res.payload || 'Thêm mới thất bại')
+                /* API Error Modal will handle this */
             }
         }
     }
@@ -80,7 +80,7 @@ export default function AdminSizePage() {
                 if (deleteAdminSize.fulfilled.match(res)) {
                     message.success('Xóa kích cỡ thành công!')
                 } else {
-                    message.error(res.payload || 'Xóa thất bại')
+                    /* API Error Modal will handle this */
                 }
             },
         })

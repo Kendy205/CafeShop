@@ -47,7 +47,7 @@ export default function AdminUsersPage() {
         if (toggleAdminUserStatus.fulfilled.match(res)) {
             message.success('Đã cập nhật trạng thái khách hàng')
         } else {
-            message.error(res.payload || 'Không thể thay đổi trạng thái')
+            /* API Error Modal will handle this */
         }
     }
 

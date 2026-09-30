@@ -53,7 +53,7 @@ export default function AdminCategoryPage() {
                 closeModal()
                 resetForm()
             } else {
-                message.error(res.payload || 'Cập nhật thất bại')
+                /* API Error Modal will handle this */
             }
         } else {
             const res = await dispatch(createAdminCategory(values))
@@ -62,7 +62,7 @@ export default function AdminCategoryPage() {
                 closeModal()
                 resetForm()
             } else {
-                message.error(res.payload || 'Thêm mới thất bại')
+                /* API Error Modal will handle this */
             }
         }
     }
@@ -80,7 +80,7 @@ export default function AdminCategoryPage() {
                 if (deleteAdminCategory.fulfilled.match(res)) {
                     message.success('Xóa danh mục thành công!')
                 } else {
-                    message.error(res.payload || 'Xóa thất bại')
+                    /* API Error Modal will handle this */
                 }
             },
         })

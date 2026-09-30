@@ -45,7 +45,7 @@ export default function AdminSettingsPage() {
         if (updateShippingConfig.fulfilled.match(res)) {
             message.success('Cập nhật cấu hình phí ship thành công!')
         } else {
-            message.error(res.payload || 'Cập nhật thất bại!')
+            /* API Error Modal will handle this */
         }
     }
 

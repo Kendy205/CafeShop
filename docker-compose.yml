@@ -1,10 +1,9 @@
-version: '3.8'
-
 services:
   mysql_db:
     image: mysql:8.0
     container_name: cafeshop_mysql
     restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     ports:
       - "3306:3306"
     environment:
@@ -14,9 +13,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      # Ánh xạ file backup.sql vào thư mục initdb để tự động nạp dữ liệu khi database được khởi tạo lần đầu
-      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
-
+      - ./CafeShop_SeedData_MySQL.sql:/docker-entrypoint-initdb.d/CafeShop_SeedData_MySQL.sql
     networks:
       - cafeshop_network
 

@@ -51,7 +51,7 @@ export default function VoucherAdminPage() {
             setOpen(false)
             dispatch(getAdminVouchers())
         } else {
-            message.error(result.payload || 'Không lưu được mã')
+            /* API Error Modal will handle this */
         }
     }
 
@@ -77,7 +77,7 @@ export default function VoucherAdminPage() {
             message.success('Đã tặng Voucher thành công')
             setAssignModalOpen(false)
         } else {
-            message.error(res.payload || 'Tặng Voucher thất bại')
+            /* API Error Modal will handle this */
         }
     }
 
@@ -164,7 +164,7 @@ export default function VoucherAdminPage() {
                                                     message.success(`Đã ${!isAct ? 'kích hoạt' : 'tạm ngưng'} mã ${r.code}`)
                                                     dispatch(getAdminVouchers())
                                                 } else {
-                                                    message.error(result.payload || 'Không đổi được trạng thái')
+                                                    /* API Error Modal will handle this */
                                                 }
                                             }}
                                             className={isAct ? 'bg-emerald-500' : 'bg-slate-300'}

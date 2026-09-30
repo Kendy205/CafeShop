@@ -85,7 +85,7 @@ export default function CartPage() {
                     if (updateCartItem.fulfilled.match(res)) {
                         message.success('Đã xóa món khỏi giỏ hàng!')
                     } else {
-                        message.error(res.payload || 'Không thể xóa món!')
+                        /* API Error Modal will handle this */
                     }
                 },
             })
@@ -120,7 +120,7 @@ export default function CartPage() {
                 if (clearCart.fulfilled.match(res)) {
                     message.success('Đã xóa toàn bộ giỏ hàng!')
                 } else {
-                    message.error(res.payload || 'Không thể xóa giỏ hàng!')
+                    /* API Error Modal will handle this */
                 }
             },
         })
@@ -139,7 +139,7 @@ export default function CartPage() {
                 if (removeCartItem.fulfilled.match(res)) {
                     message.success('Đã xóa món khỏi giỏ hàng!')
                 } else {
-                    message.error(res.payload || 'Xóa món thất bại!')
+                    /* API Error Modal will handle this */
                 }
             },
         })

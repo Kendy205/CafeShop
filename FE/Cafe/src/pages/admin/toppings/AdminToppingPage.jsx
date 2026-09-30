@@ -65,7 +65,7 @@ export default function AdminToppingPage() {
                 closeModal()
                 resetForm()
             } else {
-                message.error(res.payload || 'Cập nhật thất bại')
+                /* API Error Modal will handle this */
             }
         } else {
             if (!values.imageFile) {
@@ -78,7 +78,7 @@ export default function AdminToppingPage() {
                 closeModal()
                 resetForm()
             } else {
-                message.error(res.payload || 'Thêm mới thất bại')
+                /* API Error Modal will handle this */
             }
         }
     }
@@ -88,7 +88,7 @@ export default function AdminToppingPage() {
         if (toggleToppingAvailability.fulfilled.match(res)) {
             message.success(`Đã ${checked ? 'bật' : 'tắt'} hiển thị topping!`)
         } else {
-            message.error(res.payload || 'Đổi trạng thái thất bại')
+            /* API Error Modal will handle this */
         }
     }
 
