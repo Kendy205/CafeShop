@@ -9,7 +9,12 @@ using CafeShop.DTO.Size;
 using CafeShop.DTO.Topping;
 using CafeShop.DTO.User;
 using CafeShop.DTO.Voucher;
-using CafeShop.DTO.Admin;
+using CafeShop.DTO.Category;
+using CafeShop.DTO.Product;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard;
 using CafeShop.Model;
 
 namespace CafeShop.Mapper
@@ -46,9 +51,17 @@ namespace CafeShop.Mapper
             // ==========================================
             CreateMap<User, UserResponseDto>();
             CreateMap<User, UserProfileDto>().ReverseMap();
-            CreateMap<User, CafeShop.DTO.Admin.AdminUserDto>();
+            CreateMap<User, AdminUserDto>()
+                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles != null ? src.UserRoles.Where(ur => ur.Role != null).Select(ur => ur.Role.Name).ToList() : new List<string>()));
 
             // ==========================================
+            // ==========================================
+            // 3. ROLE & PERMISSION
+            // ==========================================
+            CreateMap<Permission, CafeShop.DTO.Role.PermissionDto>();
+            CreateMap<Role, CafeShop.DTO.Role.RoleDto>()
+                .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.RolePermissions != null ? src.RolePermissions.Where(rp => rp.Permission != null).Select(rp => rp.Permission).ToList() : new List<Permission>()));
+
             // 4. ORDER
             // ==========================================
             CreateMap<Order, OrderResponseDto>()

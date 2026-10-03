@@ -103,7 +103,7 @@ namespace CafeShop.Controllers.Admin
             try
             {
                 await _newsService.DeleteNewsAsync(id);
-                return Ok(ApiResponse<object>.Succeeded(null, 200, "Xóa bài viết thành công"));
+                return Ok(ApiResponse<string>.Succeeded("", 200, "Xóa bài viết thành công"));
             }
             catch (UnauthorizedAccessException ex)
             {

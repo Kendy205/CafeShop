@@ -27,7 +27,7 @@ const getStatusTheme = (status) => {
 
 export default function DashboardAdminPage() {
     const dispatch = useDispatch()
-    const { summary, revenueChart, topProducts, orderStats, loading } = useSelector(s => s.adminDashboard)
+    const { summary, revenueChart, topProducts, orderStats, loading } = useSelector(s => s.admin.dashboard)
 
     // Mặc định lấy 30 ngày gần nhất
     const [dates, setDates] = useState([

@@ -102,7 +102,7 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
                                     e.stopPropagation()
                                     onSelectOrder(order.orderId)
                                 }}
-                                className="inline-flex h-8 items-center justify-center rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 px-4 text-xs font-bold text-slate-700 hover:text-sky-700 hover:border-sky-300 transition-all cursor-pointer shadow-2xs"
+                                className="admin-action-btn admin-action-btn-edit"
                             >
                                 Chi tiết
                             </button>
@@ -117,7 +117,7 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
                                         setShowCancelModal(true)
                                     }}
                                     disabled={isUpdating}
-                                    className="flex h-8 w-8 items-center justify-center rounded-2xl border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-300 text-slate-400 hover:text-rose-500 font-black transition-all cursor-pointer shadow-2xs active:scale-90 disabled:opacity-50"
+                                    className="admin-action-btn admin-action-btn-delete disabled:opacity-50 !px-2"
                                 >
                                     ✕
                                 </button>

@@ -14,6 +14,7 @@ import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import AdminTable from '../../../components/admin/common/AdminTable'
 import AdminModalBanner from '../../../components/admin/common/AdminModalBanner'
 import AppButton from '../../../components/common/AppButton'
+import AppSearchBox from '../../../components/common/AppSearchBox'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
 
@@ -25,7 +26,7 @@ const toppingSchema = Yup.object().shape({
 
 export default function AdminToppingPage() {
     const dispatch = useDispatch()
-    const { items, loading, submitting } = useSelector((s) => s.adminTopping)
+    const { items, loading, submitting } = useSelector((s) => s.admin.topping)
 
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
@@ -142,7 +143,7 @@ export default function AdminToppingPage() {
                     <Switch
                         checked={isAvailable}
                         onChange={(checked) => handleToggle(record.toppingId, checked)}
-                        className={isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}
+                        className={`custom-admin-switch ${isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}
                     />
                     {isAvailable ?
                         <span className="text-xs font-semibold text-emerald-600 min-w-[60px] text-left">Đang bán</span> :
@@ -158,12 +159,13 @@ export default function AdminToppingPage() {
             align: 'right',
             render: (_, record) => (
                 <AdminTooltip title="Chỉnh sửa topping">
-                    <Button
-                        type="text"
-                        icon={<EditOutlined className="text-sky-600" />}
-                        className="bg-sky-50 hover:bg-sky-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
+                    <button
                         onClick={() => openModal(record)}
-                    />
+                        className="admin-action-btn admin-action-btn-edit"
+                    >
+                        <EditOutlined />
+                        <span>Sửa</span>
+                    </button>
                 </AdminTooltip>
             ),
         },
@@ -171,47 +173,22 @@ export default function AdminToppingPage() {
 
     return (
         <div className="space-y-6">
-            <AdminPageBanner
-                badge="Món Ăn Kèm & Topping"
-                title="Topping Thức Uống"
-                description="Thêm các loại trân châu hoàng kim, thạch đào, kem cheese... để khách hàng thỏa thích mix cùng đồ uống."
-                icon={<CoffeeOutlined className="text-emerald-400 text-xl" />}
-                extra={
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+                <AppSearchBox
+                    initialValue={searchText}
+                    placeholder="Tìm kiếm topping theo tên..."
+                    onSearch={(val) => { setSearchText(val); setCurrentPage(1); }}
+                    className="flex-1 min-w-[220px] max-w-md"
+                />
+
+                <div className="flex items-center gap-4">
+                    <div className="text-xs text-slate-500 font-semibold hidden sm:block">
+                        Đang hiển thị: <strong className="text-emerald-700">{filteredItems.length}</strong> loại topping
+                    </div>
                     <AppButton onClick={() => openModal()} className="!px-5 !bg-emerald-500 hover:!bg-emerald-600 shadow-emerald-500/30">
                         <PlusOutlined />
                         <span>Thêm Topping mới</span>
                     </AppButton>
-                }
-                stats={
-                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
-                        <span className="text-slate-300 font-medium">Tổng topping:</span>
-                        <strong className="text-white text-sm font-black">{items.length}</strong>
-                    </div>
-                }
-            />
-
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
-                <div className="relative flex-1 min-w-[220px] max-w-md">
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm topping theo tên..."
-                        className="custom-admin-input pl-9 focus:border-emerald-500 focus:ring-emerald-100"
-                        value={searchText}
-                        onChange={e => { setSearchText(e.target.value); setCurrentPage(1); }}
-                    />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
-                    {searchText && (
-                        <button
-                            onClick={() => setSearchText('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                            ✕
-                        </button>
-                    )}
-                </div>
-
-                <div className="text-xs text-slate-500 font-semibold">
-                    Đang hiển thị: <strong className="text-emerald-700">{filteredItems.length}</strong> loại topping
                 </div>
             </div>
 

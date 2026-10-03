@@ -1,5 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { fetchAdminUsers, toggleAdminUserStatus } from '../../actions/admin/adminUserAction'
+import { 
+    fetchAdminUsers, 
+    toggleAdminUserStatus, 
+    fetchAdminUserById, 
+    createAdminUser, 
+    updateAdminUserInfo, 
+    assignAdminRoles 
+} from '../../actions/admin/adminUserAction'
 import { normalizePagedResult } from '../../../utils/helpers/api'
 
 const initialState = {
@@ -53,6 +60,59 @@ const adminUserSlice = createSlice({
                 }
             })
             .addCase(toggleAdminUserStatus.rejected, (state, action) => {
+                state.submitting = false
+                state.error = action.payload
+            })
+            // Fetch User By ID
+            .addCase(fetchAdminUserById.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchAdminUserById.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(fetchAdminUserById.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.payload
+            })
+            // Create User
+            .addCase(createAdminUser.pending, (state) => {
+                state.submitting = true
+            })
+            .addCase(createAdminUser.fulfilled, (state, action) => {
+                state.submitting = false
+                if (state.items.length < state.pageSize) {
+                    state.items.unshift(action.payload)
+                }
+                state.total += 1
+            })
+            .addCase(createAdminUser.rejected, (state, action) => {
+                state.submitting = false
+                state.error = action.payload
+            })
+            // Update User
+            .addCase(updateAdminUserInfo.pending, (state) => {
+                state.submitting = true
+            })
+            .addCase(updateAdminUserInfo.fulfilled, (state, action) => {
+                state.submitting = false
+                const updated = action.payload
+                const index = state.items.findIndex(u => u.userId === updated.userId || u.id === updated.id)
+                if (index !== -1) {
+                    state.items[index] = { ...state.items[index], ...updated }
+                }
+            })
+            .addCase(updateAdminUserInfo.rejected, (state, action) => {
+                state.submitting = false
+                state.error = action.payload
+            })
+            // Assign Roles
+            .addCase(assignAdminRoles.pending, (state) => {
+                state.submitting = true
+            })
+            .addCase(assignAdminRoles.fulfilled, (state) => {
+                state.submitting = false
+            })
+            .addCase(assignAdminRoles.rejected, (state, action) => {
                 state.submitting = false
                 state.error = action.payload
             })

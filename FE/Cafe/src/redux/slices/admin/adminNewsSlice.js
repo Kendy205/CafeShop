@@ -9,6 +9,8 @@ import {
 const initialState = {
     items: [],
     total: 0,
+    page: 1,
+    pageSize: 10,
     loading: false,
     error: null,
     submitting: false,
@@ -29,6 +31,8 @@ const adminNewsSlice = createSlice({
                 state.loading = false
                 state.items = action.payload?.items || []
                 state.total = action.payload?.total || 0
+                state.page = action.payload?.page || 1
+                state.pageSize = action.payload?.pageSize || 10
             })
             .addCase(fetchAdminNews.rejected, (state, action) => {
                 state.loading = false
@@ -39,12 +43,9 @@ const adminNewsSlice = createSlice({
                 state.submitting = true
                 state.error = null
             })
-            .addCase(createAdminNews.fulfilled, (state, action) => {
+            .addCase(createAdminNews.fulfilled, (state) => {
                 state.submitting = false
-                if (action.payload?.newsId) {
-                    state.items.unshift(action.payload)
-                    state.total += 1
-                }
+                // Refetch sẽ được gọi từ component sau khi fulfilled
             })
             .addCase(createAdminNews.rejected, (state, action) => {
                 state.submitting = false
@@ -55,13 +56,9 @@ const adminNewsSlice = createSlice({
                 state.submitting = true
                 state.error = null
             })
-            .addCase(updateAdminNews.fulfilled, (state, action) => {
+            .addCase(updateAdminNews.fulfilled, (state) => {
                 state.submitting = false
-                const updated = action.payload
-                if (updated?.newsId) {
-                    const idx = state.items.findIndex(x => x.newsId === updated.newsId)
-                    if (idx !== -1) state.items[idx] = updated
-                }
+                // Refetch sẽ được gọi từ component sau khi fulfilled
             })
             .addCase(updateAdminNews.rejected, (state, action) => {
                 state.submitting = false
@@ -74,8 +71,8 @@ const adminNewsSlice = createSlice({
             })
             .addCase(deleteAdminNews.fulfilled, (state, action) => {
                 state.submitting = false
-                state.items = state.items.filter(x => x.newsId !== action.payload)
-                state.total -= 1
+                state.items = state.items.filter(item => item.newsId !== action.payload)
+                state.total = Math.max(0, state.total - 1)
             })
             .addCase(deleteAdminNews.rejected, (state, action) => {
                 state.submitting = false

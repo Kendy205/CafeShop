@@ -7,7 +7,7 @@ import { openAuthModal } from '../../redux/slices/authSlice'
 export default function ProtectedRoute({ allowedRoles }) {
     const location = useLocation()
     const dispatch = useDispatch()
-    const { isAuthenticated, role } = useSelector((s) => s.auth)
+    const { isAuthenticated, role } = useSelector((s) => s.app.auth)
 
     useEffect(() => {
         if (!isAuthenticated) {

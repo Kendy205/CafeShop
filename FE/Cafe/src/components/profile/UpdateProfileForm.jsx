@@ -5,8 +5,8 @@ import { getProfile, updateProfile } from '../../redux/actions/user/userAction'
 
 export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) {
     const dispatch = useDispatch()
-    const { user } = useSelector((s) => s.auth)
-    const { profile, updating } = useSelector((s) => s.user)
+    const { user } = useSelector((s) => s.app.auth)
+    const { profile, updating } = useSelector((s) => s.user.profile)
 
     const [fullName, setFullName] = useState('')
     const [phoneNumber, setPhoneNumber] = useState('')

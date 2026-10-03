@@ -8,8 +8,8 @@ import { formatVnd } from '../../utils/helpers/format'
 export default function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, productId, summary }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const cartSubmitting = useSelector((s) => s.cart.submitting)
-    const cartError = useSelector((s) => s.cart.error)
+    const cartSubmitting = useSelector((s) => s.user.cart.submitting)
+    const cartError = useSelector((s) => s.user.cart.error)
 
     const hasSizes = sizes.length > 0
     const firstAvailableSize = hasSizes ? (sizes.find((s) => !s.isOutOfStock) ?? sizes[0]) : null

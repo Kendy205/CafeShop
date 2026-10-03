@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux'
 
 export default function Loading() {
     const visible = useSelector(
-        (s) => s.ui.loadingCount > 0 || s.ui.routeLoadingCount > 0
+        (s) => s.app.ui.loadingCount > 0 || s.app.ui.routeLoadingCount > 0
     )
 
     if (!visible) return null

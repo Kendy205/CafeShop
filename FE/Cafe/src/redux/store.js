@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import uiReducer from './slices/uiSlice'
 import productReducer from './slices/user/productSlice'
@@ -10,6 +10,7 @@ import sizeReducer from './slices/user/sizeSlice'
 import toppingReducer from './slices/user/toppingSlice'
 import categoryReducer from './slices/user/categorySlice'
 import userReducer from './slices/user/userSlice'
+import newsReducer from './slices/user/newsSlice'
 import adminVoucherReducer from './slices/admin/adminVoucherSlice'
 import adminCategoryReducer from './slices/admin/adminCategorySlice'
 import adminSizeReducer from './slices/admin/adminSizeSlice'
@@ -20,31 +21,44 @@ import adminOrderReducer from './slices/admin/adminOrderSlice'
 import adminDashboardReducer from './slices/admin/adminDashboardSlice'
 import adminShippingConfigReducer from './slices/admin/adminShippingConfigSlice'
 import adminNewsReducer from './slices/admin/adminNewsSlice'
+import adminRoleReducer from './slices/admin/adminRoleSlice'
+
+const appReducer = combineReducers({
+    auth: authReducer,
+    ui: uiReducer,
+})
+
+const userAppReducer = combineReducers({
+    profile: userReducer,
+    product: productReducer,
+    address: addressReducer,
+    order: orderReducer,
+    voucher: voucherReducer,
+    cart: cartReducer,
+    size: sizeReducer,
+    topping: toppingReducer,
+    category: categoryReducer,
+    news: newsReducer,
+})
+
+const adminAppReducer = combineReducers({
+    voucher: adminVoucherReducer,
+    category: adminCategoryReducer,
+    size: adminSizeReducer,
+    topping: adminToppingReducer,
+    product: adminProductReducer,
+    user: adminUserReducer,
+    order: adminOrderReducer,
+    dashboard: adminDashboardReducer,
+    shippingConfig: adminShippingConfigReducer,
+    news: adminNewsReducer,
+    role: adminRoleReducer,
+})
 
 export const store = configureStore({
     reducer: {
-        //Public User Slices
-        auth: authReducer,
-        ui: uiReducer,
-        user: userReducer,
-        product: productReducer,
-        address: addressReducer,
-        order: orderReducer,
-        voucher: voucherReducer,
-        cart: cartReducer,
-        size: sizeReducer,
-        topping: toppingReducer,
-        category: categoryReducer,
-        //Admin Slices
-        adminVoucher: adminVoucherReducer,
-        adminCategory: adminCategoryReducer,
-        adminSize: adminSizeReducer,
-        adminTopping: adminToppingReducer,
-        adminProduct: adminProductReducer,
-        adminUser: adminUserReducer,
-        adminOrder: adminOrderReducer,
-        adminDashboard: adminDashboardReducer,
-        adminShippingConfig: adminShippingConfigReducer,
-        adminNews: adminNewsReducer,
+        app: appReducer,
+        user: userAppReducer,
+        admin: adminAppReducer,
     },
 })

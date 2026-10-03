@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CafeShop.DTO.Admin
+namespace CafeShop.DTO.Dashboard
 {
     public class DashboardSummaryDto
     {

@@ -27,7 +27,7 @@ export default function OrderHistoryPage() {
         myOrdersLoading,
         myOrdersError,
         cancelling,
-    } = useSelector((s) => s.order)
+    } = useSelector((s) => s.user.order)
 
     const [page, setPage] = useState(1)
     const [selectedStatus, setSelectedStatus] = useState('ALL')

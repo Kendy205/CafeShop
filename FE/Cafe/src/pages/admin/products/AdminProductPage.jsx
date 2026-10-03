@@ -15,13 +15,14 @@ import { formatVnd } from '../../../utils/helpers/format'
 import ProductFormModal from '../../../components/admin/ProductFormModal'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import AdminTable from '../../../components/admin/common/AdminTable'
+import AppSearchBox from '../../../components/common/AppSearchBox'
 
 export default function AdminProductPage() {
     const dispatch = useDispatch()
-    const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.adminProduct)
-    const { items: categories } = useSelector((s) => s.adminCategory)
-    const { items: masterSizes } = useSelector((s) => s.adminSize)
-    const { items: masterToppings } = useSelector((s) => s.adminTopping)
+    const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.admin.product)
+    const { items: categories } = useSelector((s) => s.admin.category)
+    const { items: masterSizes } = useSelector((s) => s.admin.size)
+    const { items: masterToppings } = useSelector((s) => s.admin.topping)
 
     // filter states
     const [keyword, setKeyword] = useState('')
@@ -195,7 +196,7 @@ export default function AdminProductPage() {
                     <Switch
                         checked={isAvailable}
                         onChange={(checked) => handleToggle(record.productId, checked)}
-                        className={isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}
+                        className={`custom-admin-switch ${isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}
                     />
                     {isAvailable ? (
                         <span className="text-xs font-semibold text-emerald-600 min-w-[60px] text-left">Đang bán</span>
@@ -211,24 +212,26 @@ export default function AdminProductPage() {
             width: 120,
             align: 'right',
             render: (_, record) => (
-                <Space size="middle">
+                <div className="flex items-center justify-end gap-2">
                     <AdminTooltip title="Chỉnh sửa sản phẩm">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined className="text-sky-600" />}
-                            className="bg-sky-50 hover:bg-sky-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
+                        <button
                             onClick={() => openModal(record)}
-                        />
+                            className="admin-action-btn admin-action-btn-edit"
+                        >
+                            <EditOutlined />
+                            <span>Sửa</span>
+                        </button>
                     </AdminTooltip>
                     <AdminTooltip title="Xóa sản phẩm">
-                        <Button
-                            type="text"
-                            icon={<DeleteOutlined className="text-rose-500" />}
-                            className="bg-rose-50 hover:bg-rose-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center transition-all shadow-2xs hover:shadow-xs"
+                        <button
                             onClick={() => handleDelete(record.productId)}
-                        />
+                            className="admin-action-btn admin-action-btn-delete"
+                        >
+                            <DeleteOutlined className="text-red-600" />
+                            <span>Xóa</span>
+                        </button>
                     </AdminTooltip>
-                </Space>
+                </div>
             ),
         },
     ]
@@ -261,25 +264,12 @@ export default function AdminProductPage() {
             {/* Filter Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
                 <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-                    <div className="relative flex-1 min-w-[200px] max-w-sm">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm sản phẩm theo tên..."
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
-                        />
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
-                        {keyword && (
-                            <button
-                                onClick={() => { setKeyword(''); loadData(1); }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
-                            >
-                                ✕
-                            </button>
-                        )}
-                    </div>
+                    <AppSearchBox
+                        initialValue={keyword}
+                        placeholder="Tìm kiếm sản phẩm theo tên..."
+                        onSearch={(val) => { setKeyword(val); setCurrentPage(1); }}
+                        className="flex-1 min-w-[200px] max-w-sm"
+                    />
 
                     <Select
                         placeholder="Tất cả danh mục"

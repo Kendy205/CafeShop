@@ -1,4 +1,9 @@
-using CafeShop.DTO.Admin;
+using CafeShop.DTO.Category;
+using CafeShop.DTO.Product;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard;
 using CafeShop.DTO.Product;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;

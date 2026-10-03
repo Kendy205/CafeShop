@@ -25,6 +25,28 @@
     @apply p-0 rounded-[28px] overflow-hidden border border-sky-500/20 shadow-2xl shadow-sky-500/20;
   }
 
+  /* Standardized Admin Action Buttons */
+  .admin-action-btn {
+    @apply inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-xl border whitespace-nowrap text-xs font-bold shadow-2xs transition-all cursor-pointer;
+  }
+  .admin-action-btn-edit {
+    @apply border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-amber-600 hover:border-amber-300;
+  }
+  .admin-action-btn-delete {
+    @apply border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300;
+  }
+  .admin-action-btn-assign {
+    @apply border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-300 hover:scale-105 active:scale-95;
+  }
+
+  /* Standardized AntD Switch */
+  .custom-admin-switch {
+    @apply min-w-[90px] h-[28px];
+  }
+  .custom-admin-switch .ant-switch-inner {
+    @apply text-xs font-bold uppercase tracking-wider;
+  }
+
   /* Admin Form Styles */
   .custom-admin-input {
     @apply w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm font-medium text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-200;

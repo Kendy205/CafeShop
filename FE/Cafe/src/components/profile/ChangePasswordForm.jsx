@@ -6,7 +6,7 @@ import { resetPasswordStatus } from '../../redux/slices/user/userSlice'
 
 export default function ChangePasswordForm() {
     const dispatch = useDispatch()
-    const { changingPassword } = useSelector((s) => s.user)
+    const { changingPassword } = useSelector((s) => s.user.profile)
 
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')

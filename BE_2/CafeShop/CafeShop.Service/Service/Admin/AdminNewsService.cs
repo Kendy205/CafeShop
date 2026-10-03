@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.News;
 using CafeShop.Model;
@@ -50,21 +51,10 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<PagedResult<NewsListResponseDto>> GetNewsForManagementAsync(string? keyword = null, string? status = null, int pageNumber = 1, int pageSize = 10)
         {
-            var filter = (System.Linq.Expressions.Expression<Func<News, bool>>)(n => 
-                !n.IsDeleted && 
-                (string.IsNullOrEmpty(status) || n.Status == status) &&
-                (string.IsNullOrEmpty(keyword) || (n.Title != null && n.Title.Contains(keyword))));
+            var total = await _unitOfWork.News.CountNewsSummaryAsync(keyword, status, false);
+            var summaryItems = await _unitOfWork.News.GetNewsSummaryAsync(keyword, status, false, pageNumber, pageSize);
 
-            int total = await _unitOfWork.News.CountAsync(filter);
-            
-            var newsItems = await _unitOfWork.News.GetAllAsync(
-                filter: filter,
-                includeProperties: "User",
-                pageSize: pageSize,
-                pageNumber: pageNumber,
-                orderBy: q => q.OrderByDescending(n => n.CreatedAt));
-
-            var result = newsItems.Select(n => new NewsListResponseDto
+            var result = summaryItems.Select(n => new NewsListResponseDto
             {
                 NewsId = n.NewsId,
                 Title = n.Title,
@@ -72,7 +62,7 @@ namespace CafeShop.Service.Service.Admin
                 Summary = n.Summary,
                 ImageUrl = n.ImageUrl,
                 Status = n.Status,
-                AuthorName = n.User?.FullName ?? n.User?.Username,
+                AuthorName = n.AuthorName,
                 PublishedAt = n.PublishedAt,
                 CreatedAt = n.CreatedAt,
                 ViewCount = n.ViewCount
@@ -129,11 +119,9 @@ namespace CafeShop.Service.Service.Admin
             await _unitOfWork.News.AddAsync(news);
             await _unitOfWork.SaveAsync();
 
+            await _redisCache.BumpVersionAsync("news:ver");
+
             var createdNews = await _unitOfWork.News.GetFirstOrDefaultAsync(n => n.NewsId == news.NewsId, includeProperties: "User");
-            
-            // Note: Since IDistributedCache doesn't natively support Delete by prefix, 
-            // list caches will expire by TTL. For specific item, it's newly created so no cache exists yet.
-            
             return MapToResponseDto(createdNews!);
         }
 
@@ -178,11 +166,7 @@ namespace CafeShop.Service.Service.Admin
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
 
-            // Invalidate cache
-            await _redisCache.RemoveAsync($"cafeshop:news:id:{news.NewsId}");
-            await _redisCache.RemoveAsync($"cafeshop:news:slug:{news.Slug}");
-            // Invalidate the default page cache as a best effort
-            await _redisCache.RemoveAsync("cafeshop:news:all:page:1:size:10:keyword:none");
+            await _redisCache.BumpVersionAsync("news:ver");
 
             return MapToResponseDto(news);
         }
@@ -198,10 +182,7 @@ namespace CafeShop.Service.Service.Admin
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
 
-            // Invalidate cache
-            await _redisCache.RemoveAsync($"cafeshop:news:id:{news.NewsId}");
-            await _redisCache.RemoveAsync($"cafeshop:news:slug:{news.Slug}");
-            await _redisCache.RemoveAsync("cafeshop:news:all:page:1:size:10:keyword:none");
+            await _redisCache.BumpVersionAsync("news:ver");
         }
 
 

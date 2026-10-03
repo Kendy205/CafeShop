@@ -37,7 +37,7 @@ const INPUT_TAB_MANUAL = 'manual'
 
 export default function AddressManager({ hideTitle = false }) {
     const dispatch = useDispatch()
-    const { items: addresses, loading, submitting } = useSelector((s) => s.address)
+    const { items: addresses, loading, submitting } = useSelector((s) => s.user.address)
 
     // Trạng thái đang sửa địa chỉ
     const [editingId, setEditingId] = useState(null)

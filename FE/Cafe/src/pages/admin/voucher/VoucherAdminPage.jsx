@@ -20,8 +20,8 @@ import { TARGET_TYPE_LABEL, APPLY_TYPE_LABEL, DiscountType, VoucherTargetType } 
 
 export default function VoucherAdminPage() {
     const dispatch = useDispatch()
-    const { items, loading, submitting, error } = useSelector((s) => s.adminVoucher)
-    const { items: usersList, loading: usersLoading } = useSelector((s) => s.adminUser)
+    const { items, loading, submitting, error } = useSelector((s) => s.admin.voucher)
+    const { items: usersList, loading: usersLoading } = useSelector((s) => s.admin.user)
 
     const [open, setOpen] = useState(false)
     const [editing, setEditing] = useState(null)
@@ -167,7 +167,7 @@ export default function VoucherAdminPage() {
                                                     /* API Error Modal will handle this */
                                                 }
                                             }}
-                                            className={isAct ? 'bg-emerald-500' : 'bg-slate-300'}
+                                            className={`custom-admin-switch ${isAct ? 'bg-emerald-500' : 'bg-slate-300'}`}
                                         />
                                         <span className={`text-xs font-bold ${isAct ? 'text-emerald-600' : 'text-slate-400'}`}>
                                             {isAct ? 'Hoạt động' : 'Tạm dừng'}
@@ -184,7 +184,7 @@ export default function VoucherAdminPage() {
                                     <AdminTooltip title="Chỉnh sửa voucher">
                                         <button
                                             type="button"
-                                            className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-sky-700 hover:border-sky-300 transition-all cursor-pointer shadow-2xs"
+                                            className="admin-action-btn admin-action-btn-edit"
                                             onClick={() => {
                                                 setEditing(r)
                                                 setOpen(true)
@@ -199,7 +199,7 @@ export default function VoucherAdminPage() {
                                         <AdminTooltip title="Tặng mã ưu đãi này riêng cho khách hàng">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center gap-1.5 rounded-2xl border border-purple-200 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 text-xs font-bold text-purple-700 hover:border-purple-300 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                                                className="admin-action-btn admin-action-btn-assign"
                                                 onClick={() => openAssignModal(r)}
                                             >
                                                 <GiftOutlined className="text-purple-600" />

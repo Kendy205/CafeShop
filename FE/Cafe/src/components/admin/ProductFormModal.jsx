@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Button, Checkbox, message, Modal, Select, Upload } from 'antd'
 import { PictureOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/icons'
@@ -30,10 +30,10 @@ export default function ProductFormModal({
     masterToppings = [],
 }) {
     const dispatch = useDispatch()
-    const submitting = useSelector((s) => s.adminProduct.submitting)
+    const submitting = useSelector((s) => s.admin.product.submitting)
     const [previewUrl, setPreviewUrl] = useState('')
 
-    const getInitialValues = () => {
+    const initialValues = useMemo(() => {
         const matchedCategory = categories.find((c) => c.name === editingItem?.categoryName)
         const sizesState = {}
         
@@ -64,7 +64,20 @@ export default function ProductFormModal({
             sizes: sizesState,
             toppingIds: initialToppingIds
         }
-    }
+    }, [editingItem, categories, masterSizes])
+
+    const handleFileChange = useCallback((info, setFieldValue) => {
+        const file = info.file.originFileObj || info.file
+        if (!file) return
+        if (!file.type.startsWith('image/')) {
+            message.error('Chỉ được phép upload file ảnh!')
+            return
+        }
+        setFieldValue('imageFile', file)
+        const reader = new FileReader()
+        reader.onload = (e) => setPreviewUrl(e.target.result)
+        reader.readAsDataURL(file)
+    }, [])
 
     useEffect(() => {
         if (open) {
@@ -122,24 +135,11 @@ export default function ProductFormModal({
 
             <Formik
                 enableReinitialize
-                initialValues={getInitialValues()}
+                initialValues={initialValues}
                 validationSchema={productSchema}
                 onSubmit={handleSubmit}
             >
                 {({ values, errors, touched, setFieldValue }) => {
-                    const handleFileChange = (info) => {
-                        const file = info.file.originFileObj || info.file
-                        if (!file) return
-                        if (!file.type.startsWith('image/')) {
-                            message.error('Chỉ được phép upload file ảnh!')
-                            return
-                        }
-                        setFieldValue('imageFile', file)
-                        const reader = new FileReader()
-                        reader.onload = (e) => setPreviewUrl(e.target.result)
-                        reader.readAsDataURL(file)
-                    }
-
                     return (
                         <Form className="px-6 py-6 space-y-6 max-h-[70vh] overflow-y-auto bg-white custom-scrollbar">
                             <div className="flex flex-col items-center justify-center mb-2">
@@ -155,7 +155,7 @@ export default function ProductFormModal({
                                         )}
                                     </div>
                                     <div className="absolute -bottom-3 -right-3">
-                                        <Upload showUploadList={false} beforeUpload={() => false} onChange={handleFileChange}>
+                                        <Upload showUploadList={false} beforeUpload={() => false} onChange={(info) => handleFileChange(info, setFieldValue)}>
                                             <Button
                                                 shape="circle"
                                                 icon={<UploadOutlined />}
@@ -270,9 +270,7 @@ export default function ProductFormModal({
                                                         >
                                                             Size {ms.name}
                                                         </span>
-                                                        <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                                                            Tăng {ms.pricePercent}%
-                                                        </span>
+
                                                     </div>
 
                                                     {state.isSelected && (

@@ -24,7 +24,7 @@ export default function AdminTemplate() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const user = useSelector((s) => s.auth.user)
+    const user = useSelector((s) => s.app.auth.user)
 
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
@@ -50,9 +50,7 @@ export default function AdminTemplate() {
         { path: '/admin', label: 'Tổng quan', icon: <DashboardOutlined /> },
         { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: <ShoppingOutlined /> },
         { path: '/admin/products', label: 'Sản phẩm', icon: <CoffeeOutlined /> },
-        { path: '/admin/categories', label: 'Danh mục', icon: <AppstoreOutlined /> },
-        { path: '/admin/toppings', label: 'Topping', icon: <CoffeeOutlined /> },
-        { path: '/admin/sizes', label: 'Kích cỡ', icon: <AppstoreOutlined /> },
+        { path: '/admin/menu-config', label: 'Thuộc tính SP', icon: <AppstoreOutlined /> },
         { path: '/admin/vouchers', label: 'Mã giảm giá', icon: <TagOutlined /> },
         { path: '/admin/users', label: 'Khách hàng', icon: <TeamOutlined /> },
         { path: '/admin/news', label: 'Tin tức', icon: <AppstoreOutlined /> },

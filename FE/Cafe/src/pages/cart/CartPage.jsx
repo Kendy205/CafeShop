@@ -10,7 +10,7 @@ import { ProductCardSkeleton } from '../../components/loading/Skeleton'
 export default function CartPage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { items, totalPrice, loading, error, submitting } = useSelector((s) => s.cart)
+    const { items, totalPrice, loading, error, submitting } = useSelector((s) => s.user.cart)
 
     useEffect(() => {
         dispatch(getCart())

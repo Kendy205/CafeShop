@@ -13,6 +13,7 @@ import {
     VoucherTargetType,
 } from '../../utils/constants/VoucherConstants'
 import LoadingLink from '../../components/loading/LoadingLink'
+import AppSearchBox from '../../components/common/AppSearchBox'
 
 // ── Format Ngày ────────────────────────────────────────────────────────────────
 function formatDate(dateStr) {
@@ -200,7 +201,7 @@ export default function MyVouchersPage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    const { items: vouchers, loading, error } = useSelector((s) => s.voucher)
+    const { items: vouchers, loading, error } = useSelector((s) => s.user.voucher)
     const [filter, setFilter] = useState('ALL')
     const [searchQuery, setSearchQuery] = useState('')
 
@@ -323,27 +324,11 @@ export default function MyVouchersPage() {
             {/* Ô tìm kiếm & Bộ lọc */}
             <div className="mb-6 space-y-3">
                 {/* Search input */}
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="Tìm theo mã hoặc tên voucher..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-10 text-xs text-slate-800 placeholder-slate-400 shadow-2xs focus:border-sky-600 focus:outline-hidden"
-                    />
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                        🔍
-                    </span>
-                    {searchQuery && (
-                        <button
-                            type="button"
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
-                        >
-                            ✕
-                        </button>
-                    )}
-                </div>
+                <AppSearchBox
+                    initialValue={searchQuery}
+                    placeholder="Tìm theo mã hoặc tên voucher..."
+                    onSearch={(val) => setSearchQuery(val)}
+                />
 
                 {/* Filter Pills */}
                 <div className="flex flex-wrap items-center gap-1.5">

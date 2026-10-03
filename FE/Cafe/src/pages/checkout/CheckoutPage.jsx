@@ -48,15 +48,15 @@ export default function CheckoutPage() {
     // ── Cart & Buy Now state ───────────────────────────────────────────────
     const isBuyNow = Boolean(location.state?.buyNow)
     const buyNowItems = location.state?.buyNowItems
-    const cartItems = useSelector((s) => s.cart.items)
-    const cartTotal = useSelector((s) => s.cart.totalPrice)
+    const cartItems = useSelector((s) => s.user.cart.items)
+    const cartTotal = useSelector((s) => s.user.cart.totalPrice)
     const items = isBuyNow && buyNowItems?.length ? buyNowItems : cartItems
 
     // ── Redux Store selectors ──────────────────────────────────────────────
-    const { user } = useSelector((s) => s.auth)
-    const addresses = useSelector((s) => s.address.items)
-    const vouchers = useSelector((s) => s.voucher.items)
-    const { submitting, error, cafeLat: storeCafeLat, cafeLng: storeCafeLng } = useSelector((s) => s.order)
+    const { user } = useSelector((s) => s.app.auth)
+    const addresses = useSelector((s) => s.user.address.items)
+    const vouchers = useSelector((s) => s.user.voucher.items)
+    const { submitting, error, cafeLat: storeCafeLat, cafeLng: storeCafeLng } = useSelector((s) => s.user.order)
     const cafeLat = storeCafeLat || DEFAULT_CAFE_LAT
     const cafeLng = storeCafeLng || DEFAULT_CAFE_LNG
 

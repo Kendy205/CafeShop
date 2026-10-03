@@ -14,8 +14,8 @@ import { feedbackService } from '../../services/user/FeedbackService'
 export default function ProductDetailPage() {
     const { id } = useParams()
     const dispatch = useDispatch()
-    const { detail, detailLoading, error } = useSelector((s) => s.product)
-    const isAuthenticated = useSelector((s) => s.auth.isAuthenticated)
+    const { detail, detailLoading, error } = useSelector((s) => s.user.product)
+    const isAuthenticated = useSelector((s) => s.app.auth.isAuthenticated)
     const [summary, setSummary] = useState(null)
 
     useEffect(() => {

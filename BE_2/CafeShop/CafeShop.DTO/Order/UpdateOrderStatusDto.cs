@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CafeShop.DTO.Admin
+namespace CafeShop.DTO.Order
 {
     public class UpdateOrderStatusDto
     {

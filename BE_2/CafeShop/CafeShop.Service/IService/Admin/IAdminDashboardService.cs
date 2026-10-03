@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CafeShop.DTO.Admin;
+using CafeShop.DTO.Category;
+using CafeShop.DTO.Product;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard;
 
 namespace CafeShop.Service.IService.Admin
 {

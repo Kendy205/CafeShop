@@ -47,7 +47,7 @@ function AnimatedCheck() {
 
 // ── Component chính OrderSuccessPage ──────────────────────────────────────────
 export default function OrderSuccessPage() {
-    const order = useSelector((s) => s.order.lastOrder)
+    const order = useSelector((s) => s.user.order.lastOrder)
 
     // Trích xuất các trường từ data trả về từ API Checkout / Buy Now
     const orderId = order?.orderId ?? order?.id

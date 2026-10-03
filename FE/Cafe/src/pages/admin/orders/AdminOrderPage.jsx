@@ -14,12 +14,13 @@ import { STATUS_CONFIG, ORDER_STATUS_TABS, getStatusConfig } from '../../../util
 import OrderDetailModal from '../../../components/admin/OrderAdmin/OrderDetailModal'
 import OrderTableRow from '../../../components/admin/OrderAdmin/OrderTableRow'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AppSearchBox from '../../../components/common/AppSearchBox'
 import { ShoppingCartOutlined, SyncOutlined } from '@ant-design/icons'
 
 // ─── Trang chính AdminOrderPage ───────────────────────────────────────────────
 export default function AdminOrderPage() {
     const dispatch = useDispatch()
-    const { items: orders, total, totalPages, loading, error } = useSelector((s) => s.adminOrder)
+    const { items: orders, total, totalPages, loading, error } = useSelector((s) => s.admin.order)
 
     const [pageNumber, setPageNumber] = useState(1)
     const [activeStatus, setActiveStatus] = useState('ALL')
@@ -102,25 +103,12 @@ export default function AdminOrderPage() {
 
             {/* Toolbar: Search & Filter Tabs */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
-                <div className="relative flex-1 min-w-[220px] max-w-md">
-                    <input
-                        id="admin-order-keyword"
-                        type="text"
-                        value={keyword}
-                        onChange={(e) => { setKeyword(e.target.value); setPageNumber(1) }}
-                        placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn..."
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
-                    />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
-                    {keyword && (
-                        <button
-                            onClick={() => { setKeyword(''); setPageNumber(1) }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                            ✕
-                        </button>
-                    )}
-                </div>
+                <AppSearchBox
+                    initialValue={keyword}
+                    placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn..."
+                    onSearch={(val) => { setKeyword(val); setPageNumber(1); }}
+                    className="flex-1 min-w-[220px] max-w-md"
+                />
 
                 <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                     {ORDER_STATUS_TABS.map((tab) => (

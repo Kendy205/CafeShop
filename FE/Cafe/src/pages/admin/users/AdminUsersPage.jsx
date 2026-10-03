@@ -1,20 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Table, Input, Card, Tag, Switch, message, Avatar } from 'antd'
+import { Table, Input, Card, Tag, Switch, message, Avatar, Space } from 'antd'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
-import { SearchOutlined, UserOutlined } from '@ant-design/icons'
+import { SearchOutlined, UserOutlined, PlusOutlined, EditOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { fetchAdminUsers, toggleAdminUserStatus } from '../../../redux/actions/admin/adminUserAction'
+import { fetchRoles } from '../../../redux/actions/admin/adminRoleAction'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import AdminTable from '../../../components/admin/common/AdminTable'
+import AppSearchBox from '../../../components/common/AppSearchBox'
+import AdminUserModal from './AdminUserModal'
+import AdminAssignRoleModal from './AdminAssignRoleModal'
 
 export default function AdminUsersPage() {
     const dispatch = useDispatch()
-    const { items, total, page, pageSize, loading, submitting } = useSelector((s) => s.adminUser)
+    const { items, total, page, pageSize, loading, submitting } = useSelector((s) => s.admin.user)
+    const { roles } = useSelector((s) => s.admin.role)
 
     const [searchKeyword, setSearchKeyword] = useState('')
-    const [typingTimeout, setTypingTimeout] = useState(null)
+    const [userModalVisible, setUserModalVisible] = useState(false)
+    const [editingUser, setEditingUser] = useState(null)
+    const [roleModalVisible, setRoleModalVisible] = useState(false)
+    const [assigningUser, setAssigningUser] = useState(null)
 
-    // Helper to call API
     const loadData = (p = 1, search = '') => {
         dispatch(fetchAdminUsers({ searchKeyword: search, pageNumber: p, pageSize }))
     }
@@ -22,21 +29,8 @@ export default function AdminUsersPage() {
     // Initial load
     useEffect(() => {
         loadData(page, searchKeyword)
+        dispatch(fetchRoles())
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Handle Search with debounce
-    const handleSearchChange = (e) => {
-        const value = e.target.value
-        setSearchKeyword(value)
-
-        if (typingTimeout) clearTimeout(typingTimeout)
-
-        setTypingTimeout(
-            setTimeout(() => {
-                loadData(1, value)
-            }, 500)
-        )
-    }
 
     const handlePageChange = (newPage) => {
         loadData(newPage, searchKeyword)
@@ -46,9 +40,22 @@ export default function AdminUsersPage() {
         const res = await dispatch(toggleAdminUserStatus(userId))
         if (toggleAdminUserStatus.fulfilled.match(res)) {
             message.success('Đã cập nhật trạng thái khách hàng')
-        } else {
-            /* API Error Modal will handle this */
         }
+    }
+
+    const handleOpenCreate = () => {
+        setEditingUser(null)
+        setUserModalVisible(true)
+    }
+
+    const handleOpenEdit = (user) => {
+        setEditingUser(user)
+        setUserModalVisible(true)
+    }
+
+    const handleOpenAssignRole = (user) => {
+        setAssigningUser(user)
+        setRoleModalVisible(true)
     }
 
     const columns = [
@@ -79,13 +86,26 @@ export default function AdminUsersPage() {
         },
         {
             title: 'Vai trò',
-            dataIndex: 'role',
-            key: 'role',
-            render: (role) => (
-                <Tag color={role === 'Admin' || role === 'Administrator' ? 'volcano' : 'blue'} className="rounded-full font-semibold border-none px-3">
-                    {role || 'User'}
-                </Tag>
-            )
+            dataIndex: 'roles',
+            key: 'roles',
+            render: (roles) => {
+                if (!roles || roles.length === 0) {
+                    return <Tag color="blue" className="rounded-full font-semibold border-none px-3">User</Tag>
+                }
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {roles.map(role => (
+                            <Tag 
+                                key={role} 
+                                color={role === 'Admin' || role === 'Administrator' ? 'volcano' : 'purple'} 
+                                className="rounded-full font-semibold border-none px-3 m-0"
+                            >
+                                {role}
+                            </Tag>
+                        ))}
+                    </div>
+                )
+            }
         },
         {
             title: 'Ngày tham gia',
@@ -107,11 +127,37 @@ export default function AdminUsersPage() {
                         checked={record.isActive}
                         onChange={() => handleToggleStatus(record.userId || record.id)}
                         disabled={submitting}
-                        checkedChildren="Hoạt động"
-                        unCheckedChildren="Đã khóa"
-                        className="custom-switch"
+                        className={record.isActive ? 'bg-emerald-500' : 'bg-slate-300'}
                     />
                 </AdminTooltip>
+            )
+        },
+        {
+            title: 'Thao tác',
+            key: 'action',
+            align: 'center',
+            width: 180,
+            render: (_, record) => (
+                <div className="flex items-center justify-center gap-2">
+                    <AdminTooltip title="Sửa thông tin">
+                        <button
+                            onClick={() => handleOpenEdit(record)}
+                            className="admin-action-btn admin-action-btn-edit"
+                        >
+                            <EditOutlined />
+                            <span>Sửa</span>
+                        </button>
+                    </AdminTooltip>
+                    <AdminTooltip title="Cấp quyền truy cập hệ thống">
+                        <button
+                            onClick={() => handleOpenAssignRole(record)}
+                            className="admin-action-btn admin-action-btn-assign"
+                        >
+                            <SafetyCertificateOutlined className="text-purple-600" />
+                            <span>Cấp quyền</span>
+                        </button>
+                    </AdminTooltip>
+                </div>
             )
         }
     ]
@@ -133,27 +179,24 @@ export default function AdminUsersPage() {
 
             {/* Filter Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
-                <div className="relative flex-1 min-w-[220px] max-w-md">
-                    <input
-                        type="text"
-                        placeholder="Tìm theo tên, email, số điện thoại, username..."
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
-                        value={searchKeyword}
-                        onChange={handleSearchChange}
-                    />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm">🔍</span>
-                    {searchKeyword && (
-                        <button
-                            onClick={() => { setSearchKeyword(''); loadData(1, ''); }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                            ✕
-                        </button>
-                    )}
-                </div>
+                <AppSearchBox
+                    initialValue={searchKeyword}
+                    placeholder="Tìm theo tên, email, số điện thoại, username..."
+                    onSearch={(val) => { setSearchKeyword(val); loadData(1, val); }}
+                    className="flex-1 min-w-[220px] max-w-md"
+                />
 
-                <div className="text-xs text-slate-500 font-semibold">
-                    Hiển thị: <strong className="text-sky-700">{items.length}</strong> / {total} tài khoản
+                <div className="flex items-center gap-4">
+                    <div className="text-xs text-slate-500 font-semibold">
+                        Hiển thị: <strong className="text-sky-700">{items.length}</strong> / {total} tài khoản
+                    </div>
+                    <button
+                        onClick={handleOpenCreate}
+                        className="flex items-center gap-2 rounded-2xl bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/20 hover:bg-sky-700 transition-all active:scale-95"
+                    >
+                        <PlusOutlined />
+                        Thêm Khách Hàng
+                    </button>
                 </div>
             </div>
 
@@ -166,6 +209,20 @@ export default function AdminUsersPage() {
                 pageSize={pageSize}
                 totalItems={total}
                 onPageChange={handlePageChange}
+            />
+
+            <AdminUserModal 
+                visible={userModalVisible} 
+                onClose={() => setUserModalVisible(false)} 
+                editingUser={editingUser} 
+                roles={roles} 
+            />
+
+            <AdminAssignRoleModal 
+                visible={roleModalVisible} 
+                onClose={() => setRoleModalVisible(false)} 
+                assigningUser={assigningUser} 
+                roles={roles} 
             />
         </div>
     )

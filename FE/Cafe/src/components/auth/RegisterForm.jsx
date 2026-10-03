@@ -23,7 +23,7 @@ const schema = Yup.object({
 export default function RegisterForm({ onSwitchLogin, onSuccess, isModal = false }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { error, submitting, isAuthenticated } = useSelector((s) => s.auth)
+    const { error, submitting, isAuthenticated } = useSelector((s) => s.app.auth)
     const [success, setSuccess] = useState('')
     const [showPassword, setShowPassword] = useState(false)
 

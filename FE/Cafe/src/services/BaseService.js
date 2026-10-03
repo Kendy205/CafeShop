@@ -91,7 +91,7 @@ http.interceptors.response.use(
         const status = error.response?.status
         const shouldStopLoading = Boolean(originalRequest?.__globalLoadingCountered)
         
-        // ── Xử lý Global Api Error ──
+        // // ── Xử lý Global Api Error ──
         if (status && status >= 400 && status !== 401) {
             const body = error.response?.data
             const msg = body?.Message || body?.message || error.message || 'Lỗi không xác định từ máy chủ'

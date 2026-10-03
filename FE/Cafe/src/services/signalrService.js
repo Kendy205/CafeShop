@@ -1,6 +1,9 @@
 import * as signalR from '@microsoft/signalr'
 import { DOMAIN, TOKEN } from '../utils/constants/System'
 
+const isDev = import.meta.env.DEV
+const devLog = (...args) => { if (isDev) console.log(...args) }
+
 // ── Web Audio API: Shared AudioContext để phát chuông ding-dong nhẹ nhàng ───
 let sharedAudioContext = null
 
@@ -61,8 +64,6 @@ class SignalRService {
         this.adminCallbacks = new Set()
         this.userCallbacks = new Set()
         this.reconnectedCallbacks = new Set()
-
-        this.initConnection()
     }
 
     initConnection() {
@@ -73,11 +74,7 @@ class SignalRService {
             .withUrl(hubUrl, {
                 // Đọc token bên trong factory để auto-reconnect luôn lấy token mới nhất
                 accessTokenFactory: () => {
-                    const token =
-                        localStorage.getItem(TOKEN) ||
-                        localStorage.getItem('token') ||
-                        localStorage.getItem('accessToken') ||
-                        ''
+                    const token = localStorage.getItem(TOKEN) || ''
                     return token.replace(/^Bearer\s+/i, '').trim()
                 },
             })
@@ -89,7 +86,7 @@ class SignalRService {
         const adminEvents = ['ReceiveAdminNotification', 'NewOrder', 'ReceiveOrderNotification']
         adminEvents.forEach((evt) => {
             this.connection.on(evt, (data) => {
-                console.log(`[SignalR Hub] Admin event (${evt}) received:`, data)
+                devLog(`[SignalR Hub] Admin event (${evt}) received:`, data)
                 this.adminCallbacks.forEach((cb) => {
                     try {
                         cb(data)
@@ -104,7 +101,7 @@ class SignalRService {
         const userEvents = ['ReceiveUserNotification', 'ReceiveNotification', 'OrderStatusChanged', 'ReceiveOrderNotification', 'OrderUpdated']
         userEvents.forEach((evt) => {
             this.connection.on(evt, (data) => {
-                console.log(`[SignalR Hub] User event (${evt}) received:`, data)
+                devLog(`[SignalR Hub] User event (${evt}) received:`, data)
                 this.userCallbacks.forEach((cb) => {
                     try {
                         cb(data)
@@ -116,7 +113,7 @@ class SignalRService {
         })
 
         this.connection.onreconnected((connectionId) => {
-            console.log('SignalR reconnected successfully. ConnectionId:', connectionId)
+            devLog('SignalR reconnected successfully. ConnectionId:', connectionId)
             this.reconnectedCallbacks.forEach((cb) => {
                 try {
                     cb(connectionId)
@@ -128,12 +125,13 @@ class SignalRService {
     }
 
     async startConnection() {
-        const token =
-            localStorage.getItem(TOKEN) ||
-            localStorage.getItem('token') ||
-            localStorage.getItem('accessToken')
+        const token = localStorage.getItem(TOKEN)
         if (!token) {
             return
+        }
+
+        if (!this.connection) {
+            this.initConnection()
         }
 
         // Tránh start trùng lặp hoặc xung đột do React StrictMode
@@ -148,7 +146,7 @@ class SignalRService {
         this.startPromise = this.connection
             .start()
             .then(() => {
-                console.log('Connected to SignalR Hub!')
+                devLog('Connected to SignalR Hub!')
             })
             .catch((err) => {
                 console.error('Error while starting SignalR connection:', err)
@@ -172,7 +170,7 @@ class SignalRService {
         if (this.connection && this.connection.state !== signalR.HubConnectionState.Disconnected) {
             try {
                 await this.connection.stop()
-                console.log('SignalR connection stopped.')
+                devLog('SignalR connection stopped.')
             } catch (err) {
                 console.error('Error while stopping SignalR connection:', err)
             } finally {

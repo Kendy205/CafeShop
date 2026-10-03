@@ -5,6 +5,7 @@ import { getProducts } from '../../redux/actions/user/productAction'
 import { getCategories } from '../../redux/actions/user/categoryAction'
 import ProductGrid from '../../components/product/ProductGrid'
 import ProductSearchBox from '../../components/product/ProductSearchBox'
+import AppSearchBox from '../../components/common/AppSearchBox'
 import AppPagination from '../../components/common/AppPagination'
 import LoadingLink from '../../components/loading/LoadingLink'
 import hero from '../../assets/ChatGPT Image 16_14_44 8 thg 9, 2026.png'
@@ -43,8 +44,8 @@ const RATING_OPTIONS = [
 export default function HomePage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { items, loading, error, totalPages, total, pageSize } = useSelector((s) => s.product)
-    const { items: categories } = useSelector((s) => s.category)
+    const { items, loading, error, totalPages, total, pageSize } = useSelector((s) => s.user.product)
+    const { items: categories } = useSelector((s) => s.user.category)
 
     const [pageNumber, setPageNumber] = useState(1)
     const [keyword, setKeyword] = useState('')
@@ -279,26 +280,12 @@ export default function HomePage() {
 
                     <div className="flex flex-wrap items-center gap-2">
                         {/* Keyword search */}
-                        <div className="relative min-w-[220px]">
-                            <input
-                                id="homepage-keyword"
-                                type="text"
-                                value={keyword}
-                                onChange={(e) => handleFilterChange(setKeyword)(e.target.value)}
-                                placeholder="Tìm tên món..."
-                                className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none transition-colors focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200"
-                            />
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">🔍</span>
-                            {keyword && (
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterChange(setKeyword)('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
-                                >
-                                    ✕
-                                </button>
-                            )}
-                        </div>
+                        <AppSearchBox
+                            initialValue={keyword}
+                            placeholder="Tìm tên món..."
+                            onSearch={(val) => handleFilterChange(setKeyword)(val)}
+                            className="min-w-[220px]"
+                        />
 
                         {/* Sort dropdown */}
                         <select

@@ -24,7 +24,7 @@ function formatDate(str) {
 
 export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
     const dispatch = useDispatch()
-    const { detail, detailLoading: loading, updating, detailError: error } = useSelector((s) => s.adminOrder)
+    const { detail, detailLoading: loading, updating, detailError: error } = useSelector((s) => s.admin.order)
 
     const [showCancelModal, setShowCancelModal] = useState(false)
     const [pendingStatus, setPendingStatus] = useState(null)

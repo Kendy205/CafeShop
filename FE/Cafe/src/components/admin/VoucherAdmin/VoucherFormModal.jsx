@@ -92,6 +92,7 @@ export default function VoucherFormModal({
             open={open}
             onCancel={onClose}
             footer={null}
+            closeIcon={false}
             centered
             width={680}
             destroyOnClose

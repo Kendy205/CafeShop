@@ -60,7 +60,7 @@ export const register = createAsyncThunk(
 export const refreshAuth = createAsyncThunk(
     'auth/refreshAuth',
     async (_, { getState, rejectWithValue }) => {
-        const { accessToken, refreshToken } = getState().auth
+        const { accessToken, refreshToken } = getState().app.auth
         if (!refreshToken) {
             return rejectWithValue('Phiên đăng nhập đã hết hạn')
         }
@@ -68,7 +68,6 @@ export const refreshAuth = createAsyncThunk(
             const res = await authService.refreshTokens({
                 accessToken,
                 refreshToken,
-                token: accessToken,
             })
             const payload = unwrapApi(res)
             const mapped = mapAuthPayload(payload)

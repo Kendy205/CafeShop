@@ -1,6 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using CafeShop.DTO.Admin;
+using CafeShop.DTO.Category;
+using CafeShop.DTO.Product;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -61,6 +66,72 @@ namespace CafeShop.Controllers.Admin
             {
                 bool newState = await _userService.ToggleUserStatusAsync(id);
                 return Ok(ApiResponse<object>.Succeeded(new { UserId = id, IsActive = newState }, 200, newState ? "Đã mở khóa tài khoản khách hàng!" : "Đã khóa tài khoản khách hàng!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResponse<object>.Failed(ex.Message, 400));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+        public async Task<IActionResult> CreateUser([FromBody] CreateAdminUserDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ!", 400, ModelState));
+
+            try
+            {
+                var result = await _userService.CreateUserAsync(request);
+                return Ok(ApiResponse<AdminUserDto>.Succeeded(result, 201, "Tạo mới tài khoản thành công!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResponse<object>.Failed(ex.Message, 400));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
+            }
+        }
+
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateAdminUserDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ!", 400, ModelState));
+
+            try
+            {
+                var result = await _userService.UpdateUserAsync(id, request);
+                return Ok(ApiResponse<AdminUserDto>.Succeeded(result, 200, "Cập nhật thông tin tài khoản thành công!"));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResponse<object>.Failed(ex.Message, 400));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
+            }
+        }
+
+        [HttpPost("{id:int}/roles")]
+        [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+        public async Task<IActionResult> AssignRoles(int id, [FromBody] AssignRolesRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ!", 400, ModelState));
+
+            try
+            {
+                await _userService.AssignRolesAsync(id, request.RoleIds);
+                return Ok(ApiResponse<object>.Succeeded(null, 200, "Cập nhật quyền thành công!"));
             }
             catch (ArgumentException ex)
             {

@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace CafeShop.DTO.Admin
+namespace CafeShop.DTO.Product
 {
     public class CreateUpdateProductDto
     {
@@ -26,18 +25,9 @@ namespace CafeShop.DTO.Admin
         public IFormFile? ImageFile { get; set; }
 
         // Mảng JSON hoặc form field cấu hình Sizes
-        // Trong FormData, việc gửi mảng phức tạp hơi khó. 
-        // Thường chúng ta sẽ gửi chuỗi JSON rồi deserialize ở Backend.
         public string? ProductSizesJson { get; set; }
         
         // Mảng JSON cho Toppings. Chứa List<int> các ToppingId
         public string? ProductToppingsJson { get; set; }
-    }
-
-    public class CreateProductSizeDto
-    {
-        public int SizeId { get; set; }
-        public decimal? Price { get; set; }
-        public int StockQuantity { get; set; } = 0;
     }
 }

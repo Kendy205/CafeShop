@@ -47,6 +47,7 @@ export default function AssignVoucherModal({
             open={open}
             onCancel={onCancel}
             footer={null}
+            closeIcon={false}
             centered
             width={620}
             destroyOnClose

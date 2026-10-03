@@ -17,7 +17,7 @@ export default function LoginForm({ onSwitchRegister, onSuccess, isModal = false
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const { error, submitting, isAuthenticated, role } = useSelector((s) => s.auth)
+    const { error, submitting, isAuthenticated, role } = useSelector((s) => s.app.auth)
     const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {

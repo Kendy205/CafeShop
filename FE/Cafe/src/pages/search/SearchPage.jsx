@@ -37,8 +37,8 @@ function getCategoryIcon(catName) {
 
 function SearchResults({ q, setParams }) {
     const dispatch = useDispatch()
-    const { items, loading, error, totalPages, total, pageSize } = useSelector((s) => s.product)
-    const { items: categories } = useSelector((s) => s.category)
+    const { items, loading, error, totalPages, total, pageSize } = useSelector((s) => s.user.product)
+    const { items: categories } = useSelector((s) => s.user.category)
 
     const [pageNumber, setPageNumber] = useState(1)
     const [selectedCategoryId, setSelectedCategoryId] = useState(null)

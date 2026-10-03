@@ -14,7 +14,7 @@ export default function AuthModal({
     initialTab: propInitialTab,
 }) {
     const dispatch = useDispatch()
-    const { authModalOpen, authModalTab } = useSelector((s) => s.auth)
+    const { authModalOpen, authModalTab } = useSelector((s) => s.app.auth)
 
     // Hỗ trợ cả 2 cách: điều khiển qua Redux store hoặc qua props
     const isOpen = propOpen !== undefined ? propOpen : authModalOpen

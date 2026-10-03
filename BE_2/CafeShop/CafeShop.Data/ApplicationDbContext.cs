@@ -94,9 +94,23 @@ namespace CafeShop.Data
                 .HasIndex(n => n.Slug)
                 .IsUnique();
             modelBuilder.Entity<News>()
-                .HasIndex(n => n.Status);
+                .HasIndex(n => new { n.Status, n.IsDeleted, n.PublishedAt });
             modelBuilder.Entity<News>()
-                .HasIndex(n => n.PublishedAt);
+                .HasIndex(n => new { n.Status, n.ScheduledPublishAt });
+
+            // Cấu hình Feedback
+            modelBuilder.Entity<Feedback>()
+                .Property(f => f.IsVisible)
+                .HasDefaultValue(true);
+            modelBuilder.Entity<Feedback>()
+                .HasIndex(f => new { f.ProductId, f.IsVisible, f.CreatedAt });
+            modelBuilder.Entity<Feedback>()
+                .HasIndex(f => f.CreatedAt);
+            modelBuilder.Entity<Feedback>()
+                .HasIndex(f => f.Rating);
+            modelBuilder.Entity<Feedback>()
+                .HasIndex(f => f.OrderDetailId)
+                .IsUnique();
 
             modelBuilder.Entity<News>()
                 .HasOne(n => n.User)

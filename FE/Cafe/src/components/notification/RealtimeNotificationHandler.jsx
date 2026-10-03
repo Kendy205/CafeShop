@@ -19,7 +19,7 @@ function parsePayload(raw) {
 
 export default function RealtimeNotificationHandler() {
     const navigate = useNavigate()
-    const { isAuthenticated, accessToken, role } = useSelector((s) => s.auth)
+    const { isAuthenticated, accessToken, role } = useSelector((s) => s.app.auth)
     const recentEventsRef = useRef(new Map())
 
     // Chống trùng lặp sự kiện trong vòng 3 giây

@@ -3,7 +3,7 @@ import { hideApiError } from '../../redux/slices/uiSlice'
 
 export default function ApiErrorModal() {
     const dispatch = useDispatch()
-    const { show, message, statusCode } = useSelector((state) => state.ui.apiError)
+    const { show, message, statusCode } = useSelector((state) => state.app.ui.apiError)
 
     if (!show) return null
 

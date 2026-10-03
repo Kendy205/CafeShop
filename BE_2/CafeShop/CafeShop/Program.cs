@@ -36,11 +36,14 @@ builder.Services.AddAutoMapper(config =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Redis Configuration
+var redisConnectionString = builder.Configuration.GetSection("Redis")["ConnectionString"];
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration.GetSection("Redis")["ConnectionString"];
+    options.Configuration = redisConnectionString;
     options.InstanceName = "CafeShop_";
 });
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp => 
+    StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnectionString + ",abortConnect=false"));
 builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 //User Services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -69,8 +72,10 @@ builder.Services.AddScoped<IAdminShippingConfigService, AdminShippingConfigServi
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 builder.Services.AddScoped<IAdminVoucherService, AdminVoucherService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+builder.Services.AddScoped<CafeShop.Service.IService.Admin.IAdminRoleService, CafeShop.Service.Service.Admin.AdminRoleService>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IAdminNewsService, AdminNewsService>();
+builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
 //public Services
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

@@ -15,8 +15,8 @@ export default function ProfilePage({ defaultTab }) {
     const dispatch = useDispatch()
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { user } = useSelector((s) => s.auth)
-    const { profile, loading: profileLoading } = useSelector((s) => s.user)
+    const { user } = useSelector((s) => s.app.auth)
+    const { profile, loading: profileLoading } = useSelector((s) => s.user.profile)
 
     const tabParam = searchParams.get('tab')
     const [activeTab, setActiveTab] = useState(

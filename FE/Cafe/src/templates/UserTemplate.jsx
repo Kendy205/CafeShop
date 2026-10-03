@@ -15,7 +15,6 @@ import {
     TagOutlined,
 } from '@ant-design/icons'
 import LoadingLink from '../components/loading/LoadingLink'
-import AuthModal from '../components/auth/AuthModal'
 import { logout, openAuthModal } from '../redux/slices/authSlice'
 import { getCart } from '../redux/actions/user/cartAction'
 import { isAdminRole } from '../utils/auth/authRole'
@@ -37,8 +36,8 @@ export default function UserTemplate() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const { isAuthenticated, user, role } = useSelector((s) => s.auth)
-    const cartCount = useSelector((s) => s.cart.items.length)
+    const { isAuthenticated, user, role } = useSelector((s) => s.app.auth)
+    const cartCount = useSelector((s) => s.user.cart.items.length)
     const [orderUpdateCount, setOrderUpdateCount] = useState(0)
 
     useEffect(() => {
@@ -193,9 +192,6 @@ export default function UserTemplate() {
                     <span>Cafe Ordering System © {new Date().getFullYear()} - Designed with <span className="text-sky-500">Apple Style</span></span>
                 </div>
             </footer>
-
-            {/* Popup Đăng nhập & Đăng ký */}
-            <AuthModal />
         </div>
     )
 }

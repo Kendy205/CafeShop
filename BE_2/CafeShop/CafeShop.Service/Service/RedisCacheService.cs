@@ -10,13 +10,17 @@ namespace CafeShop.Service.Service
     public class RedisCacheService : IRedisCacheService
     {
         private readonly IDistributedCache _cache;
+        private readonly StackExchange.Redis.IConnectionMultiplexer _multiplexer;
         private readonly ILogger<RedisCacheService> _logger;
 
-        public RedisCacheService(IDistributedCache cache, ILogger<RedisCacheService> logger)
+        public RedisCacheService(IDistributedCache cache, StackExchange.Redis.IConnectionMultiplexer multiplexer, ILogger<RedisCacheService> logger)
         {
             _cache = cache;
+            _multiplexer = multiplexer;
             _logger = logger;
         }
+
+        private string Prefixed(string key) => $"CafeShop_{key}";
 
         public async Task<T?> GetAsync<T>(string key)
         {
@@ -25,17 +29,16 @@ namespace CafeShop.Service.Service
                 var cachedValue = await _cache.GetStringAsync(key);
                 if (cachedValue != null)
                 {
-                    _logger.LogInformation($"Redis cache HIT: {key}");
+                    _logger.LogDebug($"Redis cache HIT: {key}");
                     return JsonSerializer.Deserialize<T>(cachedValue);
                 }
-
-                _logger.LogInformation($"Redis cache MISS: {key}");
+                _logger.LogDebug($"Redis cache MISS: {key}");
                 return default;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, $"Redis cache error when getting key: {key}");
-                return default; // Fallback to database
+                return default;
             }
         }
 
@@ -43,14 +46,19 @@ namespace CafeShop.Service.Service
         {
             try
             {
+                // Jitter +/- 10%
+                var random = new Random();
+                var jitterMultiplier = 0.9 + (random.NextDouble() * 0.2);
+                var jitteredExpiration = TimeSpan.FromMilliseconds(expiration.TotalMilliseconds * jitterMultiplier);
+
                 var options = new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = expiration
+                    AbsoluteExpirationRelativeToNow = jitteredExpiration
                 };
 
                 var serializedValue = JsonSerializer.Serialize(value);
                 await _cache.SetStringAsync(key, serializedValue, options);
-                _logger.LogInformation($"Redis cache SET: {key}");
+                _logger.LogDebug($"Redis cache SET: {key}");
             }
             catch (Exception ex)
             {
@@ -63,7 +71,7 @@ namespace CafeShop.Service.Service
             try
             {
                 await _cache.RemoveAsync(key);
-                _logger.LogInformation($"Redis cache REMOVE: {key}");
+                _logger.LogDebug($"Redis cache REMOVE: {key}");
             }
             catch (Exception ex)
             {
@@ -73,12 +81,106 @@ namespace CafeShop.Service.Service
 
         public async Task RemoveByPrefixAsync(string prefixKey)
         {
-            // Note: IDistributedCache doesn't support wildcard deleting directly. 
-            // In a real StackExchange.Redis implementation we would use `IServer.Keys(pattern)`.
-            // For now, if we need wildcard we might need StackExchange.Redis directly.
-            // Since we use IDistributedCache, we'll assume we pass exact keys to RemoveAsync.
-            // For simple cache-aside we can just manage explicit keys.
-            throw new NotImplementedException("RemoveByPrefixAsync requires StackExchange.Redis ConnectionMultiplexer.");
+            try
+            {
+                var db = _multiplexer.GetDatabase();
+                var endpoints = _multiplexer.GetEndPoints();
+                var pattern = Prefixed(prefixKey) + "*";
+                
+                foreach (var endpoint in endpoints)
+                {
+                    var server = _multiplexer.GetServer(endpoint);
+                    if (server.IsConnected)
+                    {
+                        var keys = server.KeysAsync(pattern: pattern);
+                        await foreach (var key in keys)
+                        {
+                            await db.KeyDeleteAsync(key);
+                        }
+                    }
+                }
+                _logger.LogDebug($"Redis cache REMOVE PREFIX: {prefixKey}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Redis cache error when removing prefix: {prefixKey}");
+            }
+        }
+
+        public async Task<long> GetVersionAsync(string key)
+        {
+            try
+            {
+                var db = _multiplexer.GetDatabase();
+                var value = await db.StringGetAsync(Prefixed(key));
+                if (value.HasValue && long.TryParse(value, out var version))
+                    return version;
+                return 1; // Default version
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Redis cache error GetVersionAsync: {key}");
+                return 1;
+            }
+        }
+
+        public async Task BumpVersionAsync(string key)
+        {
+            try
+            {
+                var db = _multiplexer.GetDatabase();
+                await db.StringIncrementAsync(Prefixed(key));
+                _logger.LogDebug($"Redis cache BUMP VERSION: {key}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Redis cache error BumpVersionAsync: {key}");
+            }
+        }
+
+        public async Task<long> IncrementAsync(string key)
+        {
+            try
+            {
+                var db = _multiplexer.GetDatabase();
+                return await db.StringIncrementAsync(Prefixed(key));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Redis cache error IncrementAsync: {key}");
+                return 0;
+            }
+        }
+
+        public async Task<long> GetAndResetAsync(string key)
+        {
+            try
+            {
+                var db = _multiplexer.GetDatabase();
+                var val = await db.StringGetDeleteAsync(Prefixed(key));
+                if (val.HasValue && long.TryParse(val, out var count))
+                    return count;
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Redis cache error GetAndResetAsync: {key}");
+                return 0;
+            }
+        }
+
+        public async Task<bool> TryLockAsync(string key, TimeSpan ttl)
+        {
+            try
+            {
+                var db = _multiplexer.GetDatabase();
+                return await db.StringSetAsync(Prefixed(key), "locked", ttl, StackExchange.Redis.When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Redis cache error TryLockAsync: {key}");
+                return false;
+            }
         }
     }
 }
