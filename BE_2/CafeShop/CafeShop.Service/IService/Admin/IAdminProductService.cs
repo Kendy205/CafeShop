@@ -18,6 +18,8 @@ namespace CafeShop.Service.IService.Admin
             int? categoryId = null,
             decimal? minPrice = null,
             decimal? maxPrice = null,
+            bool? isAvailable = null,
+            bool? outOfStock = null,
             string? sortBy = null,
             int pageNumber = 1,
             int pageSize = 10);

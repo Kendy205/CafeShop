@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { message } from 'antd'
 import { changePassword } from '../../redux/actions/user/userAction'
 import { resetPasswordStatus } from '../../redux/slices/user/userSlice'
+import { AppToast, AppConfirm } from '../common/AppNotification'
+
 
 export default function ChangePasswordForm() {
     const dispatch = useDispatch()
@@ -47,7 +49,7 @@ export default function ChangePasswordForm() {
                 res.payload?.message ||
                 'Đổi mật khẩu thành công! Vui lòng sử dụng mật khẩu mới cho lần đăng nhập sau.'
             setPasswordSuccessAlert(successMsg)
-            message.success(successMsg)
+            AppToast.success(successMsg)
             setCurrentPassword('')
             setNewPassword('')
             setConfirmNewPassword('')
@@ -55,7 +57,7 @@ export default function ChangePasswordForm() {
         } else {
             const errMsg = res.payload || 'Đổi mật khẩu thất bại!'
             setPasswordErrorAlert(errMsg)
-            message.error(errMsg)
+            AppToast.error(errMsg)
         }
     }
 

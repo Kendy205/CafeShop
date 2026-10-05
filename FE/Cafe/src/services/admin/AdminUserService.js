@@ -1,7 +1,7 @@
 import { BaseServices } from '../BaseService'
 
 export class AdminUserService extends BaseServices {
-    basePath = '/api/admin/user'
+    basePath = '/api/admin/User'
 
     /**
      * Lấy danh sách khách hàng

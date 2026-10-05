@@ -102,10 +102,12 @@ export default function HomePage() {
     return (
         <div className="space-y-12 pb-16">
             {/* ── 1. Hero Section Cao Cấp & Ấm Cúng ── */}
-            <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1a1008] via-[#2d180c] to-[#180e07] text-sky-50 shadow-2xl">
+            <section className="relative rounded-[2.5rem] bg-gradient-to-br from-[#1a1008] via-[#2d180c] to-[#180e07] text-sky-50 shadow-2xl">
                 {/* Hiệu ứng ánh sáng nền (Ambient Glows) */}
-                <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-orange-600/10 blur-3xl" />
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl" />
+                    <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-orange-600/10 blur-3xl" />
+                </div>
 
                 <div className="relative z-10 grid gap-8 lg:grid-cols-12 lg:items-center p-8 sm:p-10 lg:p-14">
                     {/* Cột Trái: Tiêu đề & Form tìm kiếm */}
@@ -243,25 +245,7 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ── 3. Dải Banner Khuyến Mãi Nhỏ (Voucher Promo Strip) ── */}
-            <section className="relative flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-r from-sky-50 via-orange-50/50 to-sky-100/60 p-5 sm:p-6 shadow-xs">
-                <div className="flex items-center gap-3.5">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-800 text-2xl text-white shadow-sm">🎁</div>
-                    <div>
-                        <h4 className="text-sm sm:text-base font-bold text-sky-950">Bạn đã nhận mã giảm giá hôm nay chưa?</h4>
-                        <p className="text-xs text-sky-800/80 mt-0.5">
-                            Hàng loạt voucher giảm đến 30% và ưu đãi Freeship đang chờ bạn trong ví!
-                        </p>
-                    </div>
-                </div>
-                <LoadingLink
-                    to="/vouchers"
-                    className="inline-flex items-center gap-1.5 rounded-3xl bg-sky-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-sky-900 hover:scale-[1.02] shrink-0"
-                >
-                    <span>Khám phá Voucher</span>
-                    <span>→</span>
-                </LoadingLink>
-            </section>
+
 
             {/* ── 4. Thanh Công Cụ Khám Phá Menu (Catalog Toolbar) ── */}
             <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
@@ -423,6 +407,26 @@ export default function HomePage() {
                 className="justify-center pt-2"
             />
 
+
+            {/* ── 3. Dải Banner Khuyến Mãi Nhỏ (Voucher Promo Strip) (Đã di chuyển xuống đây) ── */}
+            <section className="relative flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-r from-sky-50 via-orange-50/50 to-sky-100/60 p-5 sm:p-6 shadow-xs">
+                <div className="flex items-center gap-3.5">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-800 text-2xl text-white shadow-sm">🎁</div>
+                    <div>
+                        <h4 className="text-sm sm:text-base font-bold text-sky-950">Bạn đã nhận mã giảm giá hôm nay chưa?</h4>
+                        <p className="text-xs text-sky-800/80 mt-0.5">
+                            Hàng loạt voucher giảm đến 30% và ưu đãi Freeship đang chờ bạn trong ví!
+                        </p>
+                    </div>
+                </div>
+                <LoadingLink
+                    to="/vouchers"
+                    className="inline-flex items-center gap-1.5 rounded-3xl bg-sky-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-sky-900 hover:scale-[1.02] shrink-0"
+                >
+                    <span>Khám phá Voucher</span>
+                    <span>→</span>
+                </LoadingLink>
+            </section>
 
             {/* ── 8. Banner Cuối Trang (Warm Cafe Story & Experience) ── */}
             <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-8 sm:p-10 text-center text-white shadow-xl">

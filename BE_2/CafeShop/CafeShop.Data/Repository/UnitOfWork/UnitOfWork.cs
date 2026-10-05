@@ -39,6 +39,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
         public IPermissionRepository Permission { get; private set; }
         public IUserRoleRepository UserRole { get; private set; }
         public IRolePermissionRepository RolePermission { get; private set; }
+        public IStoreProfileRepository StoreProfile { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -68,6 +69,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
             Permission = new PermissionRepository(_context);
             UserRole = new UserRoleRepository(_context);
             RolePermission = new RolePermissionRepository(_context);
+            StoreProfile = new StoreProfileRepository(_context);
         }
 
         public async Task<int> SaveAsync()

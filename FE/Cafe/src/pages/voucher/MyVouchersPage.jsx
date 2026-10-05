@@ -14,6 +14,8 @@ import {
 } from '../../utils/constants/VoucherConstants'
 import LoadingLink from '../../components/loading/LoadingLink'
 import AppSearchBox from '../../components/common/AppSearchBox'
+import { AppToast, AppConfirm } from '../../components/common/AppNotification'
+
 
 // ── Format Ngày ────────────────────────────────────────────────────────────────
 function formatDate(dateStr) {
@@ -223,9 +225,9 @@ export default function MyVouchersPage() {
                 document.execCommand('copy')
                 document.body.removeChild(ta)
             }
-            message.success(`Đã sao chép mã "${code}" vào bộ nhớ tạm!`)
+            AppToast.success(`Đã sao chép mã "${code}" vào bộ nhớ tạm!`)
         } catch {
-            message.success(`Mã: ${code}`)
+            AppToast.success(`Mã: ${code}`)
         }
     }
 

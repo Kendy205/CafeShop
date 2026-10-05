@@ -23,6 +23,8 @@ import AppButton from '../../../components/common/AppButton'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 // ── Mapping Status → UI ───────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -101,7 +103,7 @@ export default function AdminNewsPage() {
         if (editingItem) {
             const res = await dispatch(updateAdminNews({ id: editingItem.newsId, data: formData }))
             if (updateAdminNews.fulfilled.match(res)) {
-                message.success('Cập nhật bài viết thành công!')
+                AppToast.success('Cập nhật bài viết thành công!')
                 closeModal()
                 resetForm()
                 fetchNews(currentPage)
@@ -109,7 +111,7 @@ export default function AdminNewsPage() {
         } else {
             const res = await dispatch(createAdminNews(formData))
             if (createAdminNews.fulfilled.match(res)) {
-                message.success('Thêm bài viết thành công!')
+                AppToast.success('Thêm bài viết thành công!')
                 closeModal()
                 resetForm()
                 setCurrentPage(1)
@@ -120,7 +122,7 @@ export default function AdminNewsPage() {
 
     // ── Delete ────────────────────────────────────────────────────────────────
     const handleDelete = (id) => {
-        Modal.confirm({
+        AppConfirm({
             title:      'Xác nhận xóa bài viết',
             content:    'Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.',
             okText:     'Xóa',
@@ -130,7 +132,7 @@ export default function AdminNewsPage() {
             onOk: async () => {
                 const res = await dispatch(deleteAdminNews(id))
                 if (deleteAdminNews.fulfilled.match(res)) {
-                    message.success('Xóa bài viết thành công!')
+                    AppToast.success('Xóa bài viết thành công!')
                     // Nếu xóa item cuối trên trang > 1, lùi về trang trước
                     const newPage = items.length === 1 && currentPage > 1
                         ? currentPage - 1
@@ -331,7 +333,7 @@ export default function AdminNewsPage() {
                             const file = info.file.originFileObj || info.file
                             if (!file) return
                             if (!file.type.startsWith('image/')) {
-                                message.error('Chỉ được phép upload file ảnh!')
+                                AppToast.error('Chỉ được phép upload file ảnh!')
                                 return
                             }
                             setFieldValue('imageFile', file)

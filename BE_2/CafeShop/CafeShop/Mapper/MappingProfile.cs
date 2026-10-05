@@ -121,6 +121,12 @@ namespace CafeShop.Mapper
             CreateMap<ShippingConfig, ShippingConfigDto>().ReverseMap();
             CreateMap<UpdateShippingConfigDto, ShippingConfig>();
 
+            // ==========================================
+            // 9. StoreProfile
+            // ==========================================
+            CreateMap<StoreProfile, CafeShop.DTO.StoreProfile.StoreProfileDto>();
+            CreateMap<CafeShop.DTO.StoreProfile.UpdateStoreProfileDto, StoreProfile>();
+
         }
     }
 }

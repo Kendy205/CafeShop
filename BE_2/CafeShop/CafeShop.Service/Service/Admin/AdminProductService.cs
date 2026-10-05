@@ -45,10 +45,10 @@ namespace CafeShop.Service.Service.Admin
             await _redisCache.RemoveAsync("cafeshop:products:all:kw:none:cat:0:minP:0:maxP:0:sort:none:minR:0:page:1:size:10");
         }
 
-        public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)
+        public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, bool? isAvailable = null, bool? outOfStock = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)
         {
             var (products, totalCount) = await _unitOfWork.Product.GetAdminProductsWithPagingAsync(
-                keyword, categoryId, minPrice, maxPrice, sortBy, pageNumber, pageSize,
+                keyword, categoryId, minPrice, maxPrice, isAvailable, outOfStock, sortBy, pageNumber, pageSize,
                 includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping");
 
             var mappedData = _mapper.Map<IEnumerable<ProductResponseDto>>(products);
@@ -77,6 +77,19 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<ProductResponseDto> CreateProductAsync(CreateUpdateProductDto request)
         {
+            var sizes = new List<CreateProductSizeDto>();
+            if (!string.IsNullOrEmpty(request.ProductSizesJson))
+            {
+                try
+                {
+                    sizes = JsonSerializer.Deserialize<List<CreateProductSizeDto>>(request.ProductSizesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CreateProductSizeDto>();
+                }
+                catch (JsonException ex)
+                {
+                    throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
+                }
+            }
+
             var product = new Product
             {
                 Name = request.Name,
@@ -84,7 +97,7 @@ namespace CafeShop.Service.Service.Admin
                 CategoryId = request.CategoryId,
                 Description = request.Description,
                 IsAvailable = request.IsAvailable,
-                StockQuantity = request.StockQuantity
+                StockQuantity = sizes.Any() ? sizes.Sum(s => s.StockQuantity) : request.StockQuantity
             };
 
             if (request.ImageFile != null && request.ImageFile.Length > 0)
@@ -100,31 +113,20 @@ namespace CafeShop.Service.Service.Admin
             await _unitOfWork.Product.AddAsync(product);
             await _unitOfWork.SaveAsync();
 
-            if (!string.IsNullOrEmpty(request.ProductSizesJson))
+            if (sizes.Any())
             {
-                try
+                foreach (var s in sizes)
                 {
-                    var sizes = JsonSerializer.Deserialize<List<CreateProductSizeDto>>(request.ProductSizesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (sizes != null)
+                    var ps = new ProductSize
                     {
-                        foreach (var s in sizes)
-                        {
-                            var ps = new ProductSize
-                            {
-                                ProductId = product.ProductId,
-                                SizeId = s.SizeId,
-                                Price = s.Price,
-                                StockQuantity = s.StockQuantity
-                            };
-                            await _unitOfWork.ProductSize.AddAsync(ps);
-                        }
-                        await _unitOfWork.SaveAsync();
-                    }
+                        ProductId = product.ProductId,
+                        SizeId = s.SizeId,
+                        Price = s.Price,
+                        StockQuantity = s.StockQuantity
+                    };
+                    await _unitOfWork.ProductSize.AddAsync(ps);
                 }
-                catch (JsonException ex)
-                {
-                    throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
-                }
+                await _unitOfWork.SaveAsync();
             }
 
             if (!string.IsNullOrEmpty(request.ProductToppingsJson))
@@ -162,12 +164,25 @@ namespace CafeShop.Service.Service.Admin
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id);
             if (product == null) throw new ArgumentException("Không tìm thấy sản phẩm!");
 
+            var sizes = new List<CreateProductSizeDto>();
+            if (!string.IsNullOrEmpty(request.ProductSizesJson))
+            {
+                try
+                {
+                    sizes = JsonSerializer.Deserialize<List<CreateProductSizeDto>>(request.ProductSizesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<CreateProductSizeDto>();
+                }
+                catch (JsonException ex)
+                {
+                    throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
+                }
+            }
+
             product.Name = request.Name;
             product.BasePrice = request.BasePrice;
             product.CategoryId = request.CategoryId;
             product.Description = request.Description;
             product.IsAvailable = request.IsAvailable;
-            product.StockQuantity = request.StockQuantity;
+            product.StockQuantity = sizes.Any() ? sizes.Sum(s => s.StockQuantity) : request.StockQuantity;
 
             if (request.ImageFile != null && request.ImageFile.Length > 0)
             {
@@ -186,21 +201,16 @@ namespace CafeShop.Service.Service.Admin
 
             _unitOfWork.Product.Update(product);
 
-            if (!string.IsNullOrEmpty(request.ProductSizesJson))
+            if (sizes.Any())
             {
-                try
-                {
-                    var newSizes = JsonSerializer.Deserialize<List<CreateProductSizeDto>>(request.ProductSizesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (newSizes != null)
-                    {
-                        var existingSizes = await _unitOfWork.ProductSize.GetAllAsync(ps => ps.ProductId == id);
+                var existingSizes = await _unitOfWork.ProductSize.GetAllAsync(ps => ps.ProductId == id);
                         foreach (var es in existingSizes)
                         {
                             _unitOfWork.ProductSize.Remove(es);
                         }
                         
-                        foreach (var s in newSizes)
-                        {
+                foreach (var s in sizes)
+                {
                             var ps = new ProductSize
                             {
                                 ProductId = product.ProductId,
@@ -209,12 +219,6 @@ namespace CafeShop.Service.Service.Admin
                                 StockQuantity = s.StockQuantity
                             };
                             await _unitOfWork.ProductSize.AddAsync(ps);
-                        }
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
                 }
             }
 

@@ -15,7 +15,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    // [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+    [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
     public class UserController : ControllerBase
     {
         private readonly IAdminUserService _userService;
@@ -62,6 +62,12 @@ namespace CafeShop.Controllers.Admin
         [HttpPatch("{id:int}/toggle-status")]
         public async Task<IActionResult> ToggleUserStatus(int id)
         {
+            var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(currentUserIdStr, out int currentUserId) && currentUserId == id)
+            {
+                return BadRequest(ApiResponse<object>.Failed("Bạn không thể tự khóa tài khoản của chính mình!", 400));
+            }
+
             try
             {
                 bool newState = await _userService.ToggleUserStatusAsync(id);
@@ -127,6 +133,12 @@ namespace CafeShop.Controllers.Admin
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ!", 400, ModelState));
+
+            var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(currentUserIdStr, out int currentUserId) && currentUserId == id)
+            {
+                return BadRequest(ApiResponse<object>.Failed("Bạn không thể tự thay đổi quyền của chính mình!", 400));
+            }
 
             try
             {

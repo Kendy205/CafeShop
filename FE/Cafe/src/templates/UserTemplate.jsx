@@ -17,6 +17,7 @@ import {
 import LoadingLink from '../components/loading/LoadingLink'
 import { logout, openAuthModal } from '../redux/slices/authSlice'
 import { getCart } from '../redux/actions/user/cartAction'
+import { getProfile } from '../redux/actions/user/userAction'
 import { isAdminRole } from '../utils/auth/authRole'
 import { THEME, getButtonClass } from '../utils/constants/Theme'
 
@@ -41,7 +42,10 @@ export default function UserTemplate() {
     const [orderUpdateCount, setOrderUpdateCount] = useState(0)
 
     useEffect(() => {
-        if (isAuthenticated) dispatch(getCart())
+        if (isAuthenticated) {
+            dispatch(getCart())
+            dispatch(getProfile())
+        }
     }, [isAuthenticated, dispatch])
 
     useEffect(() => {

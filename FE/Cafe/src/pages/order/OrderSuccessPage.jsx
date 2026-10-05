@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { message } from 'antd'
 import LoadingLink from '../../components/loading/LoadingLink'
 import { formatVnd } from '../../utils/helpers/format'
+import { AppToast, AppConfirm } from '../../components/common/AppNotification'
 import {
     PAYMENT_LABEL,
     getStatusConfig,
@@ -88,9 +89,9 @@ export default function OrderSuccessPage() {
         if (orderId) {
             try {
                 navigator.clipboard.writeText(String(orderId))
-                message.success(`Đã sao chép mã đơn #${orderId}!`)
+                AppToast.success(`Đã sao chép mã đơn #${orderId}!`)
             } catch {
-                message.success(`Mã đơn: #${orderId}`)
+                AppToast.success(`Mã đơn: #${orderId}`)
             }
         }
     }

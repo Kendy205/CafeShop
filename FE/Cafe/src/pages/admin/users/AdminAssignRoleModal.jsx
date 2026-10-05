@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Form, Select, message } from 'antd'
 import { CloseOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { assignAdminRoles, fetchAdminUsers } from '../../../redux/actions/admin/adminUserAction'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 export default function AdminAssignRoleModal({ visible, onClose, assigningUser, roles }) {
     const [form] = Form.useForm()
@@ -29,12 +31,11 @@ export default function AdminAssignRoleModal({ visible, onClose, assigningUser, 
             const res = await dispatch(assignAdminRoles({ id: userId, roleIds: values.roleIds }))
             
             if (assignAdminRoles.fulfilled.match(res)) {
-                message.success('Phân quyền thành công!')
+                AppToast.success('Phân quyền thành công!')
                 dispatch(fetchAdminUsers({})) // Reload to get updated roles
                 onClose()
-            } else {
-                message.error(res.payload || 'Không thể phân quyền!')
             }
+            // Không gọi AppToast.error() ở đây nữa vì BaseService đã hiển thị thông báo lỗi chung
         } catch (error) {
             // form validation failed
         }

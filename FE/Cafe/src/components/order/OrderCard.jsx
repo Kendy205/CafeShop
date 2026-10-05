@@ -8,10 +8,13 @@ import {
 import { pickErrorMessage } from '../../utils/helpers/api'
 import { feedbackService } from '../../services/user/FeedbackService'
 import { formatVnd } from '../../utils/helpers/format'
+import LoadingLink from '../loading/LoadingLink'
+import { AppToast, AppConfirm } from '../common/AppNotification'
+
 
 // Helper lưu trạng thái món đã đánh giá (theo orderDetailId)
 const STORAGE_KEY = 'user_reviewed_order_details'
-const getStoredReviewedItems = () => {
+export const getStoredReviewedItems = () => {
     try {
         const raw = localStorage.getItem(STORAGE_KEY)
         return raw ? JSON.parse(raw) : {}
@@ -30,7 +33,7 @@ const saveStoredReviewedItem = (orderDetailId) => {
 }
 
 // ── Modal Viết Đánh Giá Món ──────────────────────────────────────────────────
-function ReviewModal({ open, item, onClose, onSuccess }) {
+export function ReviewModal({ open, item, onClose, onSuccess }) {
     const [rating, setRating] = useState(5)
     const [hoverRating, setHoverRating] = useState(0)
     const [comment, setComment] = useState('')
@@ -59,7 +62,7 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
 
     const handleSubmit = async () => {
         if (!rating || rating < 1 || rating > 5) {
-            message.warning('Vui lòng chọn số sao đánh giá từ 1 đến 5!')
+            AppToast.warning('Vui lòng chọn số sao đánh giá từ 1 đến 5!')
             return
         }
 
@@ -72,13 +75,13 @@ function ReviewModal({ open, item, onClose, onSuccess }) {
                 comment: comment.trim() || null,
             }
             const res = await feedbackService.addFeedback(body)
-            message.success(res?.message || 'Cảm ơn bạn đã gửi đánh giá!')
+            AppToast.success(res?.message || 'Cảm ơn bạn đã gửi đánh giá!')
             saveStoredReviewedItem(item.orderDetailId)
             onSuccess?.(item.orderDetailId)
             onClose()
         } catch (err) {
             const msg = pickErrorMessage(err, 'Đã có lỗi xảy ra khi gửi đánh giá!')
-            message.error(msg)
+            AppToast.error(msg)
         } finally {
             setSubmitting(false)
         }
@@ -271,6 +274,38 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                 <span className="text-xs font-medium text-slate-400">{formattedDate}</span>
             </div>
 
+            {/* Thông tin giao hàng */}
+            <div className="border-b border-slate-100 bg-white px-5 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-8">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-1.5 mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                                <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
+                            </svg>
+                            Người nhận
+                        </div>
+                        <p className="text-sm font-semibold text-slate-800">
+                            {order.userName || 'Không có tên'}
+                        </p>
+                        <p className="text-sm font-medium text-slate-500 mt-0.5">
+                            {order.userPhone || 'Không có SĐT'}
+                        </p>
+                    </div>
+                    
+                    <div className="flex-[2]">
+                        <div className="flex items-center gap-1.5 mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                                <path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.02.01.006.004zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clipRule="evenodd" />
+                            </svg>
+                            Địa chỉ giao hàng
+                        </div>
+                        <p className="text-sm text-slate-700 leading-relaxed">
+                            {order.shippingAddress || 'Nhận tại cửa hàng'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Danh sách các món của đơn hàng */}
             <div className="p-5">
                 <div className="space-y-3.5">
@@ -284,7 +319,10 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                 className="flex items-start justify-between gap-3.5 border-b border-slate-100/80 pb-3.5 last:border-b-0 last:pb-0"
                             >
                                 {/* Thumbnail sản phẩm */}
-                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+                                <LoadingLink 
+                                    to={`/product/${item.productId}`}
+                                    className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 hover:opacity-90 transition-opacity"
+                                >
                                     {item.imageUrl ? (
                                         <img
                                             src={item.imageUrl}
@@ -296,14 +334,16 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                             ☕
                                         </div>
                                     )}
-                                </div>
+                                </LoadingLink>
 
                                 {/* Thông tin món + size + topping */}
                                 <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                        <h4 className="text-sm font-bold text-slate-800">
-                                            {item.productName || item.name}
-                                        </h4>
+                                        <LoadingLink to={`/product/${item.productId}`}>
+                                            <h4 className="text-sm font-bold text-slate-800 hover:text-sky-800 transition-colors">
+                                                {item.productName || item.name}
+                                            </h4>
+                                        </LoadingLink>
                                         {/* Size: chỉ hiển thị khi sizeId != null theo đặc tả */}
                                         {hasSize && (
                                             <span className="rounded-md bg-sky-100/80 px-1.5 py-0.5 text-[11px] font-bold text-sky-900">

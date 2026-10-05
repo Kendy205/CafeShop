@@ -17,6 +17,8 @@ import AppButton from '../../../components/common/AppButton'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 const toppingSchema = Yup.object().shape({
     name: Yup.string().required('Vui lòng nhập tên Topping'),
@@ -62,7 +64,7 @@ export default function AdminToppingPage() {
         if (editingItem) {
             const res = await dispatch(updateAdminTopping({ id: editingItem.toppingId, formData }))
             if (updateAdminTopping.fulfilled.match(res)) {
-                message.success('Cập nhật thành công!')
+                AppToast.success('Cập nhật thành công!')
                 closeModal()
                 resetForm()
             } else {
@@ -70,12 +72,12 @@ export default function AdminToppingPage() {
             }
         } else {
             if (!values.imageFile) {
-                message.warning('Vui lòng chọn ảnh cho Topping!')
+                AppToast.warning('Vui lòng chọn ảnh cho Topping!')
                 return
             }
             const res = await dispatch(createAdminTopping(formData))
             if (createAdminTopping.fulfilled.match(res)) {
-                message.success('Thêm mới thành công!')
+                AppToast.success('Thêm mới thành công!')
                 closeModal()
                 resetForm()
             } else {
@@ -87,7 +89,7 @@ export default function AdminToppingPage() {
     const handleToggle = async (id, checked) => {
         const res = await dispatch(toggleToppingAvailability(id))
         if (toggleToppingAvailability.fulfilled.match(res)) {
-            message.success(`Đã ${checked ? 'bật' : 'tắt'} hiển thị topping!`)
+            AppToast.success(`Đã ${checked ? 'bật' : 'tắt'} hiển thị topping!`)
         } else {
             /* API Error Modal will handle this */
         }
@@ -236,7 +238,7 @@ export default function AdminToppingPage() {
                             const file = info.file.originFileObj || info.file
                             if (!file) return
                             if (!file.type.startsWith('image/')) {
-                                message.error('Chỉ được phép upload file ảnh!')
+                                AppToast.error('Chỉ được phép upload file ảnh!')
                                 return
                             }
                             setFieldValue('imageFile', file)

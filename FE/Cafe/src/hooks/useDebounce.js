@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
  * @param {number} delay Thời gian trễ (ms)
  * @returns {any} Giá trị sau khi đã được debounce
  */
-export function useDebounce(value, delay = 400) {
+export function useDebounce(value, delay = 1000) {
     const [debouncedValue, setDebouncedValue] = useState(value);
 
     useEffect(() => {

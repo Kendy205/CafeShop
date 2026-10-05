@@ -14,6 +14,7 @@ namespace CafeShop.Service.IService.Admin
     {
         Task<DashboardSummaryDto> GetSummaryMetricsAsync(DateTime? startDate, DateTime? endDate);
         Task<List<TopProductDto>> GetTopProductsAsync(int top, DateTime? startDate, DateTime? endDate);
+        Task<List<TopCustomerDto>> GetTopCustomersAsync(int top, DateTime? startDate, DateTime? endDate);
         Task<List<RevenueChartDto>> GetRevenueChartDataAsync(DateTime? startDate, DateTime? endDate);
         Task<List<OrderStatusStatDto>> GetOrderStatusStatsAsync(DateTime? startDate, DateTime? endDate);
     }

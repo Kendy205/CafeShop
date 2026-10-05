@@ -4,7 +4,7 @@ import { message, Modal } from 'antd'
 import { getMyOrders, cancelOrder } from '../../redux/actions/user/orderAction'
 import { clearCancelError } from '../../redux/slices/user/orderSlice'
 import { formatVnd } from '../../utils/helpers/format'
-import OrderCard, { StatusBadge } from '../../components/order/OrderCard'
+import OrderCard, { StatusBadge, getStoredReviewedItems, ReviewModal } from '../../components/order/OrderCard'
 import LoadingLink from '../../components/loading/LoadingLink'
 import AppPagination from '../../components/common/AppPagination'
 import { feedbackService } from '../../services/user/FeedbackService'
@@ -15,6 +15,8 @@ import {
     ORDER_STATUS_TABS,
 } from '../../utils/constants/OrderConstants'
 import { pickErrorMessage } from '../../utils/helpers/api'
+import { AppToast, AppConfirm } from '../../components/common/AppNotification'
+
 
 // ── Main Page Component ───────────────────────────────────────────────────────
 export default function OrderHistoryPage() {
@@ -70,7 +72,7 @@ export default function OrderHistoryPage() {
 
     const handleCancel = useCallback(
         (orderId) => {
-            Modal.confirm({
+            AppConfirm({
                 title: 'Xác nhận hủy đơn hàng?',
                 content: `Bạn có chắc chắn muốn hủy đơn hàng #${orderId}? Thao tác này không thể hoàn tác.`,
                 okText: 'Xác nhận hủy',
@@ -80,7 +82,7 @@ export default function OrderHistoryPage() {
                 onOk: async () => {
                     const res = await dispatch(cancelOrder(orderId))
                     if (cancelOrder.fulfilled.match(res)) {
-                        message.success(`Đã hủy đơn hàng #${orderId} thành công!`)
+                        AppToast.success(`Đã hủy đơn hàng #${orderId} thành công!`)
                     } else {
                         /* API Error Modal will handle this */
                     }

@@ -16,6 +16,8 @@ import AppButton from '../../../components/common/AppButton'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 const categorySchema = Yup.object().shape({
     name: Yup.string().required('Vui lòng nhập tên danh mục'),
@@ -50,7 +52,7 @@ export default function AdminCategoryPage() {
         if (editingItem) {
             const res = await dispatch(updateAdminCategory({ id: editingItem.categoryId, data: values }))
             if (updateAdminCategory.fulfilled.match(res)) {
-                message.success('Cập nhật thành công!')
+                AppToast.success('Cập nhật thành công!')
                 closeModal()
                 resetForm()
             } else {
@@ -59,7 +61,7 @@ export default function AdminCategoryPage() {
         } else {
             const res = await dispatch(createAdminCategory(values))
             if (createAdminCategory.fulfilled.match(res)) {
-                message.success('Thêm mới thành công!')
+                AppToast.success('Thêm mới thành công!')
                 closeModal()
                 resetForm()
             } else {
@@ -69,7 +71,7 @@ export default function AdminCategoryPage() {
     }
 
     const handleDelete = (id) => {
-        Modal.confirm({
+        AppConfirm({
             title: 'Xác nhận xóa danh mục',
             content: 'Bạn có chắc chắn muốn xóa danh mục này? Hành động này không thể hoàn tác.',
             okText: 'Xóa',
@@ -79,7 +81,7 @@ export default function AdminCategoryPage() {
             onOk: async () => {
                 const res = await dispatch(deleteAdminCategory(id))
                 if (deleteAdminCategory.fulfilled.match(res)) {
-                    message.success('Xóa danh mục thành công!')
+                    AppToast.success('Xóa danh mục thành công!')
                 } else {
                     /* API Error Modal will handle this */
                 }

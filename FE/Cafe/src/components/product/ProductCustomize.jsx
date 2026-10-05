@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { addToCart } from '../../redux/actions/user/cartAction'
 import { openAuthModal } from '../../redux/slices/authSlice'
 import { formatVnd } from '../../utils/helpers/format'
+import { message } from 'antd'
+import { AppToast, AppConfirm } from '../common/AppNotification'
+
 
 export default function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, productId, summary }) {
     const dispatch = useDispatch()
@@ -101,7 +104,7 @@ export default function ProductCustomize({ detail, sizes, toppings, error, isAut
         setLocalError('')
         const result = await dispatch(addToCart(buildAddPayload()))
         if (addToCart.fulfilled.match(result)) {
-            navigate('/cart')
+            AppToast.success('Đã thêm món vào giỏ hàng')
         }
     }
 

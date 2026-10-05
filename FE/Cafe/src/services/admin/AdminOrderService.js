@@ -22,7 +22,7 @@ export class AdminOrderService extends BaseServices {
      * @param {string|null} cancelReason - Bắt buộc khi status = 'CANCELLED'
      */
     updateStatus = (orderId, status, cancelReason = null) =>
-        this.put(`${this.basePath}/${orderId}/status`, { status, cancelReason })
+        this.put(`${this.basePath}/${orderId}/status`, { newStatus: status, cancelReason })
 }
 
 export const adminOrderService = new AdminOrderService()

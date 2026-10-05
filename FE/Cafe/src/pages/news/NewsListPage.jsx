@@ -16,13 +16,13 @@ export default function NewsListPage() {
 
     useEffect(() => {
         dispatch(getPublicNews({
-            keyword:  keyword || undefined,
-            page:     currentPage,
+            keyword: keyword || undefined,
+            pageNumber: currentPage,
             pageSize: PAGE_SIZE,
         }))
     }, [dispatch, currentPage, keyword])
 
-    const handleSearch  = (val) => { setKeyword(val); setCurrentPage(1) }
+    const handleSearch = (val) => { setKeyword(val); setCurrentPage(1) }
     const handlePageChange = (pg) => setCurrentPage(pg)
 
     return (

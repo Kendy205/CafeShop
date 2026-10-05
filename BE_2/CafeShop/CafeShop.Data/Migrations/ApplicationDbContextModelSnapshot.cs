@@ -213,7 +213,9 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<bool>("IsVisible")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
 
                     b.Property<int>("OrderDetailId")
                         .HasColumnType("int");
@@ -229,11 +231,16 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("FeedbackId");
 
-                    b.HasIndex("OrderDetailId");
+                    b.HasIndex("CreatedAt");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("OrderDetailId")
+                        .IsUnique();
+
+                    b.HasIndex("Rating");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("ProductId", "IsVisible", "CreatedAt");
 
                     b.ToTable("Feedbacks");
                 });
@@ -290,14 +297,14 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("NewsId");
 
-                    b.HasIndex("PublishedAt");
-
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.HasIndex("Status");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "ScheduledPublishAt");
+
+                    b.HasIndex("Status", "IsDeleted", "PublishedAt");
 
                     b.ToTable("News");
                 });
@@ -759,6 +766,55 @@ namespace CafeShop.Data.Migrations
                     b.HasKey("SizeId");
 
                     b.ToTable("Sizes");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.StoreProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FullAddress")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Hotline")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsAcceptingOrders")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsMaintenanceMode")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRealtimeNotificationEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double");
+
+                    b.Property<string>("StoreName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StoreProfiles");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Topping", b =>

@@ -5,6 +5,8 @@ import { EditOutlined, DeleteOutlined, PlusOutlined, SafetyCertificateOutlined }
 import { fetchRoles, deleteRole, fetchPermissions } from '../../../redux/actions/admin/adminRoleAction'
 import AdminRoleModal from './AdminRoleModal'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 export default function AdminRoleTab() {
     const dispatch = useDispatch()
@@ -29,10 +31,10 @@ export default function AdminRoleTab() {
 
     const handleDelete = (role) => {
         if (role.name === 'Admin' || role.name === 'Administrator') {
-            message.error('Không được phép xóa vai trò hệ thống!')
+            AppToast.error('Không được phép xóa vai trò hệ thống!')
             return
         }
-        Modal.confirm({
+        AppConfirm({
             title: 'Xóa vai trò?',
             content: `Bạn có chắc chắn muốn xóa vai trò "${role.name}"? Hành động này không thể hoàn tác.`,
             okText: 'Xóa',
@@ -42,9 +44,9 @@ export default function AdminRoleTab() {
                 const roleId = role.roleId || role.id
                 const res = await dispatch(deleteRole(roleId))
                 if (deleteRole.fulfilled.match(res)) {
-                    message.success('Xóa vai trò thành công!')
+                    AppToast.success('Xóa vai trò thành công!')
                 } else {
-                    message.error(res.payload || 'Không thể xóa vai trò này!')
+                    AppToast.error(res.payload || 'Không thể xóa vai trò này!')
                 }
             }
         })

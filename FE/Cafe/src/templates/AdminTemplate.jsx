@@ -18,17 +18,24 @@ import {
 } from '@ant-design/icons'
 import { Drawer } from 'antd'
 import { logout } from '../redux/slices/authSlice'
+import { getProfile } from '../redux/actions/user/userAction'
 import { useState, useEffect } from 'react'
 
 export default function AdminTemplate() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const user = useSelector((s) => s.app.auth.user)
+    const { isAuthenticated, user } = useSelector((s) => s.app.auth)
 
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [newOrderCount, setNewOrderCount] = useState(0)
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(getProfile())
+        }
+    }, [isAuthenticated, dispatch])
 
     useEffect(() => {
         const handleNewOrder = () => {

@@ -34,10 +34,12 @@ import AdminNewsPage from './pages/admin/news/AdminNewsPage'
 import NotFoundPage from './pages/error/NotFoundPage'
 import NewsListPage from './pages/news/NewsListPage'
 import NewsDetailPage from './pages/news/NewsDetailPage'
+import AppInitializer from './components/common/AppInitializer'
 
 function App() {
     return (
         <Provider store={store}>
+            <AppInitializer />
             <RealtimeNotificationHandler />
             <ToastContainer position="top-right" autoClose={5000} />
             <Loading />
@@ -49,7 +51,7 @@ function App() {
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/news" element={<NewsListPage />} />
                     <Route path="/news/:slug" element={<NewsDetailPage />} />
-                    <Route path="/menu/:id" element={<ProductDetailPage />} />
+                    <Route path="/product/:id" element={<ProductDetailPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route element={<ProtectedRoute allowedRoles={CUSTOMER_ROLES} />}>

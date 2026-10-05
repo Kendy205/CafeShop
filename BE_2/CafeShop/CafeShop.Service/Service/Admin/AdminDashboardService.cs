@@ -55,15 +55,70 @@ namespace CafeShop.Service.Service.Admin
         {
             var topSellingProducts = await _unitOfWork.Order.GetTopSellingProductsForAdminAsync(top, startDate, endDate);
 
-            var topProducts = topSellingProducts.Select(tp => new TopProductDto
+            var topProducts = topSellingProducts.Select(tp => 
             {
-                ProductId = tp.Product.ProductId,
-                ProductName = tp.Product.Name ?? "Unknown Product",
-                TotalSold = tp.TotalQuantity,
-                TotalRevenue = tp.TotalRevenue
+                var sizeDetails = new List<ProductSizeSalesDto>();
+                int totalStock = 0;
+
+                if (tp.Product.ProductSizes != null && tp.Product.ProductSizes.Any())
+                {
+                    foreach (var sizeSale in tp.SizeSales)
+                    {
+                        var ps = tp.Product.ProductSizes.FirstOrDefault(p => p.SizeId == sizeSale.SizeId);
+                        sizeDetails.Add(new ProductSizeSalesDto
+                        {
+                            SizeId = sizeSale.SizeId,
+                            SizeName = ps?.Size?.Name ?? "Mặc định",
+                            TotalSold = sizeSale.Quantity,
+                            StockQuantity = ps?.StockQuantity ?? 0
+                        });
+                    }
+                    totalStock = tp.Product.ProductSizes.Sum(ps => ps.StockQuantity);
+                }
+                else
+                {
+                    // No size
+                    sizeDetails.Add(new ProductSizeSalesDto
+                    {
+                        SizeId = null,
+                        SizeName = "Mặc định",
+                        TotalSold = tp.TotalQuantity,
+                        StockQuantity = tp.Product.StockQuantity
+                    });
+                    totalStock = tp.Product.StockQuantity;
+                }
+
+                return new TopProductDto
+                {
+                    ProductId = tp.Product.ProductId,
+                    ProductName = tp.Product.Name ?? "Unknown Product",
+                    ImageUrl = tp.Product.ImageUrl,
+                    CategoryName = tp.Product.Category?.Name,
+                    StockQuantity = totalStock,
+                    TotalSold = tp.TotalQuantity,
+                    TotalRevenue = tp.TotalRevenue,
+                    SizeDetails = sizeDetails
+                };
             }).ToList();
 
             return topProducts;
+        }
+
+        public async Task<List<TopCustomerDto>> GetTopCustomersAsync(int top, DateTime? startDate, DateTime? endDate)
+        {
+            var topCustomers = await _unitOfWork.Order.GetTopCustomersForAdminAsync(top, startDate, endDate);
+
+            var result = topCustomers.Select(tc => new TopCustomerDto
+            {
+                UserId = tc.User.UserId,
+                Username = tc.User.Username ?? "Unknown",
+                FullName = tc.User.FullName,
+                AvatarUrl = tc.User.AvatarUrl,
+                TotalOrders = tc.TotalOrders,
+                TotalSpent = tc.TotalSpent
+            }).ToList();
+
+            return result;
         }
 
         public async Task<List<RevenueChartDto>> GetRevenueChartDataAsync(DateTime? startDate, DateTime? endDate)

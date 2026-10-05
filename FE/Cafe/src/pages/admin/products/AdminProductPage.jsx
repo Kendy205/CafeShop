@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Modal, Table, Button, Input, Card, Tag, Space, Switch, Select, message } from 'antd'
+import { Modal, Table, Button, Input, Card, Tag, Space, Switch, Select, Checkbox, message } from 'antd'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
@@ -27,6 +27,11 @@ export default function AdminProductPage() {
     // filter states
     const [keyword, setKeyword] = useState('')
     const [categoryId, setCategoryId] = useState(null)
+    const [minPrice, setMinPrice] = useState('')
+    const [maxPrice, setMaxPrice] = useState('')
+    const [isAvailable, setIsAvailable] = useState('ALL')
+    const [outOfStock, setOutOfStock] = useState(false)
+    const [sortBy, setSortBy] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
 
     // modal states
@@ -43,14 +48,19 @@ export default function AdminProductPage() {
         (p) => {
             dispatch(
                 fetchAdminProducts({
-                    page: p,
+                    pageNumber: p,
                     pageSize: 10,
                     keyword: keyword.trim() || undefined,
                     categoryId: categoryId || undefined,
+                    minPrice: minPrice !== '' ? Number(minPrice) : undefined,
+                    maxPrice: maxPrice !== '' ? Number(maxPrice) : undefined,
+                    isAvailable: isAvailable !== 'ALL' ? isAvailable === 'true' : undefined,
+                    outOfStock: outOfStock ? true : undefined,
+                    sortBy: sortBy || undefined,
                 })
             )
         },
-        [dispatch, keyword, categoryId]
+        [dispatch, keyword, categoryId, minPrice, maxPrice, isAvailable, outOfStock, sortBy]
     )
 
     useEffect(() => {
@@ -262,11 +272,12 @@ export default function AdminProductPage() {
             />
 
             {/* Filter Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
-                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+            <div className="flex flex-col gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs mb-6">
+                {/* Hàng 1: Tìm kiếm & Phân loại cơ bản */}
+                <div className="flex flex-wrap items-center gap-3">
                     <AppSearchBox
                         initialValue={keyword}
-                        placeholder="Tìm kiếm sản phẩm theo tên..."
+                        placeholder="Tìm kiếm theo tên..."
                         onSearch={(val) => { setKeyword(val); setCurrentPage(1); }}
                         className="flex-1 min-w-[200px] max-w-sm"
                     />
@@ -276,18 +287,74 @@ export default function AdminProductPage() {
                         allowClear
                         value={categoryId}
                         onChange={(val) => { setCategoryId(val); }}
-                        className="min-w-[180px]"
+                        className="min-w-[160px]"
                         options={categories.map((c) => ({ value: c.categoryId, label: c.name }))}
+                    />
+
+                    <Select
+                        value={sortBy}
+                        onChange={(val) => setSortBy(val)}
+                        className="min-w-[160px]"
+                        options={[
+                            { value: '', label: 'Mới nhất (Mặc định)' },
+                            { value: 'name_asc', label: 'Tên A-Z' },
+                            { value: 'price_asc', label: 'Giá tăng dần' },
+                            { value: 'price_desc', label: 'Giá giảm dần' },
+                            { value: 'stock_asc', label: 'Tồn kho ít nhất' },
+                            { value: 'stock_desc', label: 'Tồn kho nhiều nhất' }
+                        ]}
                     />
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleSearch}
-                        className="rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-4 py-2 text-xs font-bold transition-all cursor-pointer"
-                    >
-                        Áp dụng lọc
-                    </button>
+                {/* Hàng 2: Bộ lọc nâng cao */}
+                <div className="flex flex-wrap items-center gap-4 py-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-500">Giá:</span>
+                        <Input
+                            type="number"
+                            placeholder="Từ (VNĐ)"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            className="w-24 text-xs"
+                        />
+                        <span className="text-slate-400">-</span>
+                        <Input
+                            type="number"
+                            placeholder="Đến (VNĐ)"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            className="w-24 text-xs"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-500">Trạng thái:</span>
+                        <Select
+                            value={isAvailable}
+                            onChange={setIsAvailable}
+                            className="w-[120px]"
+                            options={[
+                                { value: 'ALL', label: 'Tất cả' },
+                                { value: 'true', label: 'Đang bán' },
+                                { value: 'false', label: 'Đã ẩn' }
+                            ]}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-2">
+                        <Checkbox checked={outOfStock} onChange={(e) => setOutOfStock(e.target.checked)}>
+                            <span className="text-xs font-semibold text-rose-600">Hết hàng</span>
+                        </Checkbox>
+                    </div>
+
+                    <div className="ml-auto">
+                        <button
+                            onClick={handleSearch}
+                            className="rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-6 py-2 text-xs font-bold transition-all cursor-pointer"
+                        >
+                            Lọc dữ liệu
+                        </button>
+                    </div>
                 </div>
             </div>
 

@@ -20,6 +20,8 @@ namespace CafeShop.Repositories.IRepository
             int? categoryId,
             decimal? minPrice,
             decimal? maxPrice,
+            bool? isAvailable,
+            bool? outOfStock,
             string? sortBy,
             int pageNumber,
             int pageSize,

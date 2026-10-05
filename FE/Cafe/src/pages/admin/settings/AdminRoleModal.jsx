@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Form, Input, Checkbox, message, Row, Col } from 'antd'
 import { CloseOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { createRole, updateRole } from '../../../redux/actions/admin/adminRoleAction'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 export default function AdminRoleModal({ visible, onClose, editingRole }) {
     const [form] = Form.useForm()
@@ -30,20 +32,20 @@ export default function AdminRoleModal({ visible, onClose, editingRole }) {
             if (editingRole) {
                 const isSystem = editingRole.name === 'Admin' || editingRole.name === 'Administrator'
                 if (isSystem && values.name !== editingRole.name) {
-                    message.error('Không được phép đổi tên vai trò hệ thống!')
+                    AppToast.error('Không được phép đổi tên vai trò hệ thống!')
                     return
                 }
 
                 const roleId = editingRole.roleId || editingRole.id
                 const res = await dispatch(updateRole({ id: roleId, data: values }))
                 if (updateRole.fulfilled.match(res)) {
-                    message.success('Cập nhật vai trò thành công!')
+                    AppToast.success('Cập nhật vai trò thành công!')
                     onClose()
                 }
             } else {
                 const res = await dispatch(createRole(values))
                 if (createRole.fulfilled.match(res)) {
-                    message.success('Thêm vai trò mới thành công!')
+                    AppToast.success('Thêm vai trò mới thành công!')
                     onClose()
                 }
             }

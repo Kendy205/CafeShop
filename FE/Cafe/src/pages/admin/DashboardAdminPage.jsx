@@ -9,25 +9,27 @@ import DashboardStatsGrid from '../../components/admin/DashboardAdmin/DashboardS
 import DashboardRevenueChart from '../../components/admin/DashboardAdmin/DashboardRevenueChart'
 import DashboardOrderDonut from '../../components/admin/DashboardAdmin/DashboardOrderDonut'
 import DashboardTopProducts from '../../components/admin/DashboardAdmin/DashboardTopProducts'
+import DashboardTopCustomers from '../../components/admin/DashboardAdmin/DashboardTopCustomers'
 
 // Hàm helper cấu hình màu và nhãn cho trạng thái đơn hàng
 const STATUS_THEME = {
-    Completed:  { color: '#10b981', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Hoàn thành' },
-    Delivering: { color: '#0284c7', bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200',     label: 'Đang giao hàng' },
-    Preparing:  { color: '#8b5cf6', bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200',  label: 'Đang pha chế' },
-    Processing: { color: '#3b82f6', bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    label: 'Đang xử lý' },
-    Confirmed:  { color: '#06b6d4', bg: 'bg-cyan-50',    text: 'text-cyan-700',    border: 'border-cyan-200',    label: 'Đã xác nhận' },
-    Pending:    { color: '#f59e0b', bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   label: 'Chờ xác nhận' },
-    Cancelled:  { color: '#ef4444', bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    label: 'Đã hủy' },
+    completed:  { color: '#10b981', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Hoàn thành' },
+    delivering: { color: '#0284c7', bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200',     label: 'Đang giao hàng' },
+    preparing:  { color: '#8b5cf6', bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200',  label: 'Đang pha chế' },
+    processing: { color: '#3b82f6', bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    label: 'Đang xử lý' },
+    confirmed:  { color: '#06b6d4', bg: 'bg-cyan-50',    text: 'text-cyan-700',    border: 'border-cyan-200',    label: 'Đã xác nhận' },
+    pending:    { color: '#f59e0b', bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   label: 'Chờ xác nhận' },
+    cancelled:  { color: '#ef4444', bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    label: 'Đã hủy' },
 }
 
 const getStatusTheme = (status) => {
-    return STATUS_THEME[status] || { color: '#94a3b8', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', label: status || 'Khác' }
+    const key = String(status).toLowerCase()
+    return STATUS_THEME[key] || { color: '#94a3b8', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', label: status || 'Khác' }
 }
 
 export default function DashboardAdminPage() {
     const dispatch = useDispatch()
-    const { summary, revenueChart, topProducts, orderStats, loading } = useSelector(s => s.admin.dashboard)
+    const { summary, revenueChart, topProducts, topCustomers, orderStats, loading } = useSelector(s => s.admin.dashboard)
 
     // Mặc định lấy 30 ngày gần nhất
     const [dates, setDates] = useState([
@@ -74,7 +76,7 @@ export default function DashboardAdminPage() {
 
     // Số đơn hoàn thành & Tỉ lệ hoàn thành
     const completedOrders = useMemo(() => {
-        const item = orderStats?.find(s => s.status === 'Completed')
+        const item = orderStats?.find(s => String(s.status).toLowerCase() === 'completed')
         return item ? item.count : 0
     }, [orderStats])
 
@@ -122,10 +124,16 @@ export default function DashboardAdminPage() {
                         />
                     </div>
 
-                    {/* Bảng xếp hạng Top sản phẩm bán chạy nhất */}
-                    <DashboardTopProducts 
-                        topProducts={topProducts}
-                    />
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        {/* Bảng xếp hạng Top sản phẩm bán chạy nhất */}
+                        <DashboardTopProducts 
+                            topProducts={topProducts}
+                        />
+                        {/* Bảng xếp hạng Top khách hàng mua nhiều nhất */}
+                        <DashboardTopCustomers 
+                            topCustomers={topCustomers}
+                        />
+                    </div>
                 </>
             )}
         </div>

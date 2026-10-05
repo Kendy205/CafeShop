@@ -82,6 +82,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IShippingService, ShippingService>();
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 builder.Services.AddScoped<INewsService, NewsService>();
+builder.Services.AddScoped<IStoreProfileService, StoreProfileService>();
 // CẤU HÌNH CORS 
 builder.Services.AddCors(o => o.AddPolicy("FE", p => p
     .WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174")

@@ -42,7 +42,7 @@ namespace CafeShop.Repositories.Repository
                 .ToListAsync();
         }
 
-        public async Task<List<(Product Product, int TotalQuantity, decimal TotalRevenue)>> GetTopSellingProductsForAdminAsync(int top, DateTime? startDate, DateTime? endDate)
+        public async Task<List<(Product Product, int TotalQuantity, decimal TotalRevenue, List<(int? SizeId, int Quantity)> SizeSales)>> GetTopSellingProductsForAdminAsync(int top, DateTime? startDate, DateTime? endDate)
         {
             var query = dbSet.Where(o => o.CurrentStatus == CafeShop.Uitls.OrderStatus.Completed);
             if (startDate.HasValue) query = query.Where(o => o.OrderDate >= startDate.Value);
@@ -58,17 +58,59 @@ namespace CafeShop.Repositories.Repository
             var topProducts = await topProductsQuery.ToListAsync();
             var productIds = topProducts.Select(tp => tp.ProductId).ToList();
 
+            var sizeSalesData = await query
+                .SelectMany(o => o.OrderDetails)
+                .Where(od => productIds.Contains(od.ProductId))
+                .GroupBy(od => new { od.ProductId, od.SizeId })
+                .Select(g => new { g.Key.ProductId, g.Key.SizeId, Quantity = g.Sum(od => od.Quantity) })
+                .ToListAsync();
+
             var products = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductSizes!).ThenInclude(ps => ps.Size)
                 .Where(p => productIds.Contains(p.ProductId))
                 .ToListAsync();
 
-            var result = new List<(Product Product, int TotalQuantity, decimal TotalRevenue)>();
+            var result = new List<(Product Product, int TotalQuantity, decimal TotalRevenue, List<(int? SizeId, int Quantity)> SizeSales)>();
             foreach (var item in topProducts)
             {
                 var product = products.FirstOrDefault(p => p.ProductId == item.ProductId);
                 if (product != null)
                 {
-                    result.Add((product, item.TotalQuantity, item.TotalRevenue));
+                    var sizes = sizeSalesData.Where(s => s.ProductId == item.ProductId).Select(s => (s.SizeId, s.Quantity)).ToList();
+                    result.Add((product, item.TotalQuantity, item.TotalRevenue, sizes));
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<(User User, int TotalOrders, decimal TotalSpent)>> GetTopCustomersForAdminAsync(int top, DateTime? startDate, DateTime? endDate)
+        {
+            var query = dbSet.Where(o => o.CurrentStatus == CafeShop.Uitls.OrderStatus.Completed);
+            if (startDate.HasValue) query = query.Where(o => o.OrderDate >= startDate.Value);
+            if (endDate.HasValue) query = query.Where(o => o.OrderDate <= endDate.Value);
+
+            var topCustomersQuery = query
+                .GroupBy(o => o.UserId)
+                .Select(g => new { UserId = g.Key, TotalOrders = g.Count(), TotalSpent = g.Sum(o => o.TotalAmount) })
+                .OrderByDescending(x => x.TotalSpent)
+                .Take(top);
+
+            var topCustomers = await topCustomersQuery.ToListAsync();
+            var userIds = topCustomers.Select(tc => tc.UserId).ToList();
+
+            var users = await _context.Users
+                .Where(u => userIds.Contains(u.UserId))
+                .ToListAsync();
+
+            var result = new List<(User User, int TotalOrders, decimal TotalSpent)>();
+            foreach (var item in topCustomers)
+            {
+                var user = users.FirstOrDefault(u => u.UserId == item.UserId);
+                if (user != null)
+                {
+                    result.Add((user, item.TotalOrders, item.TotalSpent));
                 }
             }
 

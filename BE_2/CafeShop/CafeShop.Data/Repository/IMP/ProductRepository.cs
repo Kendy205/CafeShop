@@ -83,6 +83,8 @@ namespace CafeShop.Repositories.Repository
             int? categoryId,
             decimal? minPrice,
             decimal? maxPrice,
+            bool? isAvailable,
+            bool? outOfStock,
             string? sortBy,
             int pageNumber,
             int pageSize,
@@ -100,7 +102,12 @@ namespace CafeShop.Repositories.Repository
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                query = query.Where(p => p.Name.Contains(keyword));
+                var kw = keyword.ToLower();
+                query = query.Where(p => 
+                    p.Name.ToLower().Contains(kw) || 
+                    (p.Description != null && p.Description.ToLower().Contains(kw)) ||
+                    (p.Category != null && p.Category.Name.ToLower().Contains(kw))
+                );
             }
 
             if (categoryId.HasValue && categoryId > 0)
@@ -114,11 +121,21 @@ namespace CafeShop.Repositories.Repository
             if (maxPrice.HasValue)
                 query = query.Where(p => p.BasePrice <= maxPrice.Value);
 
+            if (isAvailable.HasValue)
+                query = query.Where(p => p.IsAvailable == isAvailable.Value);
+
+            if (outOfStock.HasValue && outOfStock.Value)
+            {
+                query = query.Where(p => p.StockQuantity <= 0 && (!p.ProductSizes!.Any() || p.ProductSizes!.All(ps => ps.StockQuantity <= 0)));
+            }
+
             query = sortBy?.ToLower() switch
             {
                 "price_asc" => query.OrderBy(p => p.BasePrice),
                 "price_desc" => query.OrderByDescending(p => p.BasePrice),
                 "name_asc" => query.OrderBy(p => p.Name),
+                "stock_asc" => query.OrderBy(p => p.StockQuantity),
+                "stock_desc" => query.OrderByDescending(p => p.StockQuantity),
                 _ => query.OrderByDescending(p => p.ProductId) 
             };
 

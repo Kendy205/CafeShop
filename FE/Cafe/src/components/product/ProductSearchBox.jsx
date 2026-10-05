@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { productService } from '../../services/user/ProductService'
 import { formatVnd } from '../../utils/helpers/format'
 import { unwrapApi } from '../../utils/helpers/api'
+import { useDebounce } from '../../hooks/useDebounce'
 
 export default function ProductSearchBox({
     initialValue = '',
@@ -55,30 +56,38 @@ export default function ProductSearchBox({
         }
     }
 
-    // Debounced Autocomplete (250ms)
+    const debouncedKeyword = useDebounce(keyword, 500)
+
+    // Debounced Autocomplete (300ms via hook)
     useEffect(() => {
-        const trimmed = keyword.trim()
+        const trimmed = debouncedKeyword.trim()
         if (!trimmed) {
             setAutocompleteList([])
             setLoadingAutocomplete(false)
             return
         }
 
-        setLoadingAutocomplete(true)
-        const timer = setTimeout(async () => {
+        let isMounted = true
+        const fetchAuto = async () => {
+            setLoadingAutocomplete(true)
             try {
                 const res = await productService.getAutocomplete(trimmed)
-                const data = unwrapApi(res)
-                setAutocompleteList(Array.isArray(data) ? data : [])
+                if (isMounted) {
+                    const data = unwrapApi(res)
+                    setAutocompleteList(Array.isArray(data) ? data : [])
+                }
             } catch {
-                setAutocompleteList([])
+                if (isMounted) setAutocompleteList([])
             } finally {
-                setLoadingAutocomplete(false)
+                if (isMounted) setLoadingAutocomplete(false)
             }
-        }, 250)
+        }
+        fetchAuto()
 
-        return () => clearTimeout(timer)
-    }, [keyword])
+        return () => {
+            isMounted = false
+        }
+    }, [debouncedKeyword])
 
     // Close on click outside
     useEffect(() => {
@@ -111,7 +120,7 @@ export default function ProductSearchBox({
 
     const handleSelectProduct = (productId) => {
         setIsOpen(false)
-        navigate(`/menu/${productId}`)
+        navigate(`/product/${productId}`)
     }
 
     const handleKeyDown = (e) => {
@@ -142,18 +151,16 @@ export default function ProductSearchBox({
                         onFocus={handleFocus}
                         placeholder={placeholder}
                         autoComplete="off"
-                        className={`w-full rounded-2xl transition-all outline-none ${
-                            isHero
-                                ? 'border border-white/20 bg-white/95 px-4 py-3.5 pl-11 text-sm font-medium text-slate-800 placeholder-slate-400 shadow-lg shadow-black/10 backdrop-blur-md focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-500/40'
-                                : 'border border-slate-200 bg-white px-4 py-2.5 pl-10 text-sm font-medium text-slate-800 placeholder-slate-400 shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-200'
-                        } ${inputClassName}`}
+                        className={`w-full rounded-2xl transition-all outline-none ${isHero
+                            ? 'border border-white/20 bg-white/95 px-4 py-3.5 pl-11 text-sm font-medium text-slate-800 placeholder-slate-400 shadow-lg shadow-black/10 backdrop-blur-md focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-500/40'
+                            : 'border border-slate-200 bg-white px-4 py-2.5 pl-10 text-sm font-medium text-slate-800 placeholder-slate-400 shadow-xs focus:border-sky-500 focus:ring-2 focus:ring-sky-200'
+                            } ${inputClassName}`}
                     />
 
                     {/* Icon Kính lúp */}
                     <span
-                        className={`absolute top-1/2 -translate-y-1/2 pointer-events-none ${
-                            isHero ? 'left-3.5 text-lg text-slate-400' : 'left-3 text-slate-400'
-                        }`}
+                        className={`absolute top-1/2 -translate-y-1/2 pointer-events-none ${isHero ? 'left-3.5 text-lg text-slate-400' : 'left-3 text-slate-400'
+                            }`}
                     >
                         🔍
                     </span>
@@ -179,11 +186,10 @@ export default function ProductSearchBox({
                 {showButton && (
                     <button
                         type="submit"
-                        className={`cursor-pointer shrink-0 font-bold transition-all active:scale-[0.98] ${
-                            isHero
-                                ? 'inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 px-6 py-3.5 text-sm text-white shadow-lg shadow-sky-950/50 hover:from-sky-600 hover:to-sky-800 hover:shadow-xl hover:scale-[1.02]'
-                                : 'rounded-2xl bg-gradient-to-r from-sky-700 to-sky-800 px-5 py-2.5 text-sm text-white shadow-sm hover:from-sky-800 hover:to-sky-900 hover:scale-[1.02]'
-                        } ${buttonClassName}`}
+                        className={`cursor-pointer shrink-0 font-bold transition-all active:scale-[0.98] ${isHero
+                            ? 'inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 px-6 py-3.5 text-sm text-white shadow-lg shadow-sky-950/50 hover:from-sky-600 hover:to-sky-800 hover:shadow-xl hover:scale-[1.02]'
+                            : 'rounded-2xl bg-gradient-to-r from-sky-700 to-sky-800 px-5 py-2.5 text-sm text-white shadow-sm hover:from-sky-800 hover:to-sky-900 hover:scale-[1.02]'
+                            } ${buttonClassName}`}
                     >
                         {isHero ? (
                             <>
@@ -284,22 +290,20 @@ export default function ProductSearchBox({
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('topSelling')}
-                                    className={`flex-1 rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                                        activeTab === 'topSelling'
-                                            ? 'bg-white text-sky-900 shadow-xs'
-                                            : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
-                                    }`}
+                                    className={`flex-1 rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer ${activeTab === 'topSelling'
+                                        ? 'bg-white text-sky-900 shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+                                        }`}
                                 >
                                     🔥 Bán chạy nhất ({topSelling.length})
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('newest')}
-                                    className={`flex-1 rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                                        activeTab === 'newest'
-                                            ? 'bg-white text-sky-900 shadow-xs'
-                                            : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
-                                    }`}
+                                    className={`flex-1 rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer ${activeTab === 'newest'
+                                        ? 'bg-white text-sky-900 shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+                                        }`}
                                 >
                                     ✨ Mới ra mắt ({newest.length})
                                 </button>
@@ -326,15 +330,14 @@ export default function ProductSearchBox({
                                             onClick={() => handleSelectProduct(item.productId)}
                                             className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-sky-50/70 cursor-pointer group"
                                         >
-                                            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${
-                                                idx === 0
-                                                    ? 'bg-amber-100 text-amber-700'
-                                                    : idx === 1
+                                            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black ${idx === 0
+                                                ? 'bg-amber-100 text-amber-700'
+                                                : idx === 1
                                                     ? 'bg-slate-200 text-slate-700'
                                                     : idx === 2
-                                                    ? 'bg-orange-100 text-orange-700'
-                                                    : 'text-slate-400'
-                                            }`}>
+                                                        ? 'bg-orange-100 text-orange-700'
+                                                        : 'text-slate-400'
+                                                }`}>
                                                 {idx + 1}
                                             </span>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Button, Checkbox, message, Modal, Select, Upload } from 'antd'
+import { Button, Checkbox, message, Modal, Select, Upload, Switch } from 'antd'
 import { PictureOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     createAdminProduct,
@@ -11,13 +11,17 @@ import AdminModalBanner from './common/AdminModalBanner'
 import AppButton from '../common/AppButton'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
+import { AppToast, AppConfirm } from '../common/AppNotification'
+
 
 const productSchema = Yup.object().shape({
     name: Yup.string().required('Vui lòng nhập tên sản phẩm'),
     categoryId: Yup.number().required('Vui lòng chọn danh mục'),
     basePrice: Yup.number().min(0, 'Giá không được âm').required('Vui lòng nhập giá cơ bản'),
     description: Yup.string().nullable(),
-    imageFile: Yup.mixed()
+    imageFile: Yup.mixed().nullable(),
+    stockQuantity: Yup.number().min(0, 'Số lượng không được âm').nullable(),
+    isAvailable: Yup.boolean()
 })
 
 export default function ProductFormModal({
@@ -62,7 +66,9 @@ export default function ProductFormModal({
             categoryId: editingItem ? (Number(editingItem.categoryId) || Number(matchedCategory?.categoryId) || null) : null,
             imageFile: null,
             sizes: sizesState,
-            toppingIds: initialToppingIds
+            toppingIds: initialToppingIds,
+            isAvailable: editingItem?.isAvailable ?? true,
+            stockQuantity: editingItem?.stockQuantity ?? ''
         }
     }, [editingItem, categories, masterSizes])
 
@@ -70,7 +76,7 @@ export default function ProductFormModal({
         const file = info.file.originFileObj || info.file
         if (!file) return
         if (!file.type.startsWith('image/')) {
-            message.error('Chỉ được phép upload file ảnh!')
+            AppToast.error('Chỉ được phép upload file ảnh!')
             return
         }
         setFieldValue('imageFile', file)
@@ -92,7 +98,7 @@ export default function ProductFormModal({
         if (editingItem) {
             const res = await dispatch(updateAdminProduct({ id: editingItem.productId, formData }))
             if (updateAdminProduct.fulfilled.match(res)) {
-                message.success('Cập nhật sản phẩm thành công!')
+                AppToast.success('Cập nhật sản phẩm thành công!')
                 onClose()
                 onSuccess?.()
             } else {
@@ -100,12 +106,12 @@ export default function ProductFormModal({
             }
         } else {
             if (!values.imageFile) {
-                message.warning('Vui lòng chọn ảnh cho sản phẩm!')
+                AppToast.warning('Vui lòng chọn ảnh cho sản phẩm!')
                 return
             }
             const res = await dispatch(createAdminProduct(formData))
             if (createAdminProduct.fulfilled.match(res)) {
-                message.success('Thêm sản phẩm thành công!')
+                AppToast.success('Thêm sản phẩm thành công!')
                 onClose()
                 onSuccess?.()
             } else {
@@ -220,6 +226,37 @@ export default function ProductFormModal({
                                         className="custom-admin-input custom-scrollbar resize-none"
                                     />
                                 </div>
+
+                                <div className="sm:col-span-1">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
+                                        Tổng Tồn Kho (Để trống sẽ tự động tính từ các Size)
+                                    </label>
+                                    <Field
+                                        type="number"
+                                        name="stockQuantity"
+                                        placeholder="VD: 100"
+                                        className={`custom-admin-input font-mono ${touched.stockQuantity && errors.stockQuantity ? 'custom-admin-input-error' : ''}`}
+                                    />
+                                    {touched.stockQuantity && errors.stockQuantity && <p className="mt-1 text-xs font-medium text-red-500">{errors.stockQuantity}</p>}
+                                </div>
+
+                                <div className="sm:col-span-1">
+                                    <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
+                                        Trạng thái hiển thị (Bán)
+                                    </label>
+                                    <div className="flex items-center gap-3 h-[46px] px-3 rounded-2xl border border-slate-200 bg-white">
+                                        <Switch
+                                            checked={values.isAvailable}
+                                            onChange={(checked) => setFieldValue('isAvailable', checked)}
+                                            className={`custom-admin-switch ${values.isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                        />
+                                        {values.isAvailable ? (
+                                            <span className="text-xs font-semibold text-emerald-600">Đang bán</span>
+                                        ) : (
+                                            <span className="text-xs font-semibold text-slate-400">Đã ẩn</span>
+                                        )}
+                                    </div>
+                                </div>
                                 
                                 <div className="sm:col-span-2">
                                     <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
@@ -306,6 +343,12 @@ export default function ProductFormModal({
                                     </div>
                                 )}
                             </div>
+
+                            {Object.keys(errors).length > 0 && Object.keys(touched).length > 0 && (
+                                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-600">
+                                    Vui lòng kiểm tra lại các trường thông tin: {Object.values(errors).join(', ')}
+                                </div>
+                            )}
 
                             <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
                                 <AppButton type="button" variant="ghost" onClick={onClose}>

@@ -1,0 +1,68 @@
+using AutoMapper;
+using CafeShop.Data.Repository.UnitOfWork;
+using CafeShop.DTO.StoreProfile;
+using CafeShop.Model;
+using CafeShop.Service.IService;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace CafeShop.Service.Service
+{
+    public class StoreProfileService : IStoreProfileService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+
+        public StoreProfileService(IUnitOfWork unitOfWork, IMapper mapper)
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+        }
+
+        public async Task<StoreProfileDto> GetStoreProfileAsync()
+        {
+            var profile = await _unitOfWork.StoreProfile.GetFirstOrDefaultAsync(x => true);
+            
+            if (profile == null)
+            {
+                // Khởi tạo bản ghi mặc định nếu chưa có
+                profile = new StoreProfile
+                {
+                    StoreName = "Tên quán mặc định",
+                    IsAcceptingOrders = true,
+                    IsRealtimeNotificationEnabled = true,
+                    IsMaintenanceMode = false,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                
+                await _unitOfWork.StoreProfile.AddAsync(profile);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return _mapper.Map<StoreProfileDto>(profile);
+        }
+
+        public async Task<StoreProfileDto> UpdateStoreProfileAsync(UpdateStoreProfileDto dto)
+        {
+            var profile = await _unitOfWork.StoreProfile.GetFirstOrDefaultAsync(x => true);
+            
+            if (profile == null)
+            {
+                profile = new StoreProfile
+                {
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.StoreProfile.AddAsync(profile);
+            }
+
+            _mapper.Map(dto, profile);
+            profile.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveAsync();
+
+            return _mapper.Map<StoreProfileDto>(profile);
+        }
+    }
+}

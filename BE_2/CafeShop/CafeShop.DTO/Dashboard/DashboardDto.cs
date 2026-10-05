@@ -10,12 +10,34 @@ namespace CafeShop.DTO.Dashboard
         public int TotalProductsSold { get; set; }
     }
 
+    public class ProductSizeSalesDto
+    {
+        public int? SizeId { get; set; }
+        public string SizeName { get; set; } = string.Empty;
+        public int TotalSold { get; set; }
+        public int StockQuantity { get; set; }
+    }
+
     public class TopProductDto
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
+        public string? CategoryName { get; set; }
+        public int StockQuantity { get; set; }
         public int TotalSold { get; set; }
         public decimal TotalRevenue { get; set; }
+        public List<ProductSizeSalesDto> SizeDetails { get; set; } = new();
+    }
+
+    public class TopCustomerDto
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string? FullName { get; set; }
+        public string? AvatarUrl { get; set; }
+        public int TotalOrders { get; set; }
+        public decimal TotalSpent { get; set; }
     }
 
     public class RevenueChartDto

@@ -26,27 +26,54 @@ export default function DashboardTopProducts({ topProducts }) {
                 </Link>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col gap-3">
                 {topProducts?.map((product, idx) => {
                     const badgeClass = rankColors[idx] || 'from-sky-50 to-sky-100 text-sky-800 border border-sky-200'
 
                     return (
                         <div 
                             key={idx} 
-                            className="group relative flex items-center gap-4 rounded-2xl border border-slate-100 p-4 bg-slate-50/70 hover:bg-white hover:border-sky-300 hover:shadow-md transition-all duration-300"
+                            className="group relative flex items-center gap-3 rounded-2xl border border-slate-100 p-3 bg-slate-50/70 hover:bg-white hover:border-sky-300 hover:shadow-md transition-all duration-300"
                         >
-                            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${badgeClass} text-lg font-black shadow-md group-hover:scale-105 transition-transform`}>
-                                #{idx + 1}
+                            <div className="relative h-14 w-14 shrink-0">
+                                <div className={`absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br ${badgeClass} text-[10px] font-black shadow-md`}>
+                                    #{idx + 1}
+                                </div>
+                                <img 
+                                    src={product.imageUrl || 'https://placehold.co/150x150?text=No+Image'} 
+                                    alt={product.productName} 
+                                    className="h-full w-full rounded-xl object-cover border border-slate-200 bg-white"
+                                />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-black text-slate-800 truncate text-sm group-hover:text-sky-700 transition-colors" title={product.productName}>
                                     {product.productName}
                                 </h4>
-                                <div className="mt-1 flex items-center gap-2">
-                                    <span className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-600 shadow-2xs">
-                                        Đã bán: <strong className="text-sky-600">{product.totalSold}</strong>
+                                <p className="text-[11px] text-slate-500 font-medium truncate mb-1">{product.categoryName || 'Không phân loại'}</p>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="inline-flex items-center rounded-md bg-white border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 shadow-2xs">
+                                        Tổng Bán: <strong className="text-sky-600 ml-1">{product.totalSold}</strong>
+                                    </span>
+                                    <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-bold shadow-2xs ${
+                                        product.stockQuantity < 10 
+                                            ? 'bg-red-50 text-red-700 border-red-200' 
+                                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    }`}>
+                                        Tổng Tồn: <strong className="ml-1">{product.stockQuantity ?? 0}</strong>
                                     </span>
                                 </div>
+                                {product.sizeDetails && product.sizeDetails.length > 0 && !(product.sizeDetails.length === 1 && (!product.sizeDetails[0].sizeId || product.sizeDetails[0].sizeName === 'Mặc định')) && (
+                                    <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-100 pt-2">
+                                        {product.sizeDetails.map((sz, idx2) => (
+                                            <div key={idx2} className="flex items-center gap-1 rounded bg-white px-1.5 py-0.5 text-[9px] border border-slate-200 shadow-sm">
+                                                <span className="font-bold text-slate-600">{sz.sizeName}:</span>
+                                                <span className="text-sky-600 font-bold" title="Đã bán">{sz.totalSold}</span>
+                                                <span className="text-slate-300">|</span>
+                                                <span className={`font-bold ${sz.stockQuantity < 10 ? 'text-red-600' : 'text-emerald-600'}`} title="Tồn kho">{sz.stockQuantity}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div className="text-right shrink-0">
                                 <p className="text-[10px] uppercase font-bold text-slate-400">Doanh số</p>

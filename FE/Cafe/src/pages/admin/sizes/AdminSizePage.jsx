@@ -16,6 +16,8 @@ import AppButton from '../../../components/common/AppButton'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 const sizeSchema = Yup.object().shape({
     name: Yup.string().required('Vui lòng nhập tên kích cỡ')
@@ -49,7 +51,7 @@ export default function AdminSizePage() {
         if (editingItem) {
             const res = await dispatch(updateAdminSize({ id: editingItem.sizeId, data: values }))
             if (updateAdminSize.fulfilled.match(res)) {
-                message.success('Cập nhật thành công!')
+                AppToast.success('Cập nhật thành công!')
                 closeModal()
                 resetForm()
             } else {
@@ -58,7 +60,7 @@ export default function AdminSizePage() {
         } else {
             const res = await dispatch(createAdminSize(values))
             if (createAdminSize.fulfilled.match(res)) {
-                message.success('Thêm mới thành công!')
+                AppToast.success('Thêm mới thành công!')
                 closeModal()
                 resetForm()
             } else {
@@ -68,7 +70,7 @@ export default function AdminSizePage() {
     }
 
     const handleDelete = (id) => {
-        Modal.confirm({
+        AppConfirm({
             title: 'Xác nhận xóa kích cỡ',
             content: 'Bạn có chắc chắn muốn xóa kích cỡ này? Hành động này không thể hoàn tác.',
             okText: 'Xóa',
@@ -78,7 +80,7 @@ export default function AdminSizePage() {
             onOk: async () => {
                 const res = await dispatch(deleteAdminSize(id))
                 if (deleteAdminSize.fulfilled.match(res)) {
-                    message.success('Xóa kích cỡ thành công!')
+                    AppToast.success('Xóa kích cỡ thành công!')
                 } else {
                     /* API Error Modal will handle this */
                 }

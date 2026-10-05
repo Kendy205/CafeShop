@@ -11,10 +11,20 @@ export function readAuthFromStorage() {
                 user = null
             }
         }
+        let role = localStorage.getItem(USER_ROLE)
+        if (role) {
+            try {
+                role = JSON.parse(role)
+            } catch {
+                if (role.includes(',')) {
+                    role = role.split(',')
+                }
+            }
+        }
         return {
             accessToken: localStorage.getItem(TOKEN),
             refreshToken: localStorage.getItem(REFRESH_TOKEN),
-            role: localStorage.getItem(USER_ROLE),
+            role: role,
             user,
         }
     } catch {
@@ -39,8 +49,8 @@ export function writeAuthToStorage(partial) {
         }
         if ('role' in partial) {
             const r = partial.role
-            if (r == null || r === '') localStorage.removeItem(USER_ROLE)
-            else localStorage.setItem(USER_ROLE, String(r))
+            if (r == null || r === '' || (Array.isArray(r) && r.length === 0)) localStorage.removeItem(USER_ROLE)
+            else localStorage.setItem(USER_ROLE, JSON.stringify(r))
         }
         if ('user' in partial) {
             if (partial.user) localStorage.setItem(USER_INFO, JSON.stringify(partial.user))

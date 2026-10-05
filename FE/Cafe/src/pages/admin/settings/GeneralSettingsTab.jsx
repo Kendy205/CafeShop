@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
@@ -8,8 +8,13 @@ import {
     CarOutlined,
     CheckCircleOutlined
 } from '@ant-design/icons'
-import { Switch, message, Spin } from 'antd'
+import { Switch, Spin } from 'antd'
 import { fetchShippingConfig, updateShippingConfig } from '../../../redux/actions/admin/adminShippingConfigAction'
+import { AppToast } from '../../../components/common/AppNotification'
+import MapboxLocationPicker from '../../../components/map/MapboxLocationPicker'
+import { Modal } from 'antd'
+import { updateStoreProfileAsync } from '../../../redux/slices/storeProfileSlice'
+
 
 const shippingSchema = Yup.object().shape({
     baseFee: Yup.number().min(0, 'Phí gốc không được âm').required('Vui lòng nhập phí gốc'),
@@ -26,22 +31,35 @@ const shippingSchema = Yup.object().shape({
     weekendSurcharge: Yup.number().min(0, 'Phụ phí không được âm'),
 })
 
+const storeProfileSchema = Yup.object().shape({
+    storeName: Yup.string().max(255, 'Tên quán tối đa 255 ký tự').required('Tên quán không được để trống'),
+    hotline: Yup.string().max(50, 'Hotline tối đa 50 ký tự'),
+    fullAddress: Yup.string().max(500, 'Địa chỉ tối đa 500 ký tự'),
+    latitude: Yup.number().typeError('Vĩ độ (Latitude) phải là số').required('Bắt buộc nhập Vĩ độ'),
+    longitude: Yup.number().typeError('Kinh độ (Longitude) phải là số').required('Bắt buộc nhập Kinh độ'),
+})
+
 export default function GeneralSettingsTab() {
     const dispatch = useDispatch()
-    const { config, loading, submitting } = useSelector((s) => s.admin.shippingConfig)
+    const { config, loading: shippingLoading, submitting: shippingSubmitting } = useSelector((s) => s.admin.shippingConfig)
+    const { profile: storeProfile, loading: profileLoading, submitting: profileSubmitting } = useSelector((s) => s.app.storeProfile || s.storeProfile || {})
+    const [showMapModal, setShowMapModal] = useState(false)
 
     useEffect(() => {
         dispatch(fetchShippingConfig())
     }, [dispatch])
 
-    const handleSaveDummy = () => {
-        message.success('Đã lưu cấu hình hệ thống (Dummy)!')
+    const handleSubmitStoreProfile = async (values) => {
+        const res = await dispatch(updateStoreProfileAsync(values))
+        if (updateStoreProfileAsync.fulfilled.match(res)) {
+            AppToast.success('Cập nhật cấu hình cửa hàng thành công!')
+        }
     }
 
     const handleSubmitShipping = async (values) => {
         const res = await dispatch(updateShippingConfig(values))
         if (updateShippingConfig.fulfilled.match(res)) {
-            message.success('Cập nhật cấu hình phí ship thành công!')
+            AppToast.success('Cập nhật cấu hình phí ship thành công!')
         }
     }
 
@@ -63,7 +81,13 @@ export default function GeneralSettingsTab() {
 
     const currentConfig = config || defaultConfig
 
-    if (loading && !config) {
+    const defaultProfile = {
+        storeName: '', hotline: '', fullAddress: '', latitude: 0, longitude: 0,
+        isAcceptingOrders: true, isRealtimeNotificationEnabled: true, isMaintenanceMode: false
+    }
+    const currentProfile = storeProfile || defaultProfile
+
+    if ((shippingLoading && !config) || (profileLoading && !storeProfile)) {
         return (
             <div className="flex h-64 items-center justify-center">
                 <Spin size="large" />
@@ -73,71 +97,120 @@ export default function GeneralSettingsTab() {
 
     return (
         <div className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Thông tin cửa hàng */}
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                        <ShopOutlined className="text-sky-600 text-lg" />
-                        <h3 className="text-base font-black text-slate-800">Thông tin thương hiệu</h3>
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase">Tên quán</label>
-                        <input
-                            type="text"
-                            defaultValue="CafeShop Premium & Bakery"
-                            className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase">Hotline hỗ trợ</label>
-                        <input
-                            type="text"
-                            defaultValue="1900 6868"
-                            className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase">Địa chỉ trụ sở chính</label>
-                        <input
-                            type="text"
-                            defaultValue="189 Đường Cầu Diễn, Bắc Từ Liêm, Hà Nội"
-                            className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 outline-none"
-                        />
-                    </div>
-                    <div className="flex justify-end pt-2">
-                        <button onClick={handleSaveDummy} className="rounded-2xl bg-slate-100 px-4 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 transition">Lưu (Dummy)</button>
-                    </div>
-                </div>
+            <Formik
+                initialValues={currentProfile}
+                validationSchema={storeProfileSchema}
+                onSubmit={handleSubmitStoreProfile}
+                enableReinitialize
+            >
+                {({ values, setFieldValue, errors, touched }) => (
+                    <Form className="grid gap-6 md:grid-cols-2">
+                        {/* Thông tin cửa hàng */}
+                        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+                            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <ShopOutlined className="text-sky-600 text-lg" />
+                                <h3 className="text-base font-black text-slate-800">Thông tin thương hiệu</h3>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase">Tên quán *</label>
+                                <Field name="storeName" className={`mt-1 w-full rounded-2xl border bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 outline-none ${errors.storeName && touched.storeName ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'}`} />
+                                {errors.storeName && touched.storeName && <p className="mt-1 text-[10px] text-red-500">{errors.storeName}</p>}
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase">Hotline hỗ trợ</label>
+                                <Field name="hotline" className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 outline-none focus:border-sky-500" />
+                            </div>
+                            <div className="flex gap-2 items-end">
+                                <div className="flex-1">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Địa chỉ trụ sở chính</label>
+                                    <Field name="fullAddress" className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 outline-none focus:border-sky-500" />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowMapModal(true)}
+                                    className="h-9 px-4 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 font-bold text-xs transition-colors flex items-center gap-2"
+                                >
+                                    📍 Tìm trên Map
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Vĩ độ (Latitude)</label>
+                                    <Field name="latitude" type="number" step="any" className={`mt-1 w-full rounded-2xl border bg-slate-50 px-4 py-2 text-xs font-mono font-bold text-slate-800 outline-none focus:border-sky-500`} />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Kinh độ (Longitude)</label>
+                                    <Field name="longitude" type="number" step="any" className={`mt-1 w-full rounded-2xl border bg-slate-50 px-4 py-2 text-xs font-mono font-bold text-slate-800 outline-none focus:border-sky-500`} />
+                                </div>
+                            </div>
 
-                {/* Vận hành & Realtime */}
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
-                    <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                        <BellOutlined className="text-amber-500 text-lg" />
-                        <h3 className="text-base font-black text-slate-800">Vận hành & Thông báo</h3>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
-                        <div>
-                            <p className="text-xs font-bold text-slate-800">Mở cửa nhận đơn hàng</p>
-                            <p className="text-[11px] text-slate-500">Khách có thể đặt món trực tuyến</p>
+                            <Modal
+                                title={<span className="font-black text-slate-800 text-lg">📍 Chọn vị trí cửa hàng</span>}
+                                open={showMapModal}
+                                onCancel={() => setShowMapModal(false)}
+                                footer={null}
+                                width={600}
+                                centered
+                                destroyOnClose
+                                closeIcon={<div className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500">✕</div>}
+                            >
+                                <div className="pt-4">
+                                    <MapboxLocationPicker
+                                        initialAddress={values.fullAddress}
+                                        initialLat={values.latitude || 21.0285}
+                                        initialLng={values.longitude || 105.8542}
+                                        onLocationSelected={({ address, lat, lng }) => {
+                                            setFieldValue('fullAddress', address)
+                                            setFieldValue('latitude', lat)
+                                            setFieldValue('longitude', lng)
+                                            setShowMapModal(false)
+                                            AppToast.success('Đã cập nhật tọa độ từ bản đồ!')
+                                        }}
+                                    />
+                                </div>
+                            </Modal>
                         </div>
-                        <Switch defaultChecked className="custom-admin-switch bg-emerald-500" />
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
-                        <div>
-                            <p className="text-xs font-bold text-slate-800">Âm thanh báo Realtime</p>
-                            <p className="text-[11px] text-slate-500">Phát âm thanh chuông khi có đơn mới</p>
+
+                        {/* Vận hành & Realtime */}
+                        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs flex flex-col h-full">
+                            <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
+                                <BellOutlined className="text-amber-500 text-lg" />
+                                <h3 className="text-base font-black text-slate-800">Vận hành & Thông báo</h3>
+                            </div>
+                            <div className="space-y-4 flex-1">
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-800">Mở cửa nhận đơn hàng</p>
+                                        <p className="text-[11px] text-slate-500">Khách có thể đặt món trực tuyến</p>
+                                    </div>
+                                    <Switch checked={values.isAcceptingOrders} onChange={v => setFieldValue('isAcceptingOrders', v)} className="custom-admin-switch bg-emerald-500" />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-800">Âm thanh báo Realtime</p>
+                                        <p className="text-[11px] text-slate-500">Phát âm thanh chuông khi có đơn mới</p>
+                                    </div>
+                                    <Switch checked={values.isRealtimeNotificationEnabled} onChange={v => setFieldValue('isRealtimeNotificationEnabled', v)} className="custom-admin-switch bg-sky-500" />
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border-l-4 border-red-400">
+                                    <div>
+                                        <p className="text-xs font-bold text-red-600">Chế độ bảo trì hệ thống</p>
+                                        <p className="text-[11px] text-slate-500">Tạm khóa toàn bộ chức năng khách</p>
+                                    </div>
+                                    <Switch checked={values.isMaintenanceMode} onChange={v => setFieldValue('isMaintenanceMode', v)} className="custom-admin-switch bg-slate-300" />
+                                </div>
+                            </div>
+                            <div className="flex justify-end pt-4 mt-auto border-t border-slate-100">
+                                <button type="submit" disabled={profileSubmitting} className="flex items-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-700 px-6 py-2 text-xs font-black text-white shadow-md shadow-sky-600/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50">
+                                    {profileSubmitting ? <Spin size="small" /> : <CheckCircleOutlined />}
+                                    <span>Lưu Cấu Hình Cửa Hàng</span>
+                                </button>
+                            </div>
                         </div>
-                        <Switch defaultChecked className="custom-admin-switch bg-sky-500" />
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
-                        <div>
-                            <p className="text-xs font-bold text-slate-800">Chế độ bảo trì hệ thống</p>
-                            <p className="text-[11px] text-slate-500">Tạm khóa giao diện đặt hàng</p>
-                        </div>
-                        <Switch className="custom-admin-switch bg-slate-300" />
-                    </div>
-                </div>
-            </div>
+                    </Form>
+                )}
+            </Formik>
 
             {/* Khối Cấu hình phí vận chuyển (Shipping Config) */}
             <Formik
@@ -241,10 +314,10 @@ export default function GeneralSettingsTab() {
                         <div className="flex justify-end pt-4 border-t border-slate-100">
                             <button
                                 type="submit"
-                                disabled={submitting}
+                                disabled={shippingSubmitting}
                                 className="flex items-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-700 px-6 py-2.5 text-xs font-black text-white shadow-md shadow-sky-600/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                             >
-                                {submitting ? <Spin size="small" /> : <CheckCircleOutlined />}
+                                {shippingSubmitting ? <Spin size="small" /> : <CheckCircleOutlined />}
                                 <span>Lưu Cấu Hình Giao Hàng</span>
                             </button>
                         </div>

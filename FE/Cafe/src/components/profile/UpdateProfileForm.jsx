@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { message } from 'antd'
 import { getProfile, updateProfile } from '../../redux/actions/user/userAction'
+import { AppToast, AppConfirm } from '../common/AppNotification'
+
 
 export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) {
     const dispatch = useDispatch()
@@ -28,12 +30,12 @@ export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) 
         if (!file) return
 
         if (!file.type.startsWith('image/')) {
-            message.error('Vui lòng chọn file ảnh hợp lệ (PNG, JPG, JPEG)!')
+            AppToast.error('Vui lòng chọn file ảnh hợp lệ (PNG, JPG, JPEG)!')
             return
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            message.error('Dung lượng ảnh không được vượt quá 5MB!')
+            AppToast.error('Dung lượng ảnh không được vượt quá 5MB!')
             return
         }
 
@@ -53,7 +55,7 @@ export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) 
 
         const trimmedName = fullName.trim()
         if (!trimmedName) {
-            message.warning('Vui lòng nhập họ và tên!')
+            AppToast.warning('Vui lòng nhập họ và tên!')
             return
         }
 
@@ -61,7 +63,7 @@ export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) 
         if (trimmedPhone) {
             const phoneRegex = /^(0|\+84)\d{9,10}$/
             if (!phoneRegex.test(trimmedPhone)) {
-                message.warning('Số điện thoại không hợp lệ (VD: 0912345678)!')
+                AppToast.warning('Số điện thoại không hợp lệ (VD: 0912345678)!')
                 return
             }
         }
@@ -77,7 +79,7 @@ export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) 
 
         const res = await dispatch(updateProfile(formData))
         if (updateProfile.fulfilled.match(res)) {
-            message.success('Cập nhật hồ sơ thành công!')
+            AppToast.success('Cập nhật hồ sơ thành công!')
             handleCancelAvatar()
             dispatch(getProfile())
         }

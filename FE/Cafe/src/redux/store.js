@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import uiReducer from './slices/uiSlice'
+import storeProfileReducer from './slices/storeProfileSlice'
 import productReducer from './slices/user/productSlice'
 import addressReducer from './slices/user/addressSlice'
 import orderReducer from './slices/user/orderSlice'
@@ -26,6 +27,7 @@ import adminRoleReducer from './slices/admin/adminRoleSlice'
 const appReducer = combineReducers({
     auth: authReducer,
     ui: uiReducer,
+    storeProfile: storeProfileReducer,
 })
 
 const userAppReducer = combineReducers({

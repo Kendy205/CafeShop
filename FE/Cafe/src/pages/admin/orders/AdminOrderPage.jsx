@@ -16,6 +16,8 @@ import OrderTableRow from '../../../components/admin/OrderAdmin/OrderTableRow'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import { ShoppingCartOutlined, SyncOutlined } from '@ant-design/icons'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 // ─── Trang chính AdminOrderPage ───────────────────────────────────────────────
 export default function AdminOrderPage() {
@@ -46,7 +48,7 @@ export default function AdminOrderPage() {
             setUpdatingOrderId(orderId)
             const res = await dispatch(updateAdminOrderStatus({ orderId, status: targetStatus, cancelReason }))
             if (updateAdminOrderStatus.fulfilled.match(res)) {
-                message.success(`Đã cập nhật đơn #${orderId} sang "${getStatusConfig(targetStatus).label}"`)
+                AppToast.success(`Đã cập nhật đơn #${orderId} sang "${getStatusConfig(targetStatus).label}"`)
                 fetchOrders()
             } else {
                 /* API Error Modal will handle this */

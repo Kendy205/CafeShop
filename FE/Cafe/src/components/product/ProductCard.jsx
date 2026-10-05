@@ -20,7 +20,7 @@ export default function ProductCard({ product }) {
 
     return (
         <LoadingLink
-            to={`/menu/${id}`}
+            to={`/product/${id}`}
             className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg ${
                 isOutOfStock ? 'opacity-85' : ''
             }`}

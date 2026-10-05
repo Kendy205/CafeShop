@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Form, Input, Select, message } from 'antd'
 import { CloseOutlined, UserOutlined } from '@ant-design/icons'
 import { createAdminUser, updateAdminUserInfo } from '../../../redux/actions/admin/adminUserAction'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 export default function AdminUserModal({ visible, onClose, editingUser, roles }) {
     const [form] = Form.useForm()
@@ -36,17 +38,17 @@ export default function AdminUserModal({ visible, onClose, editingUser, roles })
                     email: values.email
                 }}))
                 if (updateAdminUserInfo.fulfilled.match(res)) {
-                    message.success('Cập nhật thông tin thành công!')
+                    AppToast.success('Cập nhật thông tin thành công!')
                     onClose()
                 }
             } else {
                 // Tạo mới cần username, password, roleIds
                 const res = await dispatch(createAdminUser(values))
                 if (createAdminUser.fulfilled.match(res)) {
-                    message.success('Thêm tài khoản mới thành công!')
+                    AppToast.success('Thêm tài khoản mới thành công!')
                     onClose()
                 } else {
-                    message.error(res.payload || 'Không thể tạo tài khoản!')
+                    AppToast.error(res.payload || 'Không thể tạo tài khoản!')
                 }
             }
         } catch (error) {

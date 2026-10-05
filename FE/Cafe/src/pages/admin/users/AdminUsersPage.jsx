@@ -10,6 +10,8 @@ import AdminTable from '../../../components/admin/common/AdminTable'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import AdminUserModal from './AdminUserModal'
 import AdminAssignRoleModal from './AdminAssignRoleModal'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 export default function AdminUsersPage() {
     const dispatch = useDispatch()
@@ -39,7 +41,7 @@ export default function AdminUsersPage() {
     const handleToggleStatus = async (userId) => {
         const res = await dispatch(toggleAdminUserStatus(userId))
         if (toggleAdminUserStatus.fulfilled.match(res)) {
-            message.success('Đã cập nhật trạng thái khách hàng')
+            AppToast.success('Đã cập nhật trạng thái khách hàng')
         }
     }
 

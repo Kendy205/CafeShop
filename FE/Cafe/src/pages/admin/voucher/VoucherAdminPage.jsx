@@ -17,6 +17,8 @@ import VoucherFormModal from '../../../components/admin/VoucherAdmin/VoucherForm
 import { TagOutlined, PlusOutlined, GiftOutlined, EditOutlined } from '@ant-design/icons'
 import { formatVnd } from '../../../utils/helpers/format'
 import { TARGET_TYPE_LABEL, APPLY_TYPE_LABEL, DiscountType, VoucherTargetType } from '../../../utils/constants/VoucherConstants'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+
 
 export default function VoucherAdminPage() {
     const dispatch = useDispatch()
@@ -47,7 +49,7 @@ export default function VoucherAdminPage() {
             createAdminVoucher.fulfilled.match(result) ||
             updateAdminVoucher.fulfilled.match(result)
         ) {
-            message.success(editing ? 'Đã cập nhật mã thành công' : 'Đã tạo mã mới thành công')
+            AppToast.success(editing ? 'Đã cập nhật mã thành công' : 'Đã tạo mã mới thành công')
             setOpen(false)
             dispatch(getAdminVouchers())
         } else {
@@ -64,7 +66,7 @@ export default function VoucherAdminPage() {
 
     const handleAssignUser = async () => {
         if (!selectedUsers.length) {
-            message.warning('Vui lòng chọn ít nhất một người dùng')
+            AppToast.warning('Vui lòng chọn ít nhất một người dùng')
             return
         }
         const body = {
@@ -74,7 +76,7 @@ export default function VoucherAdminPage() {
         }
         const res = await dispatch(assignAdminVoucher(body))
         if (assignAdminVoucher.fulfilled.match(res)) {
-            message.success('Đã tặng Voucher thành công')
+            AppToast.success('Đã tặng Voucher thành công')
             setAssignModalOpen(false)
         } else {
             /* API Error Modal will handle this */
@@ -161,7 +163,7 @@ export default function VoucherAdminPage() {
                                             onChange={async () => {
                                                 const result = await dispatch(toggleAdminVoucher(id))
                                                 if (toggleAdminVoucher.fulfilled.match(result)) {
-                                                    message.success(`Đã ${!isAct ? 'kích hoạt' : 'tạm ngưng'} mã ${r.code}`)
+                                                    AppToast.success(`Đã ${!isAct ? 'kích hoạt' : 'tạm ngưng'} mã ${r.code}`)
                                                     dispatch(getAdminVouchers())
                                                 } else {
                                                     /* API Error Modal will handle this */

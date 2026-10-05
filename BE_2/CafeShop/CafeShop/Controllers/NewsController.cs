@@ -19,12 +19,12 @@ namespace CafeShop.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPublicNews(
             [FromQuery] string? keyword = null,
-            [FromQuery] int page = 1,
+            [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _newsService.GetPublicNewsAsync(keyword, page, pageSize);
+                var result = await _newsService.GetPublicNewsAsync(keyword, pageNumber, pageSize);
                 return Ok(ApiResponse<PagedResult<NewsListResponseDto>>.Succeeded(result, 200, "Lấy danh sách tin tức thành công"));
             }
             catch (Exception ex)

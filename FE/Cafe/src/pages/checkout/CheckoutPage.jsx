@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useCheckoutVoucher } from '../../hooks/checkout/useCheckoutVoucher'
+import { useCheckoutMap } from '../../hooks/checkout/useCheckoutMap'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { message } from 'antd'
@@ -16,10 +17,7 @@ import {
 } from '../../redux/slices/user/orderSlice'
 
 // Services & Helpers
-import { voucherService } from '../../services/user/VoucherService'
-import { orderService } from '../../services/user/OrderService'
-import { mapService } from '../../services/map/MapService'
-import { pickErrorMessage, unwrapApi } from '../../utils/helpers/api'
+
 import { calcLineTotal } from '../../utils/helpers/format'
 
 // Components
@@ -64,8 +62,6 @@ export default function CheckoutPage() {
     const [addressId, setAddressId] = useState('')
     const [addressTab, setAddressTab] = useState(TAB_SAVED)
     const [mapAddress, setMapAddress] = useState(null) // { address, lat, lng, distanceKm }
-    const [savedDistanceKm, setSavedDistanceKm] = useState(null)
-    const [distanceCalculating, setDistanceCalculating] = useState(false)
 
     // Thông tin người nhận khi chọn địa chỉ mới trên bản đồ (tự động prefill từ user)
     const [recipientName, setRecipientName] = useState(user?.fullName || '')
@@ -75,12 +71,6 @@ export default function CheckoutPage() {
     const [paymentMethod, setPaymentMethod] = useState('COD')
 
     const [note, setNote] = useState(location.state?.note || '')
-
-    // ── Shipping fee & Error states ────────────────────────────────────────
-    const [apiShippingFee, setApiShippingFee] = useState(null)
-    const [feeCalculating, setFeeCalculating] = useState(false)
-    const [shippingError, setShippingError] = useState('')
-    const shipDebounceRef = useRef(null)
 
     // ── Bootstrap Data ─────────────────────────────────────────────────────
     useEffect(() => {
@@ -134,115 +124,24 @@ export default function CheckoutPage() {
         }
     }
 
-    // Bước 2 & Bước 3: Tính khoảng cách Mapbox khi user chọn radio hoặc tick tự động
-    useEffect(() => {
-        if (addressTab !== TAB_SAVED || !selectedAddr) {
-            return
-        }
-
-        let cancelled = false
-        setDistanceCalculating(true)
-        setShippingError('')
-
-        const calculateDistance = (toLng, toLat) => {
-            mapService
-                .getDrivingDistance(cafeLng, cafeLat, toLng, toLat)
-                .then((dist) => {
-                    if (!cancelled) {
-                        setSavedDistanceKm(dist ?? 0)
-                        setDistanceCalculating(false)
-                    }
-                })
-                .catch(() => {
-                    if (!cancelled) {
-                        const directDist = mapService.calculateHaversineDistance?.(cafeLat, cafeLng, toLat, toLng)
-                        setSavedDistanceKm(directDist ?? 0)
-                        setDistanceCalculating(false)
-                    }
-                })
-        }
-
-        const lat = selectedAddr.latitude
-        const lng = selectedAddr.longitude
-
-        // Nếu địa chỉ cũ trong DB chưa có tọa độ GPS, tự động tìm tọa độ qua Mapbox Geocoding
-        if (!lat || !lng || Number(lat) === 0 || Number(lng) === 0) {
-            mapService
-                .searchAddress(selectedAddr.fullAddress)
-                .then((features) => {
-                    if (cancelled) return
-                    if (features && features.length > 0) {
-                        const [autoLng, autoLat] = features[0].center
-                        calculateDistance(autoLng, autoLat)
-                    } else {
-                        setSavedDistanceKm(0)
-                        setDistanceCalculating(false)
-                        setShippingError('Chưa xác định được tọa độ địa chỉ. Bạn có thể chọn lại trên bản đồ.')
-                    }
-                })
-                .catch(() => {
-                    if (!cancelled) {
-                        setSavedDistanceKm(0)
-                        setDistanceCalculating(false)
-                    }
-                })
-            return
-        }
-
-        calculateDistance(lng, lat)
-
-        return () => {
-            cancelled = true
-        }
-    }, [addressTab, selectedAddr, cafeLat, cafeLng])
-
-    // Khoảng cách hiện tại dùng để tính phí ship (km)
-    const currentDistanceKm = useMemo(() => {
-        if (addressTab === TAB_MAP) {
-            return Number(mapAddress?.distanceKm ?? 0)
-        }
-        return Number(savedDistanceKm ?? 0)
-    }, [addressTab, mapAddress, savedDistanceKm])
-
-    // Bước 4: Xin báo giá phí vận chuyển từ Backend (POST /api/Order/calculate-fee)
-    // CỬA HÀNG KHÔNG CÓ GIỚI HẠN KM: Giao mọi khoảng cách, tính phí linh hoạt
-    useEffect(() => {
-        clearTimeout(shipDebounceRef.current)
-
-        if (!currentDistanceKm || currentDistanceKm <= 0) {
-            setApiShippingFee(0)
-            setFeeCalculating(false)
-            setShippingError('')
-            return
-        }
-
-        setFeeCalculating(true)
-        shipDebounceRef.current = setTimeout(async () => {
-            try {
-                const res = await orderService.calculateShippingFee({
-                    distanceKm: currentDistanceKm,
-                    orderTotal: subtotal,
-                })
-                const fee = unwrapApi(res)
-
-                setApiShippingFee(Number(fee ?? 0))
-                setShippingError('')
-            } catch (err) {
-                // Cửa hàng KHÔNG CÓ GIỚI HẠN KM:
-                // Nếu BE chưa cấu hình hoặc tạm thời không phản hồi, fallback tính phí:
-                // <= 3km = 15.000đ; mỗi km tiếp theo + 5.000đ (đồng nhất với Mapbox)
-                const fallbackFee = Math.round(15000 + Math.max(0, currentDistanceKm - 3) * 5000)
-                setApiShippingFee(fallbackFee)
-                setShippingError('')
-            } finally {
-                setFeeCalculating(false)
-            }
-        }, 500)
-
-        return () => clearTimeout(shipDebounceRef.current)
-    }, [currentDistanceKm, subtotal])
-
-    const shippingFee = apiShippingFee != null ? apiShippingFee : 0
+    const {
+        savedDistanceKm,
+        distanceCalculating,
+        currentDistanceKm,
+        shippingFee,
+        feeCalculating,
+        shippingError,
+        setShippingError
+    } = useCheckoutMap({
+        addressTab,
+        selectedAddr,
+        cafeLat,
+        cafeLng,
+        mapAddress,
+        subtotal,
+        TAB_SAVED,
+        TAB_MAP
+    })
 
     // ── Gọn gàng lại bằng Custom Hook ──────────────────────────────────────
     const {

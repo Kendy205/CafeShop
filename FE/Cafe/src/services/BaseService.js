@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { DOMAIN, REFRESH_TOKEN, TOKEN } from '../utils/constants/System'
 import { resolveRoleFromAuth } from '../utils/auth/authRole'
-
+import { AppToast } from '../components/common/AppNotification'
 
 export const http = axios.create({
     baseURL: DOMAIN,
@@ -95,12 +95,9 @@ http.interceptors.response.use(
         if (status && status >= 400 && status !== 401) {
             const body = error.response?.data
             const msg = body?.Message || body?.message || error.message || 'Lỗi không xác định từ máy chủ'
-            if (appStore) {
-                appStore.dispatch({
-                    type: 'ui/showApiError',
-                    payload: { message: msg, statusCode: status }
-                })
-            }
+            
+            // Thay vì show popup to đùng, ta hiển thị dạng Toast
+            AppToast.error(msg)
         }
 
         if (status !== 401 || !originalRequest) {
