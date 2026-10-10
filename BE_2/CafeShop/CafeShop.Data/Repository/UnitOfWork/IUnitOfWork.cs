@@ -31,6 +31,8 @@ namespace CafeShop.Data.Repository.UnitOfWork
         ICartItemRepository CartItem { get; }
         IUserVoucherRepository UserVoucher { get; }
         IFeedbackRepository Feedback { get; }
+        IFeedbackImageRepository FeedbackImage { get; }
+        IFeedbackReplyRepository FeedbackReply { get; }
         IShippingConfigRepository ShippingConfig { get; }
         IRoleRepository Role { get; }
         IPermissionRepository Permission { get; }

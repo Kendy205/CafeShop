@@ -1,7 +1,9 @@
 using CafeShop.DTO.StoreProfile;
+using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace CafeShop.Controllers
@@ -20,8 +22,15 @@ namespace CafeShop.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStoreProfile()
         {
-            var profile = await _storeProfileService.GetStoreProfileAsync();
-            return Ok(new { data = profile });
+            try
+            {
+                var profile = await _storeProfileService.GetStoreProfileAsync();
+                return Ok(ApiResponse<StoreProfileDto>.Succeeded(profile, 200, "Lấy cấu hình cửa hàng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
+            }
         }
 
         [HttpPut]
@@ -30,11 +39,18 @@ namespace CafeShop.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ", 400, ModelState));
             }
 
-            var updatedProfile = await _storeProfileService.UpdateStoreProfileAsync(dto);
-            return Ok(new { message = "Cập nhật cấu hình cửa hàng thành công", data = updatedProfile });
+            try
+            {
+                var updatedProfile = await _storeProfileService.UpdateStoreProfileAsync(dto);
+                return Ok(ApiResponse<StoreProfileDto>.Succeeded(updatedProfile, 200, "Cập nhật cấu hình cửa hàng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
+            }
         }
     }
 }

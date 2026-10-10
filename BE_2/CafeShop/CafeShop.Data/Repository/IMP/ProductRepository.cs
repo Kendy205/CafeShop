@@ -23,7 +23,7 @@ namespace CafeShop.Repositories.Repository
             int pageSize,
             string? includeProperties = null)
         {
-            var query = dbSet.AsQueryable().Where(p => p.IsAvailable);
+            var query = dbSet.AsQueryable().Where(p => p.IsAvailable && !p.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(includeProperties))
             {
@@ -90,7 +90,7 @@ namespace CafeShop.Repositories.Repository
             int pageSize,
             string? includeProperties = null)
         {
-            var query = dbSet.AsQueryable();
+            var query = dbSet.AsQueryable().Where(p => !p.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(includeProperties))
             {
@@ -160,7 +160,7 @@ namespace CafeShop.Repositories.Repository
                 .ToListAsync();
 
             return await dbSet
-                .Where(p => p.IsAvailable && topProductIds.Contains(p.ProductId))
+                .Where(p => p.IsAvailable && !p.IsDeleted && topProductIds.Contains(p.ProductId))
                 .Include(p => p.Category)
                 .Include(p => p.ProductSizes).ThenInclude(ps => ps.Size)
                 .Include(p => p.Feedbacks)
@@ -170,7 +170,7 @@ namespace CafeShop.Repositories.Repository
         public async Task<IEnumerable<Product>> GetNewestProductsAsync(int count)
         {
             return await dbSet
-                .Where(p => p.IsAvailable)
+                .Where(p => p.IsAvailable && !p.IsDeleted)
                 .OrderByDescending(p => p.ProductId)
                 .Take(count)
                 .Include(p => p.Category)
@@ -183,7 +183,7 @@ namespace CafeShop.Repositories.Repository
         {
             var kw = keyword.ToLower();
             return await dbSet
-                .Where(p => p.IsAvailable && p.Name.ToLower().Contains(kw))
+                .Where(p => p.IsAvailable && !p.IsDeleted && p.Name.ToLower().Contains(kw))
                 .Take(count)
                 .ToListAsync();
         }

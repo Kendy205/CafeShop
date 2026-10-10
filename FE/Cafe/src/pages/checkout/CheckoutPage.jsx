@@ -54,9 +54,12 @@ export default function CheckoutPage() {
     const { user } = useSelector((s) => s.app.auth)
     const addresses = useSelector((s) => s.user.address.items)
     const vouchers = useSelector((s) => s.user.voucher.items)
-    const { submitting, error, cafeLat: storeCafeLat, cafeLng: storeCafeLng } = useSelector((s) => s.user.order)
-    const cafeLat = storeCafeLat || DEFAULT_CAFE_LAT
-    const cafeLng = storeCafeLng || DEFAULT_CAFE_LNG
+    const { submitting, error } = useSelector((s) => s.user.order)
+    
+    // Đọc config cửa hàng từ store (gồm có latitude, longitude)
+    const { profile: storeProfile } = useSelector((s) => s.app.storeProfile || {})
+    const cafeLat = storeProfile?.latitude
+    const cafeLng = storeProfile?.longitude
 
     // ── Address states ─────────────────────────────────────────────────────
     const [addressId, setAddressId] = useState('')

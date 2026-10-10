@@ -30,6 +30,8 @@ namespace CafeShop.Data
         public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
         public DbSet<News> News { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<FeedbackImage> FeedbackImages { get; set; }
+        public DbSet<FeedbackReply> FeedbackReplies { get; set; }
         public DbSet<UserVoucher> UserVouchers { get; set; }
         public DbSet<ShippingConfig> ShippingConfigs { get; set; }
         public DbSet<Payment> Payments { get; set; }
@@ -112,6 +114,24 @@ namespace CafeShop.Data
             modelBuilder.Entity<Feedback>()
                 .HasIndex(f => f.OrderDetailId)
                 .IsUnique();
+                
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.FeedbackReply)
+                .WithOne(fr => fr.Feedback)
+                .HasForeignKey<FeedbackReply>(fr => fr.FeedbackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Feedback>()
+                .HasMany(f => f.FeedbackImages)
+                .WithOne(fi => fi.Feedback)
+                .HasForeignKey(fi => fi.FeedbackId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FeedbackReply>()
+                .HasOne(fr => fr.AdminUser)
+                .WithMany()
+                .HasForeignKey(fr => fr.AdminUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<News>()
                 .HasOne(n => n.User)

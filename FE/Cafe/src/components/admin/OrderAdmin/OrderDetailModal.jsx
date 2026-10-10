@@ -76,11 +76,10 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                 className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/10 backdrop-blur-[2px] p-4 transition-all animate-in fade-in duration-200 ${isExpanded ? 'p-0' : 'p-4'}`}
                 onClick={(e) => e.target === e.currentTarget && onClose()}
             >
-                <div className={`relative w-full overflow-y-auto bg-white shadow-2xl border border-slate-200/80 transition-all duration-300 ${
-                    isExpanded 
-                        ? 'max-w-full h-full rounded-none' 
+                <div className={`relative w-full overflow-y-auto bg-white shadow-2xl border border-slate-200/80 transition-all duration-300 ${isExpanded
+                        ? 'max-w-full h-full rounded-none'
                         : 'max-w-4xl max-h-[90vh] rounded-3xl'
-                }`}>
+                    }`}>
                     {/* Header */}
                     <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-3xl border-b border-slate-100 bg-white/95 px-6 py-4 backdrop-blur-md">
                         <div>
@@ -131,107 +130,21 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
 
                         {detail && !loading && (
                             <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    {/* Cột 1: Thông tin khách & giao hàng */}
-                                    <div className="space-y-5">
-                                        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs relative overflow-hidden">
-                                            <div className="absolute top-0 left-0 w-1 h-full bg-sky-500"></div>
-                                            <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
-                                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                                </svg>
-                                                <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Thông tin giao hàng</h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-start">
-                                                    <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Người nhận:</span>
-                                                    <div className="text-right">
-                                                        <p className="text-sm font-bold text-slate-800">{detail.userName || detail.UserName || detail.customerName || '-'}</p>
-                                                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{detail.userPhone || detail.UserPhone || detail.customerPhone || '-'}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-between items-start">
-                                                    <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Địa chỉ:</span>
-                                                    <p className="text-sm font-medium text-slate-700 text-right">{detail.shippingAddress || 'Nhận tại cửa hàng'}</p>
-                                                </div>
-                                                {detail.distanceKm != null && (
-                                                    <div className="flex justify-between items-start">
-                                                        <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Khoảng cách:</span>
-                                                        <p className="text-sm font-medium text-slate-700 text-right">{detail.distanceKm} km</p>
-                                                    </div>
-                                                )}
-                                                <div className="flex justify-between items-start">
-                                                    <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Thời gian:</span>
-                                                    <p className="text-sm font-medium text-slate-700 text-right">{formatDate(detail.orderDate)}</p>
-                                                </div>
-                                                {detail.note && (
-                                                    <div className="mt-2 rounded-2xl bg-amber-50 p-3 border border-amber-100">
-                                                        <p className="text-xs font-bold text-amber-800 mb-1">Ghi chú của khách:</p>
-                                                        <p className="text-sm font-medium text-amber-900">{detail.note}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs relative overflow-hidden">
-                                            <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                                            <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
-                                                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                                                </svg>
-                                                <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Thanh toán</h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-start">
-                                                    <span className="text-xs font-bold text-slate-500">Phương thức:</span>
-                                                    <span className="text-sm font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg">{detail.paymentMethod || 'COD'}</span>
-                                                </div>
-                                                {detail.subTotal != null && (
-                                                    <div className="flex justify-between text-sm text-slate-700">
-                                                        <span className="text-xs font-bold text-slate-500">Tạm tính món:</span>
-                                                        <span className="font-semibold">{formatCurrency(detail.subTotal)}</span>
-                                                    </div>
-                                                )}
-                                                {detail.shippingFee != null && (
-                                                    <div className="flex justify-between text-sm text-slate-700">
-                                                        <span className="text-xs font-bold text-slate-500">Phí giao hàng:</span>
-                                                        <span className="font-semibold">{formatCurrency(detail.shippingFee)}</span>
-                                                    </div>
-                                                )}
-                                                {detail.orderDiscount > 0 && (
-                                                    <div className="flex justify-between text-sm text-emerald-600">
-                                                        <span className="text-xs font-bold">Giảm giá món:</span>
-                                                        <span className="font-bold">-{formatCurrency(detail.orderDiscount)}</span>
-                                                    </div>
-                                                )}
-                                                {detail.shippingDiscount > 0 && (
-                                                    <div className="flex justify-between text-sm text-emerald-600">
-                                                        <span className="text-xs font-bold">Freeship:</span>
-                                                        <span className="font-bold">-{formatCurrency(detail.shippingDiscount)}</span>
-                                                    </div>
-                                                )}
-                                                <div className="flex justify-between items-center border-t border-slate-100 pt-3 mt-1">
-                                                    <span className="text-sm font-black text-slate-800 uppercase tracking-wide">Tổng cộng</span>
-                                                    <span className="text-2xl font-black text-sky-600">{formatCurrency(detail.totalAmount)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Cột 2: Danh sách món */}
-                                    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col h-full">
+                                <div className="flex flex-col gap-5">
+                                    {/* Phần trên: Danh sách món */}
+                                    <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col h-full w-full">
                                         <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
                                             <div className="flex items-center gap-2">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
-                                                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                                                 </svg>
                                                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Danh sách món ({detail.items?.length || 0})</h3>
                                             </div>
                                         </div>
-                                        
-                                        <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-1" style={{ maxHeight: isExpanded ? 'calc(100vh - 250px)' : 'calc(100vh - 400px)', minHeight: '300px' }}>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-1 custom-scrollbar content-start" style={{ maxHeight: isExpanded ? 'calc(100vh - 400px)' : 'calc(100vh - 550px)', minHeight: '200px' }}>
                                             {(detail.items || []).map((item, i) => (
-                                                <div key={i} className="flex gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-white hover:shadow-sm transition-all group">
+                                                <div key={i} className="flex items-start gap-4 rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group">
                                                     <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200">
                                                         {item.imageUrl ? (
                                                             <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
@@ -273,6 +186,92 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                     </div>
                                                 </div>
                                             ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Phần dưới: 2 cột */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs relative overflow-hidden h-full">
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-sky-500"></div>
+                                            <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                                </svg>
+                                                <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Thông tin giao hàng</h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Người nhận:</span>
+                                                    <div className="text-right">
+                                                        <p className="text-sm font-bold text-slate-800">{detail.userName || detail.UserName || detail.customerName || '-'}</p>
+                                                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{detail.userPhone || detail.UserPhone || detail.customerPhone || '-'}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-start">
+                                                    <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Địa chỉ:</span>
+                                                    <p className="text-sm font-medium text-slate-700 text-right">{detail.shippingAddress || 'Nhận tại cửa hàng'}</p>
+                                                </div>
+                                                {detail.distanceKm != null && (
+                                                    <div className="flex justify-between items-start">
+                                                        <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Khoảng cách:</span>
+                                                        <p className="text-sm font-medium text-slate-700 text-right">{detail.distanceKm} km</p>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-start">
+                                                    <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Thời gian:</span>
+                                                    <p className="text-sm font-medium text-slate-700 text-right">{formatDate(detail.orderDate)}</p>
+                                                </div>
+                                                {detail.note && (
+                                                    <div className="mt-2 rounded-2xl bg-amber-50 p-3 border border-amber-100">
+                                                        <p className="text-xs font-bold text-amber-800 mb-1">Ghi chú của khách:</p>
+                                                        <p className="text-sm font-medium text-amber-900">{detail.note}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs relative overflow-hidden h-full">
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                                            <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                                </svg>
+                                                <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Thanh toán</h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <span className="text-xs font-bold text-slate-500">Phương thức:</span>
+                                                    <span className="text-sm font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg">{detail.paymentMethod || 'COD'}</span>
+                                                </div>
+                                                {detail.subTotal != null && (
+                                                    <div className="flex justify-between text-sm text-slate-700">
+                                                        <span className="text-xs font-bold text-slate-500">Tạm tính món:</span>
+                                                        <span className="font-semibold">{formatCurrency(detail.subTotal)}</span>
+                                                    </div>
+                                                )}
+                                                {detail.shippingFee != null && (
+                                                    <div className="flex justify-between text-sm text-slate-700">
+                                                        <span className="text-xs font-bold text-slate-500">Phí giao hàng:</span>
+                                                        <span className="font-semibold">{formatCurrency(detail.shippingFee)}</span>
+                                                    </div>
+                                                )}
+                                                {detail.orderDiscount > 0 && (
+                                                    <div className="flex justify-between text-sm text-emerald-600">
+                                                        <span className="text-xs font-bold">Giảm giá món:</span>
+                                                        <span className="font-bold">-{formatCurrency(detail.orderDiscount)}</span>
+                                                    </div>
+                                                )}
+                                                {detail.shippingDiscount > 0 && (
+                                                    <div className="flex justify-between text-sm text-emerald-600">
+                                                        <span className="text-xs font-bold">Freeship:</span>
+                                                        <span className="font-bold">-{formatCurrency(detail.shippingDiscount)}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center border-t border-slate-100 pt-3 mt-1">
+                                                    <span className="text-sm font-black text-slate-800 uppercase tracking-wide">Tổng cộng</span>
+                                                    <span className="text-2xl font-black text-sky-600">{formatCurrency(detail.totalAmount)}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

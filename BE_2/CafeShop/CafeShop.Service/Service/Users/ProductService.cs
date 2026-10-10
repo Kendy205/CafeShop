@@ -70,8 +70,8 @@ namespace CafeShop.Services.Services
             if (cachedResult != null) return cachedResult;
 
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
-                p => p.ProductId == id && p.IsAvailable, // ONLY AVAILABLE
-                includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping"
+                p => p.ProductId == id && p.IsAvailable && !p.IsDeleted, // ONLY AVAILABLE
+                includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping,Feedbacks"
             );
 
             if (product == null)

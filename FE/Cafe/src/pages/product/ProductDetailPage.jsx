@@ -52,7 +52,7 @@ export default function ProductDetailPage() {
     }, [detail?.productSizes, detail?.sizes])
 
     const toppings = Array.isArray(detail?.productToppings) && detail.productToppings.length > 0
-        ? detail.productToppings
+        ? detail.productToppings.map(t => ({ ...t, name: t.name || t.toppingName || 'Topping' }))
         : []
 
     if (detailLoading) {
@@ -73,16 +73,16 @@ export default function ProductDetailPage() {
 
     return (
         <div className="space-y-8">
-            <div className="grid gap-8 md:grid-cols-2">
-                <div className="relative overflow-hidden rounded-3xl bg-slate-100">
+            <div className="grid items-start gap-8 md:grid-cols-2">
+                <div className="relative overflow-hidden rounded-3xl bg-slate-100 sticky top-24">
                     {detail.imageUrl ? (
                         <img
                             src={detail.imageUrl}
                             alt={detail.name}
-                            className={`h-80 w-full object-cover ${detail.isOutOfStock ? 'grayscale-30' : ''}`}
+                            className={`aspect-square w-full object-cover ${detail.isOutOfStock ? 'grayscale-30' : ''}`}
                         />
                     ) : (
-                        <div className="flex h-80 items-center justify-center text-slate-400">Chưa có ảnh</div>
+                        <div className="flex aspect-square items-center justify-center text-slate-400">Chưa có ảnh</div>
                     )}
                     {detail.isOutOfStock && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">

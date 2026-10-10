@@ -32,18 +32,23 @@ const saveStoredReviewedItem = (orderDetailId) => {
     }
 }
 
+import { Upload, Button } from 'antd'
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
+
 // ── Modal Viết Đánh Giá Món ──────────────────────────────────────────────────
 export function ReviewModal({ open, item, onClose, onSuccess }) {
     const [rating, setRating] = useState(5)
     const [hoverRating, setHoverRating] = useState(0)
     const [comment, setComment] = useState('')
     const [submitting, setSubmitting] = useState(false)
+    const [fileList, setFileList] = useState([])
 
     useEffect(() => {
         if (open) {
             setRating(5)
             setHoverRating(0)
             setComment('')
+            setFileList([])
             setSubmitting(false)
         }
     }, [open, item])
@@ -60,6 +65,18 @@ export function ReviewModal({ open, item, onClose, onSuccess }) {
 
     const currentRating = hoverRating || rating
 
+    const handleUploadChange = ({ fileList: newFileList }) => {
+        setFileList(newFileList)
+    }
+
+    const beforeUpload = (file) => {
+        const isImage = file.type.startsWith('image/')
+        if (!isImage) {
+            AppToast.error('Chỉ hỗ trợ upload file ảnh!')
+        }
+        return false // Ngăn chặn tự động upload
+    }
+
     const handleSubmit = async () => {
         if (!rating || rating < 1 || rating > 5) {
             AppToast.warning('Vui lòng chọn số sao đánh giá từ 1 đến 5!')
@@ -68,6 +85,7 @@ export function ReviewModal({ open, item, onClose, onSuccess }) {
 
         setSubmitting(true)
         try {
+            // Bước 1: Gửi text review
             const body = {
                 productId: Number(item.productId),
                 orderDetailId: Number(item.orderDetailId),
@@ -75,6 +93,18 @@ export function ReviewModal({ open, item, onClose, onSuccess }) {
                 comment: comment.trim() || null,
             }
             const res = await feedbackService.addFeedback(body)
+            // Lấy feedbackId từ response (unwrapApi đã trả thẳng Data là số)
+            const feedbackId = typeof res === 'number' ? res : null
+
+            // Bước 2: Upload ảnh nếu có
+            if (feedbackId && fileList.length > 0) {
+                const formData = new FormData()
+                fileList.forEach((file) => {
+                    formData.append('files', file.originFileObj)
+                })
+                await feedbackService.uploadFeedbackImages(feedbackId, formData)
+            }
+
             AppToast.success(res?.message || 'Cảm ơn bạn đã gửi đánh giá!')
             saveStoredReviewedItem(item.orderDetailId)
             onSuccess?.(item.orderDetailId)
@@ -154,7 +184,7 @@ export function ReviewModal({ open, item, onClose, onSuccess }) {
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 24 24"
                                         fill="currentColor"
-                                        className={`h-9 w-9 transition-colors ${isFilled ? 'text-sky-400 drop-shadow-sm' : 'text-slate-300 hover:text-sky-200'
+                                        className={`h-9 w-9 transition-colors ${isFilled ? 'text-amber-400 drop-shadow-sm' : 'text-slate-300 hover:text-amber-200'
                                             }`}
                                     >
                                         <path
@@ -169,7 +199,7 @@ export function ReviewModal({ open, item, onClose, onSuccess }) {
                     </div>
 
                     {/* Nhãn cảm xúc tương ứng sao */}
-                    <div className="mt-2 flex items-center justify-center gap-1.5 text-sm font-bold text-sky-900">
+                    <div className="mt-2 flex items-center justify-center gap-1.5 text-sm font-bold text-amber-600">
                         <span>{RATING_LABELS[currentRating]?.emoji}</span>
                         <span>{RATING_LABELS[currentRating]?.text}</span>
                     </div>
@@ -194,8 +224,31 @@ export function ReviewModal({ open, item, onClose, onSuccess }) {
                     />
                 </div>
 
+                {/* Upload ảnh */}
+                <div className="mt-4">
+                    <div className="text-xs text-slate-600 mb-2 font-semibold">
+                        Đính kèm hình ảnh <span className="font-normal text-slate-400">(Tối đa 5 ảnh)</span>
+                    </div>
+                    <Upload
+                        listType="picture-card"
+                        fileList={fileList}
+                        onChange={handleUploadChange}
+                        beforeUpload={beforeUpload}
+                        maxCount={5}
+                        multiple
+                        accept="image/*"
+                    >
+                        {fileList.length >= 5 ? null : (
+                            <div className="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 transition-colors">
+                                <PlusOutlined className="text-xl mb-1" />
+                                <div className="text-xs font-semibold">Thêm ảnh</div>
+                            </div>
+                        )}
+                    </Upload>
+                </div>
+
                 {/* Buttons hành động */}
-                <div className="mt-5 flex items-center justify-end gap-2.5">
+                <div className="mt-6 flex items-center justify-end gap-2.5">
                     <button
                         type="button"
                         disabled={submitting}
@@ -407,6 +460,7 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                                         onReviewClick?.({
                                                             productId: item.productId,
                                                             orderDetailId: item.orderDetailId,
+                                                            orderId: orderId,
                                                             productName: item.productName || item.name,
                                                             imageUrl: item.imageUrl,
                                                             sizeName: item.sizeName,

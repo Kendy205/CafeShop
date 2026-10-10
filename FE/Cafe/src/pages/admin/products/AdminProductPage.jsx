@@ -12,9 +12,10 @@ import { fetchAdminCategories } from '../../../redux/actions/admin/adminCategory
 import { fetchAdminSizes } from '../../../redux/actions/admin/adminSizeAction'
 import { fetchAdminToppings } from '../../../redux/actions/admin/adminToppingAction'
 import { formatVnd } from '../../../utils/helpers/format'
-import ProductFormModal from '../../../components/admin/ProductFormModal'
+import ProductFormModal from '../../../components/admin/ProductAdmin/ProductFormModal'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import AdminTable from '../../../components/admin/common/AdminTable'
+import FeedbackDrawer from '../../../components/admin/FeedbackAdmin/FeedbackDrawer'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 
 export default function AdminProductPage() {
@@ -37,6 +38,10 @@ export default function AdminProductPage() {
     // modal states
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
+    
+    // feedback drawer states
+    const [isFeedbackDrawerVisible, setIsFeedbackDrawerVisible] = useState(false)
+    const [selectedProductId, setSelectedProductId] = useState(null)
 
     useEffect(() => {
         dispatch(fetchAdminCategories())
@@ -219,17 +224,29 @@ export default function AdminProductPage() {
         {
             title: 'Thao tác',
             key: 'action',
-            width: 120,
+            width: 150,
             align: 'right',
             render: (_, record) => (
                 <div className="flex items-center justify-end gap-2">
+                    <AdminTooltip title="Xem đánh giá">
+                        <button
+                            onClick={() => {
+                                setSelectedProductId(record.productId)
+                                setIsFeedbackDrawerVisible(true)
+                            }}
+                            className="admin-action-btn flex items-center justify-center rounded-lg bg-pink-50 p-2 text-pink-600 hover:bg-pink-100 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                            </svg>
+                        </button>
+                    </AdminTooltip>
                     <AdminTooltip title="Chỉnh sửa sản phẩm">
                         <button
                             onClick={() => openModal(record)}
                             className="admin-action-btn admin-action-btn-edit"
                         >
                             <EditOutlined />
-                            <span>Sửa</span>
                         </button>
                     </AdminTooltip>
                     <AdminTooltip title="Xóa sản phẩm">
@@ -238,7 +255,6 @@ export default function AdminProductPage() {
                             className="admin-action-btn admin-action-btn-delete"
                         >
                             <DeleteOutlined className="text-red-600" />
-                            <span>Xóa</span>
                         </button>
                     </AdminTooltip>
                 </div>
@@ -377,6 +393,15 @@ export default function AdminProductPage() {
                 categories={categories}
                 masterSizes={masterSizes}
                 masterToppings={masterToppings}
+            />
+
+            <FeedbackDrawer 
+                open={isFeedbackDrawerVisible}
+                productId={selectedProductId}
+                onClose={() => {
+                    setIsFeedbackDrawerVisible(false)
+                    setSelectedProductId(null)
+                }}
             />
         </div>
     )

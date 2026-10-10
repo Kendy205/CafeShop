@@ -14,7 +14,8 @@ import {
     ShoppingOutlined,
     AppstoreOutlined,
     TeamOutlined,
-    SettingOutlined
+    SettingOutlined,
+    MessageOutlined
 } from '@ant-design/icons'
 import { Drawer } from 'antd'
 import { logout } from '../redux/slices/authSlice'
@@ -60,6 +61,7 @@ export default function AdminTemplate() {
         { path: '/admin/menu-config', label: 'Thuộc tính SP', icon: <AppstoreOutlined /> },
         { path: '/admin/vouchers', label: 'Mã giảm giá', icon: <TagOutlined /> },
         { path: '/admin/users', label: 'Khách hàng', icon: <TeamOutlined /> },
+        { path: '/admin/feedbacks', label: 'Đánh giá', icon: <MessageOutlined /> },
         { path: '/admin/news', label: 'Tin tức', icon: <AppstoreOutlined /> },
         { path: '/admin/settings', label: 'Cài đặt hệ thống', icon: <SettingOutlined /> },
     ]

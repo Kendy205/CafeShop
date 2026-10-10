@@ -65,7 +65,7 @@ namespace CafeShop.Service.Service.Admin
         public async Task<ProductResponseDto?> GetByIdAsync(int id)
         {
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
-                p => p.ProductId == id,
+                p => p.ProductId == id && !p.IsDeleted,
                 includeProperties: "Category,ProductSizes,ProductSizes.Size,ProductToppings,ProductToppings.Topping"
             );
 
@@ -161,7 +161,7 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<ProductResponseDto> UpdateProductAsync(int id, CreateUpdateProductDto request)
         {
-            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id);
+            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id && !p.IsDeleted);
             if (product == null) throw new ArgumentException("Không tìm thấy sản phẩm!");
 
             var sizes = new List<CreateProductSizeDto>();
@@ -260,7 +260,7 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task ToggleAvailabilityAsync(int id)
         {
-            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id);
+            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id && !p.IsDeleted);
             if (product == null) throw new ArgumentException("Không tìm thấy sản phẩm!");
 
             product.IsAvailable = !product.IsAvailable;
@@ -271,11 +271,12 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task DeleteAsync(int id)
         {
-            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id);
+            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id && !p.IsDeleted);
             if (product != null)
             {
                 // Soft delete để không bị lỗi khóa ngoại (Foreign key) với các bảng như OrderItem
                 product.IsAvailable = false;
+                product.IsDeleted = true;
                 _unitOfWork.Product.Update(product);
                 await _unitOfWork.SaveAsync();
                 await InvalidateProductCacheAsync(id);

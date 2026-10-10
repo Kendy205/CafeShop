@@ -360,7 +360,7 @@ export default function ProductCustomize({ detail, sizes, toppings, error, isAut
                                                     }`}
                                             >
                                                 {/* Hình ảnh topping */}
-                                                <div className="relative h-24 w-full overflow-hidden bg-sky-50">
+                                                <div className="relative aspect-[4/3] w-full overflow-hidden bg-sky-50">
                                                     {t.imageUrl ? (
                                                         <img
                                                             src={t.imageUrl}

@@ -24,6 +24,7 @@ namespace CafeShop.Model
         public string? ImagePublicId { get; set; }
         public string? Description { get; set; }
         public bool IsAvailable { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
         [ConcurrencyCheck]
         public int StockQuantity { get; set; } = 0; // Thêm dòng này
         [ForeignKey("CategoryId")]

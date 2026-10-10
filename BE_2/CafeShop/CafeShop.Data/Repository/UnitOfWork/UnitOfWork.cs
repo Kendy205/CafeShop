@@ -34,6 +34,8 @@ namespace CafeShop.Data.Repository.UnitOfWork
         public IProductToppingRepository ProductTopping { get; private set; }
         public IUserVoucherRepository UserVoucher { get; private set; }
         public IFeedbackRepository Feedback { get; private set; }
+        public IFeedbackImageRepository FeedbackImage { get; private set; }
+        public IFeedbackReplyRepository FeedbackReply { get; private set; }
         public IShippingConfigRepository ShippingConfig { get; private set; }
         public IRoleRepository Role { get; private set; }
         public IPermissionRepository Permission { get; private set; }
@@ -46,7 +48,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
             _context = context;
             User = new UserRepository(_context);
             News = new NewsRepository(_context);
-            // Role = new RoleRepository(_context);
+            //Role = new RoleRepository(_context);
             Address = new AddressRepository(_context);
             Category = new CategoryRepository(_context);
             Product = new ProductRepository(_context);
@@ -64,6 +66,8 @@ namespace CafeShop.Data.Repository.UnitOfWork
             ProductTopping = new ProductToppingRepository(_context);
             UserVoucher = new UserVoucherRepository(_context);
             Feedback = new FeedbackRepository(_context);
+            FeedbackImage = new FeedbackImageRepository(_context);
+            FeedbackReply = new FeedbackReplyRepository(_context);
             ShippingConfig = new ShippingConfigRepository(_context);
             Role = new RoleRepository(_context);
             Permission = new PermissionRepository(_context);

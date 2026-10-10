@@ -226,6 +226,9 @@ namespace CafeShop.Data.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -243,6 +246,68 @@ namespace CafeShop.Data.Migrations
                     b.HasIndex("ProductId", "IsVisible", "CreatedAt");
 
                     b.ToTable("Feedbacks");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.FeedbackImage", b =>
+                {
+                    b.Property<int>("FeedbackImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FeedbackImageId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FeedbackId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePublicId")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("FeedbackImageId");
+
+                    b.HasIndex("FeedbackId");
+
+                    b.ToTable("FeedbackImages");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.FeedbackReply", b =>
+                {
+                    b.Property<int>("FeedbackReplyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FeedbackReplyId"));
+
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FeedbackId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReplyContent")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("FeedbackReplyId");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("FeedbackId")
+                        .IsUnique();
+
+                    b.ToTable("FeedbackReplies");
                 });
 
             modelBuilder.Entity("CafeShop.Model.News", b =>
@@ -596,6 +661,9 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
@@ -1110,6 +1178,36 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CafeShop.Model.FeedbackImage", b =>
+                {
+                    b.HasOne("CafeShop.Model.Feedback", "Feedback")
+                        .WithMany("FeedbackImages")
+                        .HasForeignKey("FeedbackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Feedback");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.FeedbackReply", b =>
+                {
+                    b.HasOne("CafeShop.Model.User", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CafeShop.Model.Feedback", "Feedback")
+                        .WithOne("FeedbackReply")
+                        .HasForeignKey("CafeShop.Model.FeedbackReply", "FeedbackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+
+                    b.Navigation("Feedback");
+                });
+
             modelBuilder.Entity("CafeShop.Model.News", b =>
                 {
                     b.HasOne("CafeShop.Model.User", "User")
@@ -1336,6 +1434,13 @@ namespace CafeShop.Data.Migrations
             modelBuilder.Entity("CafeShop.Model.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Feedback", b =>
+                {
+                    b.Navigation("FeedbackImages");
+
+                    b.Navigation("FeedbackReply");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Order", b =>

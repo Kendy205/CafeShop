@@ -5,13 +5,13 @@ import { PictureOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/ico
 import {
     createAdminProduct,
     updateAdminProduct,
-} from '../../redux/actions/admin/adminProductAction'
-import { buildProductFormData } from '../../utils/helpers/ProductHelper'
-import AdminModalBanner from './common/AdminModalBanner'
-import AppButton from '../common/AppButton'
+} from '../../../redux/actions/admin/adminProductAction'
+import { buildProductFormData } from '../../../utils/helpers/ProductHelper'
+import AdminModalBanner from '../common/AdminModalBanner'
+import AppButton from '../../common/AppButton'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
-import { AppToast, AppConfirm } from '../common/AppNotification'
+import { AppToast, AppConfirm } from '../../common/AppNotification'
 
 
 const productSchema = Yup.object().shape({

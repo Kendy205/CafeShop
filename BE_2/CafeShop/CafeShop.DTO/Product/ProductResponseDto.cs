@@ -15,6 +15,9 @@ namespace CafeShop.DTO.Product
         public bool IsAvailable { get; set; }
         public int? StockQuantity { get; set; }
         public string? Description { get; set; }
+        
+        public double AverageRating { get; set; }
+        public int TotalFeedbacks { get; set; }
 
         public List<ProductSizeDto> ProductSizes { get; set; } = new List<ProductSizeDto>();
         public List<ProductToppingDto> ProductToppings { get; set; } = new List<ProductToppingDto>();

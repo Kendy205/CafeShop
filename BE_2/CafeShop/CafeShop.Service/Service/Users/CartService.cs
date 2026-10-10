@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.UnitOfWork;
+using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Cart;
 using CafeShop.Model;
 using CafeShop.Service.IService;
@@ -95,7 +95,7 @@ namespace CafeShop.Service.Service
             if (cart == null)
                 throw new ArgumentException("Giỏ hàng không tồn tại!");
 
-            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == request.ProductId);
+            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == request.ProductId && !p.IsDeleted);
             if (product == null)
                 throw new ArgumentException("Sản phẩm không tồn tại!");
 

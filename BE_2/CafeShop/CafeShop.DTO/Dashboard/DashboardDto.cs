@@ -8,6 +8,8 @@ namespace CafeShop.DTO.Dashboard
         public int TotalOrders { get; set; }
         public int NewUsersCount { get; set; }
         public int TotalProductsSold { get; set; }
+        public int TotalFeedbacks { get; set; }
+        public double AverageFeedbackRating { get; set; }
     }
 
     public class ProductSizeSalesDto

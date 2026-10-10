@@ -21,20 +21,18 @@ export default function ProductCard({ product }) {
     return (
         <LoadingLink
             to={`/product/${id}`}
-            className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg ${
-                isOutOfStock ? 'opacity-85' : ''
-            }`}
+            className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg ${isOutOfStock ? 'opacity-85' : ''
+                }`}
         >
             {/* ── Khung ảnh sản phẩm ── */}
             <div>
-                <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
                     {product.imageUrl ? (
                         <img
                             src={product.imageUrl}
                             alt={product.name}
-                            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                                isOutOfStock ? 'grayscale-40 contrast-90' : ''
-                            }`}
+                            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? 'grayscale-40 contrast-90' : ''
+                                }`}
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-sky-50/50 text-3xl text-sky-800/40">
@@ -115,11 +113,10 @@ export default function ProductCard({ product }) {
                             {sizes.map((s) => (
                                 <span
                                     key={s.sizeId || s.sizeName || s.name}
-                                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
-                                        s.isOutOfStock
-                                            ? 'bg-slate-100 text-slate-400 line-through'
-                                            : 'bg-sky-50 text-sky-900 border border-sky-200/80'
-                                    }`}
+                                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${s.isOutOfStock
+                                        ? 'bg-slate-100 text-slate-400 line-through'
+                                        : 'bg-sky-50 text-sky-900 border border-sky-200/80'
+                                        }`}
                                 >
                                     {s.sizeName ?? s.name}
                                 </span>
@@ -143,11 +140,10 @@ export default function ProductCard({ product }) {
 
                     <button
                         type="button"
-                        className={`inline-flex items-center gap-1 rounded-3xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${
-                            isOutOfStock
-                                ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                                : 'bg-sky-800 text-white hover:bg-sky-900 group-hover:shadow-sm'
-                        }`}
+                        className={`inline-flex items-center gap-1 rounded-3xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${isOutOfStock
+                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                            : 'bg-sky-800 text-white hover:bg-sky-900 group-hover:shadow-sm'
+                            }`}
                     >
                         <span>{isOutOfStock ? 'Hết món' : 'Đặt món'}</span>
                         {!isOutOfStock && <span className="text-[10px]">→</span>}

@@ -30,6 +30,7 @@ namespace CafeShop.Model
         public string? Comment { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
         public bool IsVisible { get; set; } = true;
 
         // --- Navigation Properties ---
@@ -41,5 +42,8 @@ namespace CafeShop.Model
 
         [ForeignKey("OrderDetailId")]
         public virtual OrderDetail? OrderDetail { get; set; }
+
+        public virtual ICollection<FeedbackImage>? FeedbackImages { get; set; }
+        public virtual FeedbackReply? FeedbackReply { get; set; }
     }
 }

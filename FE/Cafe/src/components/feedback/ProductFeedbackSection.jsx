@@ -164,11 +164,11 @@ export default function ProductFeedbackSection({ productId, summary: initialSumm
 
                     {/* Cột phải: Biểu đồ thanh phân bố các mức sao */}
                     <div className="space-y-2 md:col-span-8 md:pl-2">
-                        <RatingProgressBar starLabel="5 sao" count={summary?.fiveStarCount || 0} total={totalReviews} />
-                        <RatingProgressBar starLabel="4 sao" count={summary?.fourStarCount || 0} total={totalReviews} />
-                        <RatingProgressBar starLabel="3 sao" count={summary?.threeStarCount || 0} total={totalReviews} />
-                        <RatingProgressBar starLabel="2 sao" count={summary?.twoStarCount || 0} total={totalReviews} />
-                        <RatingProgressBar starLabel="1 sao" count={summary?.oneStarCount || 0} total={totalReviews} />
+                        <RatingProgressBar starLabel="5 sao" count={summary?.distribution?.['5'] || 0} total={totalReviews} />
+                        <RatingProgressBar starLabel="4 sao" count={summary?.distribution?.['4'] || 0} total={totalReviews} />
+                        <RatingProgressBar starLabel="3 sao" count={summary?.distribution?.['3'] || 0} total={totalReviews} />
+                        <RatingProgressBar starLabel="2 sao" count={summary?.distribution?.['2'] || 0} total={totalReviews} />
+                        <RatingProgressBar starLabel="1 sao" count={summary?.distribution?.['1'] || 0} total={totalReviews} />
                     </div>
                 </div>
             </div>
@@ -237,9 +237,17 @@ export default function ProductFeedbackSection({ productId, summary: initialSumm
                                                 <h4 className="text-xs font-bold text-slate-800">
                                                     {fb.userName || 'Khách hàng ẩn danh'}
                                                 </h4>
-                                                <div className="mt-0.5 flex items-center gap-2">
+                                                <div className="mt-0.5 flex items-center gap-2 flex-wrap">
                                                     <StarRatingDisplay rating={fb.rating} size="sm" />
                                                     <span className="text-[11px] text-slate-400">•</span>
+                                                    {fb.sizeName && (
+                                                        <>
+                                                            <span className="text-[11px] font-semibold text-sky-700 bg-sky-50 px-1.5 rounded-sm">
+                                                                Size {fb.sizeName}
+                                                            </span>
+                                                            <span className="text-[11px] text-slate-400">•</span>
+                                                        </>
+                                                    )}
                                                     <span className="text-[11px] text-slate-400">{formattedDate}</span>
                                                 </div>
                                             </div>
@@ -256,6 +264,40 @@ export default function ProductFeedbackSection({ productId, summary: initialSumm
                                             <p className="text-xs italic text-slate-400">
                                                 Khách hàng không để lại bình luận
                                             </p>
+                                        )}
+                                        
+                                        {/* Hình ảnh đính kèm */}
+                                        {fb.images && fb.images.length > 0 && (
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {fb.images.map((img, i) => (
+                                                    <img 
+                                                        key={i} 
+                                                        src={img} 
+                                                        alt="Feedback" 
+                                                        className="h-16 w-16 object-cover rounded-xl border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity" 
+                                                        onClick={() => window.open(img, '_blank')}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Admin Reply */}
+                                        {fb.adminReply && (
+                                            <div className="mt-3 rounded-2xl bg-sky-50/50 p-3 border border-sky-100 relative">
+                                                <div className="absolute -left-1.5 top-4 w-3 h-3 bg-sky-50 border-l border-b border-sky-100 transform rotate-45"></div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="h-5 w-5 rounded-full bg-sky-500 text-white flex items-center justify-center">
+                                                        <span className="text-[10px] font-bold">A</span>
+                                                    </div>
+                                                    <span className="text-[11px] font-bold text-sky-800">{fb.adminReply.adminName || 'Admin Quán'}</span>
+                                                    <span className="text-[10px] text-sky-600/70 ml-auto">
+                                                        {new Date(fb.adminReply.createdAt).toLocaleDateString('vi-VN')}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-sky-900/80 leading-relaxed pl-7">
+                                                    {fb.adminReply.replyContent}
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

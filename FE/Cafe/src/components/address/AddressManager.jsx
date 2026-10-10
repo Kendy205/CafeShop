@@ -8,7 +8,7 @@ import {
     setDefaultAddress,
     updateAddress,
 } from '../../redux/actions/user/addressAction'
-import MapboxAddressPicker from '../map/MapboxAddressPicker'
+import MapboxLocationPicker from '../map/MapboxLocationPicker'
 import LoadingLink from '../loading/LoadingLink'
 import { AppToast, AppConfirm } from '../common/AppNotification'
 
@@ -40,6 +40,8 @@ const INPUT_TAB_MANUAL = 'manual'
 export default function AddressManager({ hideTitle = false }) {
     const dispatch = useDispatch()
     const { items: addresses, loading, submitting } = useSelector((s) => s.user.address)
+    const { profile: storeProfile } = useSelector((s) => s.app.storeProfile || {})
+
 
     // Trạng thái đang sửa địa chỉ
     const [editingId, setEditingId] = useState(null)
@@ -457,7 +459,7 @@ export default function AddressManager({ hideTitle = false }) {
                                         <p className="text-[11px] text-sky-900 font-medium">
                                             💡 Click trực tiếp lên bản đồ hoặc tìm kiếm để lấy vị trí và tự động tính khoảng cách!
                                         </p>
-                                        <MapboxAddressPicker onAddressSelected={handleMapAddressSelected} />
+                                        <MapboxLocationPicker onLocationSelected={handleMapAddressSelected} />
 
                                         {fullAddress && (
                                             <div className="rounded-3xl border border-slate-200 bg-white p-2.5 shadow-2xs">

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Category;
 using CafeShop.DTO.Product;
@@ -40,12 +41,29 @@ namespace CafeShop.Service.Service.Admin
                 (!endDate.HasValue || u.CreatedAt <= endDate.Value);
             var newUsersCount = await _unitOfWork.User.CountAsync(userFilter);
 
+            // Feedback stats
+            System.Linq.Expressions.Expression<Func<CafeShop.Model.Feedback, bool>> feedbackFilter = f =>
+                (!startDate.HasValue || f.CreatedAt >= startDate.Value) &&
+                (!endDate.HasValue || f.CreatedAt <= endDate.Value);
+                
+            var totalFeedbacks = await _unitOfWork.Feedback.CountAsync(feedbackFilter);
+            
+            double averageFeedbackRating = 0;
+            if (totalFeedbacks > 0)
+            {
+                var feedbackQuery = _unitOfWork.Feedback.GetQueryable().Where(feedbackFilter);
+                averageFeedbackRating = await feedbackQuery.AverageAsync(f => (double)f.Rating);
+                averageFeedbackRating = Math.Round(averageFeedbackRating, 1);
+            }
+
             var summary = new DashboardSummaryDto
             {
                 TotalRevenue = totalRevenue,
                 TotalOrders = totalOrders,
                 NewUsersCount = newUsersCount,
-                TotalProductsSold = totalProductsSold
+                TotalProductsSold = totalProductsSold,
+                TotalFeedbacks = totalFeedbacks,
+                AverageFeedbackRating = averageFeedbackRating
             };
 
             return summary;

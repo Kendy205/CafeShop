@@ -11,5 +11,6 @@ namespace CafeShop.Data.Repository.IRepository
     public interface IFeedbackRepository: IRepository<Feedback>
     {
         Task<(int TotalReviews, double AverageRating, int Five, int Four, int Three, int Two, int One)> GetFeedbackSummaryForProductAsync(int productId);
+        Task<bool> ExistsByOrderDetailIdAsync(int orderDetailId);
     }
 }

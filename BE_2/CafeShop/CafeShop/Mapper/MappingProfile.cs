@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using AutoMapper;
 using CafeShop.DTO.Address;
 using CafeShop.DTO.Auth;
@@ -30,7 +32,9 @@ namespace CafeShop.Mapper
                 .ForMember(dest => dest.ProductSizes, opt => opt.MapFrom(src => src.ProductSizes))
                 .ForMember(dest => dest.ProductToppings, opt => opt.MapFrom(src => src.ProductToppings))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : ""))
-                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.ProductSizes != null && src.ProductSizes.Any() ? (int?)null : src.StockQuantity));
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.ProductSizes != null && src.ProductSizes.Any() ? (int?)null : src.StockQuantity))
+                .ForMember(dest => dest.TotalFeedbacks, opt => opt.MapFrom(src => src.Feedbacks != null ? src.Feedbacks.Count(f => f.IsVisible) : 0))
+                .ForMember(dest => dest.AverageRating, opt => opt.MapFrom(src => src.Feedbacks != null && src.Feedbacks.Any(f => f.IsVisible) ? Math.Round(src.Feedbacks.Where(f => f.IsVisible).Average(f => (double)f.Rating), 1) : 0));
             //Ánh xạ bảng trung gian ProductSize sang DTO
             CreateMap<ProductSize, ProductSizeDto>()
             .ForMember(dest => dest.SizeName, opt => opt.MapFrom(src => src.Size != null ? src.Size.Name : ""))
@@ -111,9 +115,9 @@ namespace CafeShop.Mapper
             // ==========================================
             // 7. Feedback
             // ==========================================
-            CreateMap<Feedback, FeedbackResponseDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
-                    src.User != null ? src.User.FullName : "Người dùng ẩn danh"));
+            // CreateMap<Feedback, FeedbackResponseDto>()
+            //    .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+            //        src.User != null ? src.User.FullName : "Người dùng ẩn danh"));
 
             // ==========================================
             // 8. ShippingConfig

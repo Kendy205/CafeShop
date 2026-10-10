@@ -19,7 +19,7 @@ namespace CafeShop.Data.Repository.IMP
 
         public async Task<(int TotalReviews, double AverageRating, int Five, int Four, int Three, int Two, int One)> GetFeedbackSummaryForProductAsync(int productId)
         {
-            var query = dbSet.Where(f => f.ProductId == productId);
+            var query = dbSet.Where(f => f.ProductId == productId && f.IsVisible);
             
             var totalReviews = await query.CountAsync();
             if (totalReviews == 0) return (0, 0, 0, 0, 0, 0, 0);
@@ -38,6 +38,11 @@ namespace CafeShop.Data.Repository.IMP
             int one = groups.FirstOrDefault(g => g.Rating == 1)?.Count ?? 0;
 
             return (totalReviews, avgRating, five, four, three, two, one);
+        }
+
+        public async Task<bool> ExistsByOrderDetailIdAsync(int orderDetailId)
+        {
+            return await dbSet.AnyAsync(f => f.OrderDetailId == orderDetailId);
         }
     }
 }

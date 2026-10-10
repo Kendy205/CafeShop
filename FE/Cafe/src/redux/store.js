@@ -23,6 +23,8 @@ import adminDashboardReducer from './slices/admin/adminDashboardSlice'
 import adminShippingConfigReducer from './slices/admin/adminShippingConfigSlice'
 import adminNewsReducer from './slices/admin/adminNewsSlice'
 import adminRoleReducer from './slices/admin/adminRoleSlice'
+import adminFeedbackReducer from './slices/admin/adminFeedbackSlice'
+import feedbackReducer from './slices/user/feedbackSlice'
 
 const appReducer = combineReducers({
     auth: authReducer,
@@ -41,6 +43,7 @@ const userAppReducer = combineReducers({
     topping: toppingReducer,
     category: categoryReducer,
     news: newsReducer,
+    feedback: feedbackReducer,
 })
 
 const adminAppReducer = combineReducers({
@@ -55,6 +58,7 @@ const adminAppReducer = combineReducers({
     shippingConfig: adminShippingConfigReducer,
     news: adminNewsReducer,
     role: adminRoleReducer,
+    feedback: adminFeedbackReducer,
 })
 
 export const store = configureStore({

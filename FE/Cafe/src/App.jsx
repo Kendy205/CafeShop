@@ -31,6 +31,7 @@ import AdminOrderPage from './pages/admin/orders/AdminOrderPage'
 import AdminUsersPage from './pages/admin/users/AdminUsersPage'
 import AdminSettingsPage from './pages/admin/settings/AdminSettingsPage'
 import AdminNewsPage from './pages/admin/news/AdminNewsPage'
+import AdminFeedbackPage from './pages/admin/feedbacks/AdminFeedbackPage'
 import NotFoundPage from './pages/error/NotFoundPage'
 import NewsListPage from './pages/news/NewsListPage'
 import NewsDetailPage from './pages/news/NewsDetailPage'
@@ -77,6 +78,7 @@ function App() {
                         <Route path="users" element={<AdminUsersPage />} />
                         <Route path="settings" element={<AdminSettingsPage />} />
                         <Route path="news" element={<AdminNewsPage />} />
+                        <Route path="feedbacks" element={<AdminFeedbackPage />} />
                     </Route>
                 </Route>
             </Routes>
