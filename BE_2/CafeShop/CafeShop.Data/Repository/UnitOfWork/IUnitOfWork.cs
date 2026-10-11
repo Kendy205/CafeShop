@@ -39,6 +39,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
         IUserRoleRepository UserRole { get; }
         IRolePermissionRepository RolePermission { get; }
         IStoreProfileRepository StoreProfile { get; }
+        IPaymentRepository Payment { get; }
         Task<int> SaveAsync();
         Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync();
     }

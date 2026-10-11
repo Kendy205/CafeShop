@@ -29,6 +29,38 @@ export const PAYMENT_LABEL = {
     VNPay: '🏦 VNPAY',
 }
 
+// ── Trạng thái thanh toán (khớp PaymentStatusConstants từ BE) ───────────────
+export const PaymentStatus = Object.freeze({
+    UNPAID:   'UNPAID',
+    PAID:     'PAID',
+    FAILED:   'FAILED',
+    REFUNDED: 'REFUNDED',
+})
+
+// ── Nhà cung cấp cổng thanh toán ──────────────────────────────────────────────
+export const PaymentProvider = Object.freeze({
+    VNPAY: 'VNPAY',
+    MOMO:  'MOMO',
+})
+
+export const PAYMENT_STATUS_CONFIG = {
+    UNPAID:   { label: 'Chưa thanh toán',      color: 'bg-amber-100 text-amber-800 border-amber-300', dot: 'bg-amber-500' },
+    PAID:     { label: 'Đã thanh toán',        color: 'bg-emerald-100 text-emerald-800 border-emerald-300', dot: 'bg-emerald-500' },
+    FAILED:   { label: 'Thanh toán thất bại', color: 'bg-rose-100 text-rose-800 border-rose-300', dot: 'bg-rose-500' },
+    REFUNDED: { label: 'Đã hoàn tiền',        color: 'bg-purple-100 text-purple-800 border-purple-300', dot: 'bg-purple-500' },
+}
+
+/**
+ * Lấy cấu hình hiển thị trạng thái thanh toán (case-insensitive)
+ * @param {string} status
+ */
+export function getPaymentStatusConfig(status) {
+    const key = Object.keys(PAYMENT_STATUS_CONFIG).find(
+        (k) => k.toUpperCase() === String(status || '').toUpperCase()
+    ) || 'UNPAID'
+    return PAYMENT_STATUS_CONFIG[key] ?? PAYMENT_STATUS_CONFIG.UNPAID
+}
+
 /**
  * Lấy cấu hình hiển thị trạng thái đơn hàng (case-insensitive)
  * @param {string} status

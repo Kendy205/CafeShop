@@ -16,6 +16,8 @@ namespace CafeShop.DTO.Order.Responses
         public DateTime OrderDate { get; set; }
         public string CurrentStatus { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = CafeShop.Uitls.PaymentStatusConstants.Unpaid;
+        public string? PaymentUrl { get; set; }
         public string? Note { get; set; }
         public int? VoucherId { get; set; }
         public decimal SubTotal { get; set; }

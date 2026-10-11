@@ -46,7 +46,8 @@ namespace CafeShop.Controllers
             try
             {
                 int userId = GetUserId();
-                var result = await _orderService.SubmitOrderAsync(userId, request);
+                string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var result = await _orderService.SubmitOrderAsync(userId, request, ipAddress);
 
                 return Ok(new ApiResponse<OrderResponseDto>
                 {

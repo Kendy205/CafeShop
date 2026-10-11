@@ -28,7 +28,7 @@ namespace CafeShop.DTO.Order.Requests
         public double DistanceKm { get; set; } // Khoảng cách xe chạy từ FE gửi
 
         // ================= THÔNG TIN ĐƠN CHUNG =================
-        public string PaymentMethod { get; set; } = "COD";
+        public string PaymentMethod { get; set; } = CafeShop.Uitls.PaymentMethodConstants.COD;
         public string? VoucherCode { get; set; }
         public string? Note { get; set; }
 

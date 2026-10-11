@@ -35,6 +35,7 @@ import AdminFeedbackPage from './pages/admin/feedbacks/AdminFeedbackPage'
 import NotFoundPage from './pages/error/NotFoundPage'
 import NewsListPage from './pages/news/NewsListPage'
 import NewsDetailPage from './pages/news/NewsDetailPage'
+import VnPayCallbackPage from './pages/payment/VnPayCallbackPage'
 import AppInitializer from './components/common/AppInitializer'
 
 /**
@@ -61,6 +62,7 @@ function App() {
                     <Route path="/product/:id" element={<ProductDetailPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/payment/vnpay-callback" element={<VnPayCallbackPage />} />
                     <Route element={<ProtectedRoute allowedRoles={CUSTOMER_ROLES} />}>
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/cart" element={<CartPage />} />

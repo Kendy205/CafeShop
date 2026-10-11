@@ -23,9 +23,9 @@ namespace CafeShop.Model
 
         public decimal Amount { get; set; }
 
-        /// <summary>pending | success | failed | refunded</summary>
+        /// <summary>PENDING | SUCCESS | FAILED | REFUNDED</summary>
         [MaxLength(20)]
-        public string PaymentStatus { get; set; } = "pending";
+        public string PaymentStatus { get; set; } = "PENDING";
 
         public DateTime? PaidAt { get; set; }
         

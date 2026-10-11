@@ -29,7 +29,7 @@ namespace CafeShop.Model
         public string? PaymentMethod { get; set; } // Giữ lại cho tương thích ngược tạm thời
 
         [StringLength(50)]
-        public string PaymentStatus { get; set; } = "Unpaid"; // Unpaid, Paid, Refunded, Failed
+        public string PaymentStatus { get; set; } = "UNPAID"; // UNPAID, PAID, REFUNDED, FAILED
  
         public string? CurrentStatus { get; set; }
         [StringLength(500)]

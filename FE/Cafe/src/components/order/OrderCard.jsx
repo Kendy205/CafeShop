@@ -3,10 +3,12 @@ import { message, Modal } from 'antd'
 import {
     PAYMENT_LABEL,
     canCancelOrder,
-    getStatusConfig
+    getStatusConfig,
+    getPaymentStatusConfig,
 } from '../../utils/constants/OrderConstants'
-import { pickErrorMessage } from '../../utils/helpers/api'
+import { pickErrorMessage, unwrapApi } from '../../utils/helpers/api'
 import { feedbackService } from '../../services/user/FeedbackService'
+import { paymentService } from '../../services/user/PaymentService'
 import { formatVnd } from '../../utils/helpers/format'
 import LoadingLink from '../loading/LoadingLink'
 import { AppToast, AppConfirm } from '../common/AppNotification'
@@ -299,8 +301,10 @@ export function StatusBadge({ status }) {
 export default function OrderCard({ order, onCancel, cancelling, onReviewClick, reviewedMap }) {
     const {
         orderId, orderDate, totalAmount, shippingFee, distanceKm,
-        orderDiscount, shippingDiscount, subTotal, currentStatus, paymentMethod, note,
+        orderDiscount, shippingDiscount, subTotal, currentStatus, paymentMethod, paymentStatus, note,
     } = order
+
+    const [payingVnPay, setPayingVnPay] = useState(false)
 
     // Hỗ trợ cả items (đặc tả mới) và fallback orderDetails
     const orderItems = Array.isArray(order.items)
@@ -309,6 +313,32 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
 
     const canCancel = canCancelOrder(currentStatus)
     const isCompleted = String(currentStatus || '').toUpperCase() === 'COMPLETED'
+    const isVnPay = String(paymentMethod || '').toUpperCase() === 'VNPAY'
+    const isUnpaid = String(paymentStatus || '').toUpperCase() === 'UNPAID'
+    const isFailed = String(paymentStatus || '').toUpperCase() === 'FAILED'
+    const isCancelled = String(currentStatus || '').toUpperCase() === 'CANCELLED'
+
+    // Cho phép thanh toán lại khi phương thức là VNPay, đơn chưa thanh toán hoặc thất bại và chưa bị hủy
+    const canPayVnPay = isVnPay && (isUnpaid || isFailed) && !isCancelled
+
+    const handlePayVnPay = async () => {
+        setPayingVnPay(true)
+        try {
+            const res = await paymentService.createPaymentUrl({ orderId: Number(orderId) })
+            const data = unwrapApi(res)
+            const paymentUrl = data?.paymentUrl || data?.url
+            if (paymentUrl) {
+                window.location.href = paymentUrl
+            } else {
+                AppToast.error('Không tìm thấy đường dẫn thanh toán!')
+            }
+        } catch (err) {
+            const msg = pickErrorMessage(err, 'Không thể tạo liên kết thanh toán VNPay!')
+            AppToast.error(msg)
+        } finally {
+            setPayingVnPay(false)
+        }
+    }
 
     const formattedDate = orderDate
         ? new Date(orderDate).toLocaleString('vi-VN', {
@@ -317,15 +347,23 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
         })
         : '—'
 
+    const paymentStatusCfg = getPaymentStatusConfig(paymentStatus)
+
     return (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition-all hover:shadow-md hover:border-sky-300">
             {/* Header: Mã đơn + Ngày giờ + Trạng thái */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm font-extrabold text-slate-800">
                         Đơn hàng #{orderId}
                     </span>
                     <StatusBadge status={currentStatus} />
+                    {paymentStatus && (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold shadow-2xs ${paymentStatusCfg.color}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${paymentStatusCfg.dot}`} />
+                            {paymentStatusCfg.label}
+                        </span>
+                    )}
                 </div>
                 <span className="text-xs font-medium text-slate-400">{formattedDate}</span>
             </div>
@@ -549,20 +587,43 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                     </span>
                 </div>
 
-                {/* Nút Hủy Đơn: Chỉ hiển thị/enabled khi currentStatus === "Pending" */}
-                {canCancel && (
-                    <div className="mt-4 border-t border-slate-200/60 pt-3 flex justify-end">
-                        <button
-                            type="button"
-                            disabled={cancelling}
-                            onClick={() => onCancel(orderId)}
-                            className="inline-flex items-center gap-1.5 rounded-3xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-600 shadow-2xs hover:bg-red-50 hover:border-red-400 transition-colors disabled:opacity-50"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
-                            </svg>
-                            <span>{cancelling ? 'Đang hủy...' : 'Hủy đơn hàng này'}</span>
-                        </button>
+                {/* Nút Hành Động: Thanh toán lại VNPay & Hủy Đơn */}
+                {(canPayVnPay || canCancel) && (
+                    <div className="mt-4 border-t border-slate-200/60 pt-3 flex flex-wrap items-center justify-end gap-2.5">
+                        {canPayVnPay && (
+                            <button
+                                type="button"
+                                disabled={payingVnPay}
+                                onClick={handlePayVnPay}
+                                className="inline-flex items-center gap-1.5 rounded-3xl bg-sky-800 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-900 transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                                {payingVnPay ? (
+                                    <>
+                                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                        <span>Đang kết nối VNPay...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>🏦</span>
+                                        <span>Thanh toán VNPay ngay</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+
+                        {canCancel && (
+                            <button
+                                type="button"
+                                disabled={cancelling}
+                                onClick={() => onCancel(orderId)}
+                                className="inline-flex items-center gap-1.5 rounded-3xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-600 shadow-2xs hover:bg-red-50 hover:border-red-400 transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+                                </svg>
+                                <span>{cancelling ? 'Đang hủy...' : 'Hủy đơn hàng này'}</span>
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

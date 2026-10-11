@@ -25,6 +25,7 @@ namespace CafeShop.Services.Services
         private readonly IMapper _mapper;
         private readonly ISignalRService _signalRService;
         private readonly IOrderStatusHistoryService _historyService;
+        private readonly IVnPayService _vnPayService;
 
         // Cổng khóa đồng bộ (Lock) chống Đụng độ Kho (Concurrency)
         private static readonly System.Threading.SemaphoreSlim _stockSemaphore = new System.Threading.SemaphoreSlim(1, 1);
@@ -33,7 +34,14 @@ namespace CafeShop.Services.Services
         private const double CAFE_LAT = 21.0285;
         private const double CAFE_LNG = 105.8542;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IVoucherService voucherService, IShippingService shippingService, ISignalRService signalRService, IOrderStatusHistoryService historyService)
+        public OrderService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IVoucherService voucherService,
+            IShippingService shippingService,
+            ISignalRService signalRService,
+            IOrderStatusHistoryService historyService,
+            IVnPayService vnPayService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -41,10 +49,11 @@ namespace CafeShop.Services.Services
             _shippingService = shippingService;
             _signalRService = signalRService;
             _historyService = historyService;
+            _vnPayService = vnPayService;
         }
 
         // ================= XỬ LÝ ĐẶT HÀNG (GỘP CHUNG MUA NGAY & TỪ GIỎ HÀNG) =================
-        public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request)
+        public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request, string? ipAddress = null)
         {
             // Bắt đầu xếp hàng vào cổng đồng bộ (Chỉ cho phép 1 luồng xử lý kho lúc này)
             await _stockSemaphore.WaitAsync();
@@ -121,7 +130,8 @@ namespace CafeShop.Services.Services
                     ShippingFee = shippingFee,
                     OrderDate = DateTime.UtcNow,
                     CurrentStatus = OrderStatus.Pending,
-                    PaymentMethod = request.PaymentMethod ?? "COD",
+                    PaymentMethod = !string.IsNullOrWhiteSpace(request.PaymentMethod) ? request.PaymentMethod.ToUpper() : PaymentMethodConstants.COD,
+                    PaymentStatus = PaymentStatusConstants.Unpaid,
                     Note = request.Note,
                     VoucherId = voucherId,
                     SubTotal = orderTotal,
@@ -154,7 +164,13 @@ namespace CafeShop.Services.Services
                 }
                 catch { /* Ignore notification error */ }
 
-                return _mapper.Map<OrderResponseDto>(order);
+                var response = _mapper.Map<OrderResponseDto>(order);
+                if (string.Equals(order.PaymentMethod, PaymentMethodConstants.VNPAY, StringComparison.OrdinalIgnoreCase))
+                {
+                    response.PaymentUrl = _vnPayService.CreatePaymentUrl(order, ipAddress ?? "127.0.0.1");
+                }
+
+                return response;
             }
             catch (Exception)
             {

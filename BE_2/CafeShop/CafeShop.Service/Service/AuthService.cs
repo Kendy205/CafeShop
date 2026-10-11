@@ -170,7 +170,7 @@ namespace CafeShop.Services.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.Username) // Đổi thành ClaimTypes.Name cho chuẩn Username
+                new Claim(ClaimTypes.Name, user.Username) 
             };
 
             bool hasRoles = false;
@@ -210,7 +210,7 @@ namespace CafeShop.Services.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(30),
+                Expires = DateTime.UtcNow.AddMinutes(15),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
