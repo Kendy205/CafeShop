@@ -1,4 +1,4 @@
-﻿using CafeShop.Uitls;
+using CafeShop.Uitls;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
@@ -32,6 +32,7 @@ namespace CafeShop.Model
         [Required]
         public DateTime EndDate { get; set; }
         public int UsageLimit { get; set; }
+        [ConcurrencyCheck]
         public int UsedCount { get; set; }
         public bool IsActive { get; set; } = true;
 

@@ -1,12 +1,14 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.IService.Users;
 using CafeShop.Uitls;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CafeShop.Service.IService;
 
 namespace CafeShop.Services.Services
 {
@@ -15,13 +17,14 @@ namespace CafeShop.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserVoucherService _userVoucherService;
         private readonly IMapper _mapper;
+        private readonly IShippingService _shippingService;
 
-        public VoucherService(IUnitOfWork unitOfWork, IMapper mapper, IUserVoucherService userVoucherService)
+        public VoucherService(IUnitOfWork unitOfWork, IMapper mapper, IUserVoucherService userVoucherService, IShippingService shippingService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userVoucherService = userVoucherService;
-
+            _shippingService = shippingService;
         }
 
         // =========================================================================
@@ -128,12 +131,15 @@ namespace CafeShop.Services.Services
 
                     decimal unitPrice = product.BasePrice;
 
-                    if (item.SizeId.HasValue)
+                    if (item.SizeId.HasValue && item.SizeId.Value > 0)
                     {
-                        var sizeInfo = await _unitOfWork.Size.GetFirstOrDefaultAsync(s => s.SizeId == item.SizeId.Value);
-                        if (sizeInfo != null && sizeInfo.PercentIncrease > 0)
+                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                            ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value
+                        );
+
+                        if (productSize != null && productSize.Price.HasValue)
                         {
-                            unitPrice += product.BasePrice * (sizeInfo.PercentIncrease / 100m);
+                            unitPrice = productSize.Price.Value;
                         }
                     }
 
@@ -161,8 +167,8 @@ namespace CafeShop.Services.Services
                 orderTotal = cart.CartItems.Sum(x => x.UnitPrice * x.Quantity);
             }
 
-            // 2. Tính phí ship giả lập theo khoảng cách
-            decimal shippingFee = CalculateShippingFee(request.DistanceKm);
+            // 2. Tính phí ship 
+            decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm, orderTotal);
 
             // 3. Tìm voucher
             var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.Code == request.VoucherCode);
@@ -283,16 +289,9 @@ namespace CafeShop.Services.Services
             return Math.Min(discount, orderTotal);
         }
 
-        private decimal CalculateShippingFee(double distanceKm)
-        {
-            if (distanceKm <= 0) return 0;
-            if (distanceKm <= 3) return 15000;
 
-            decimal extraKm = (decimal)Math.Ceiling(distanceKm - 3);
-            return 15000 + (extraKm * 5000);
-        }
 
-        public async Task<(int VoucherId, decimal DiscountAmount)> ConsumeVoucherAsync(
+        public async Task<(int VoucherId, decimal DiscountAmount, string ApplyType)> ConsumeVoucherAsync(
          string voucherCode,
          int userId,
          decimal orderTotal,
@@ -324,8 +323,109 @@ namespace CafeShop.Services.Services
                 _unitOfWork.UserVoucher.Update(userVoucher);
             }
 
-            return (voucher.VoucherId, discount);
+            return (voucher.VoucherId, discount, voucher.ApplyType);
+        }
+
+        public async Task<BestVoucherResponseDto?> GetBestVoucherAsync(int userId, BestVoucherRequestDto request)
+        {
+            // 1. Calculate order total
+            decimal orderTotal = 0;
+            if (request.IsBuyNow)
+            {
+                if (request.Items == null || !request.Items.Any()) return null;
+
+                foreach (var item in request.Items)
+                {
+                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == item.ProductId);
+                    if (product == null || !product.IsAvailable) continue;
+
+                    decimal unitPrice = product.BasePrice;
+                    if (item.SizeId.HasValue && item.SizeId.Value > 0)
+                    {
+                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                            ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value
+                        );
+                        if (productSize != null && productSize.Price.HasValue)
+                        {
+                            unitPrice = productSize.Price.Value;
+                        }
+                    }
+
+                    if (item.Toppings != null && item.Toppings.Any())
+                    {
+                        foreach (var top in item.Toppings)
+                        {
+                            var toppingInfo = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == top.ToppingId);
+                            if (toppingInfo != null && toppingInfo.IsAvailable)
+                            {
+                                unitPrice += (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
+                            }
+                        }
+                    }
+
+                    orderTotal += unitPrice * (item.Quantity > 0 ? item.Quantity : 1);
+                }
+            }
+            else
+            {
+                var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active", "CartItems");
+                if (cart == null || !cart.CartItems.Any()) return null;
+                orderTotal = cart.CartItems.Sum(x => x.UnitPrice * x.Quantity);
+            }
+
+            // 2. Tính phí ship
+            decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm, orderTotal);
+
+            // 3. Get available vouchers
+            var availableVouchersDto = await GetAvailableVouchersAsync(userId);
+            if (!availableVouchersDto.Any()) return null;
+
+            // 4. Find the best one
+            BestVoucherResponseDto? bestVoucher = null;
+            decimal maxDiscount = 0;
+
+            foreach (var dto in availableVouchersDto)
+            {
+                var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId);
+                if (voucher == null) continue;
+
+                UserVoucher? userVoucher = null;
+                if (VoucherTypeTarget.IsUser(voucher.TargetType))
+                {
+                    userVoucher = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(uv => uv.UserId == userId && uv.VoucherId == voucher.VoucherId);
+                }
+
+                try
+                {
+                    decimal discount = ValidateAndCalculateDiscount(voucher, userId, orderTotal, shippingFee, userVoucher);
+                    if (discount > maxDiscount)
+                    {
+                        maxDiscount = discount;
+                        decimal finalShippingFee = shippingFee;
+                        decimal finalOrderAmount = orderTotal;
+
+                        if (voucher.ApplyType == VoucherApplyType.SHIPPING)
+                            finalShippingFee = Math.Max(0, shippingFee - discount);
+                        else
+                            finalOrderAmount = Math.Max(0, orderTotal - discount);
+
+                        bestVoucher = new BestVoucherResponseDto
+                        {
+                            Voucher = dto,
+                            DiscountAmount = discount,
+                            FinalOrderAmount = finalOrderAmount,
+                            FinalShippingFee = finalShippingFee,
+                            FinalTotal = finalOrderAmount + finalShippingFee
+                        };
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    // Ignore vouchers that fail validation
+                }
+            }
+
+            return bestVoucher;
         }
     }
-
 }

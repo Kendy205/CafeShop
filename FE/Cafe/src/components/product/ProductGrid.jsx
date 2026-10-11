@@ -1,6 +1,11 @@
 import ProductCard from './ProductCard'
 import { ProductCardSkeleton } from '../loading/Skeleton'
 
+/**
+ * ProductGrid Component
+ * Lưới (Grid) hiển thị danh sách các ProductCard.
+ * Hỗ trợ hiển thị Skeleton khi đang tải (loading) và hiển thị thông báo nếu không có sản phẩm nào.
+ */
 export default function ProductGrid({ items, loading }) {
     if (loading) {
         return (

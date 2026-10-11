@@ -39,7 +39,7 @@ export function unwrapApi(res) {
         if (data && typeof data === 'object' && !Array.isArray(data)) {
             const msg = body.message || body.Message
             if (msg && !('message' in data) && !('Message' in data)) {
-                data.message = msg
+                return { ...data, message: msg }
             }
         }
 

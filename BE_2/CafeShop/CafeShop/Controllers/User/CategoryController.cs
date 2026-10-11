@@ -1,7 +1,16 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using CafeShop.DTO.Admin; // Reusing CategoryDto from Admin since it's simple
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
 using Microsoft.AspNetCore.Mvc;

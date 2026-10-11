@@ -18,10 +18,19 @@ export class AdminOrderService extends BaseServices {
     /**
      * Cập nhật trạng thái đơn hàng
      * @param {number|string} orderId
-     * @param {string} status - 'Processing' | 'Shipping' | 'Delivered' | 'Completed' | 'Cancelled'
+     * @param {string} status - 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'DELIVERING' | 'COMPLETED' | 'CANCELLED'
+     * @param {string|null} cancelReason - Bắt buộc khi status = 'CANCELLED'
      */
-    updateStatus = (orderId, status) =>
-        this.put(`${this.basePath}/${orderId}/status`, { newStatus: status })
+    updateStatus = (orderId, status, cancelReason = null) =>
+        this.put(`${this.basePath}/${orderId}/status`, { newStatus: status, cancelReason })
+
+    /**
+     * Lấy danh sách đơn hàng hoàn thành của 1 user
+     * @param {number} userId 
+     * @param {{ pageNumber, pageSize }} params 
+     */
+    getUserCompletedOrders = (userId, params = {}) => 
+        this.get(`${this.basePath}/user/${userId}/completed`, { params, __skipGlobalLoading: true })
 }
 
 export const adminOrderService = new AdminOrderService()

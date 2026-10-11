@@ -1,4 +1,5 @@
-﻿using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
 using CafeShop.Services.IServices;
@@ -45,7 +46,8 @@ namespace CafeShop.Controllers
             try
             {
                 int userId = GetUserId();
-                var result = await _orderService.SubmitOrderAsync(userId, request);
+                string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var result = await _orderService.SubmitOrderAsync(userId, request, ipAddress);
 
                 return Ok(new ApiResponse<OrderResponseDto>
                 {
@@ -149,7 +151,7 @@ namespace CafeShop.Controllers
             try
             {
                 // Controller gọi Service, không chứa bất kỳ logic tính toán nào
-                decimal fee = await _shippingService.CalculateFeeAsync(request.DistanceKm);
+                decimal fee = await _shippingService.CalculateFeeAsync(request.DistanceKm,request.OrderTotal);
 
                 return Ok(new ApiResponse<decimal>
                 {

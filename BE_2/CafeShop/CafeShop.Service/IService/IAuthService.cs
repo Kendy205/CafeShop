@@ -1,4 +1,5 @@
-﻿using CafeShop.DTO.Auth;
+using CafeShop.DTO.Auth.Requests;
+using CafeShop.DTO.Auth.Responses;
 using CafeShop.Service.Helpers;
 using System;
 using System.Collections.Generic;

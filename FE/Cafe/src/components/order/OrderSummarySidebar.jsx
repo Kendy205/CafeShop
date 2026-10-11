@@ -23,12 +23,13 @@ export default function OrderSummarySidebar({
     submitting = false,
     canSubmit = false,
     shippingError = '',
+    isShippingError = false,
     addressTab = 'saved',
     mapValid = false,
 }) {
     const finalTotal = Math.max(0, subtotal + shippingFee - discountAmount)
     const totalQuantity = items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0)
-    const isFreeship = currentDistanceKm > 0 && shippingFee === 0 && !feeCalculating
+    const isFreeship = currentDistanceKm > 0 && shippingFee === 0 && !feeCalculating && !isShippingError
 
     return (
         <aside className="sticky top-24 h-fit rounded-3xl border border-slate-200/90 bg-white p-5 shadow-lg shadow-slate-200/40 backdrop-blur-sm transition-all">
@@ -50,6 +51,18 @@ export default function OrderSummarySidebar({
                 {items.map((i, idx) => (
                     <li key={i.cartItemId || idx} className="py-3 first:pt-0 last:pb-1">
                         <div className="flex items-start justify-between gap-2.5">
+                            {/* Hình ảnh món */}
+                            {i.imageUrl ? (
+                                <img
+                                    src={i.imageUrl}
+                                    alt={itemDisplayName(i)}
+                                    className="h-10 w-10 shrink-0 rounded-lg object-cover bg-slate-100 border border-slate-200"
+                                />
+                            ) : (
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 border border-slate-200 text-lg">
+                                    ☕
+                                </div>
+                            )}
                             <div className="flex-1">
                                 <p className="font-semibold text-slate-800 text-sm leading-snug">
                                     {itemDisplayName(i)}
@@ -69,8 +82,15 @@ export default function OrderSummarySidebar({
                         {i.toppings?.length > 0 && (
                             <ul className="mt-1 space-y-0.5 rounded-2xl bg-slate-50/80 p-1.5 text-[11px] text-slate-500 border border-slate-100">
                                 {i.toppings.map((t, tIdx) => (
-                                    <li key={tIdx} className="flex items-center gap-1">
-                                        <span className="text-sky-700">+</span>
+                                    <li key={tIdx} className="flex items-center gap-1.5">
+                                        <span className="text-sky-700 font-medium">+</span>
+                                        {t.imageUrl && (
+                                            <img
+                                                src={t.imageUrl}
+                                                alt={toppingLabel(t)}
+                                                className="h-4 w-4 shrink-0 rounded-full object-cover bg-slate-100 border border-slate-200"
+                                            />
+                                        )}
                                         <span>{toppingLabel(t)}</span>
                                     </li>
                                 ))}
@@ -108,6 +128,8 @@ export default function OrderSummarySidebar({
                             </span>
                         ) : currentDistanceKm <= 0 ? (
                             <span className="text-xs text-slate-400 italic">Chọn địa chỉ</span>
+                        ) : isShippingError ? (
+                            <span className="font-bold text-red-500">---</span>
                         ) : isFreeship ? (
                             <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
                                 <span>🎉</span>

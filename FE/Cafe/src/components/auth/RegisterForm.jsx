@@ -20,10 +20,15 @@ const schema = Yup.object({
         .required('Vui lòng xác nhận mật khẩu'),
 })
 
+/**
+ * RegisterForm Component
+ * Form đăng ký tài khoản mới cho người dùng.
+ * Validate các thông tin: username, mật khẩu, email, số điện thoại chuẩn Việt Nam bằng Formik & Yup.
+ */
 export default function RegisterForm({ onSwitchLogin, onSuccess, isModal = false }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { error, submitting, isAuthenticated } = useSelector((s) => s.auth)
+    const { error, submitting, isAuthenticated } = useSelector((s) => s.app.auth)
     const [success, setSuccess] = useState('')
     const [showPassword, setShowPassword] = useState(false)
 

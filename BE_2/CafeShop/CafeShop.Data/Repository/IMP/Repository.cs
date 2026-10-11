@@ -1,4 +1,4 @@
-﻿
+
 using CafeShop.Repositories.IRepository;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,7 +12,7 @@ namespace CafeShop.Data.Repository.IMP
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly ApplicationDbContext _context;
+        protected readonly ApplicationDbContext _context;
         internal DbSet<T> dbSet;
 
         public Repository(ApplicationDbContext context)
@@ -23,7 +23,10 @@ namespace CafeShop.Data.Repository.IMP
 
         public async Task AddAsync(T entity) { await dbSet.AddAsync(entity); }
 
-      
+        public IQueryable<T> GetQueryable()
+        {
+            return dbSet.AsQueryable();
+        }
 
         public Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
         {
@@ -42,52 +45,60 @@ namespace CafeShop.Data.Repository.IMP
             int? pageNumber = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
         {
-            IQueryable<T> query = dbSet;
+            return await BuildQuery(dbSet.AsQueryable(), filter, includeProperties, pageSize, pageNumber, orderBy);
+        }
 
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
-
-            if (includeProperties != null)
-            {
-                foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    query = query.Include(includeProp);
-                }
-            }
-
-            if (orderBy != null)
-            {
-                query = orderBy(query);
-            }
-
-            if (pageSize.HasValue && pageNumber.HasValue)
-            {
-                query = query.Skip((pageNumber.Value - 1) * pageSize.Value).Take(pageSize.Value);
-            }
-
-            return await query.ToListAsync();
+        public async Task<IEnumerable<T>> GetAllAsNoTrackingAsync(
+            Expression<Func<T, bool>>? filter = null,
+            string? includeProperties = null,
+            int? pageSize = null,
+            int? pageNumber = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+        {
+            return await BuildQuery(dbSet.AsNoTracking(), filter, includeProperties, pageSize, pageNumber, orderBy);
         }
 
         public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
         {
-            IQueryable<T> query = dbSet;
+            return await BuildSingleQuery(dbSet.AsQueryable(), filter, includeProperties);
+        }
 
-            // Bắt buộc phải check null, nếu không .Where(null) sẽ báo lỗi!
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
+        public async Task<T?> GetFirstOrDefaultAsNoTrackingAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        {
+            return await BuildSingleQuery(dbSet.AsNoTracking(), filter, includeProperties);
+        }
+
+        private async Task<IEnumerable<T>> BuildQuery(
+            IQueryable<T> query,
+            Expression<Func<T, bool>>? filter,
+            string? includeProperties,
+            int? pageSize, int? pageNumber,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy)
+        {
+            if (filter != null) query = query.Where(filter);
 
             if (!string.IsNullOrWhiteSpace(includeProperties))
-            {
-                // Tối ưu hàm Split gọn hơn và thêm Trim() để tránh lỗi dư khoảng trắng
-                foreach (var includeProp in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    query = query.Include(includeProp.Trim());
-                }
-            }
+                foreach (var prop in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    query = query.Include(prop.Trim());
+
+            if (orderBy != null) query = orderBy(query);
+
+            if (pageSize.HasValue && pageNumber.HasValue)
+                query = query.Skip((pageNumber.Value - 1) * pageSize.Value).Take(pageSize.Value);
+
+            return await query.ToListAsync();
+        }
+
+        private async Task<T?> BuildSingleQuery(
+            IQueryable<T> query,
+            Expression<Func<T, bool>>? filter,
+            string? includeProperties)
+        {
+            if (filter != null) query = query.Where(filter);
+
+            if (!string.IsNullOrWhiteSpace(includeProperties))
+                foreach (var prop in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    query = query.Include(prop.Trim());
 
             return await query.FirstOrDefaultAsync();
         }

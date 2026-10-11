@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useCheckoutVoucher } from '../../hooks/checkout/useCheckoutVoucher'
+import { useCheckoutMap } from '../../hooks/checkout/useCheckoutMap'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { message } from 'antd'
@@ -15,10 +17,7 @@ import {
 } from '../../redux/slices/user/orderSlice'
 
 // Services & Helpers
-import { voucherService } from '../../services/user/VoucherService'
-import { orderService } from '../../services/user/OrderService'
-import { mapService } from '../../services/map/MapService'
-import { pickErrorMessage, unwrapApi } from '../../utils/helpers/api'
+
 import { calcLineTotal } from '../../utils/helpers/format'
 
 // Components
@@ -37,7 +36,8 @@ const TAB_MAP = 'map'
 
 /**
  * CheckoutPage Component
- * Trang thanh toán & đặt hàng tích hợp Mapbox tính khoảng cách và phí vận chuyển tự động
+ * Trang thanh toán & đặt hàng tích hợp Mapbox tính khoảng cách và phí vận chuyển tự động.
+ * Quản lý logic chọn voucher, địa chỉ giao hàng và phương thức thanh toán.
  */
 export default function CheckoutPage() {
     const dispatch = useDispatch()
@@ -47,24 +47,25 @@ export default function CheckoutPage() {
     // ── Cart & Buy Now state ───────────────────────────────────────────────
     const isBuyNow = Boolean(location.state?.buyNow)
     const buyNowItems = location.state?.buyNowItems
-    const cartItems = useSelector((s) => s.cart.items)
-    const cartTotal = useSelector((s) => s.cart.totalPrice)
+    const cartItems = useSelector((s) => s.user.cart.items)
+    const cartTotal = useSelector((s) => s.user.cart.totalPrice)
     const items = isBuyNow && buyNowItems?.length ? buyNowItems : cartItems
 
     // ── Redux Store selectors ──────────────────────────────────────────────
-    const { user } = useSelector((s) => s.auth)
-    const addresses = useSelector((s) => s.address.items)
-    const vouchers = useSelector((s) => s.voucher.items)
-    const { submitting, error, cafeLat: storeCafeLat, cafeLng: storeCafeLng } = useSelector((s) => s.order)
-    const cafeLat = storeCafeLat || DEFAULT_CAFE_LAT
-    const cafeLng = storeCafeLng || DEFAULT_CAFE_LNG
+    const { user } = useSelector((s) => s.app.auth)
+    const addresses = useSelector((s) => s.user.address.items)
+    const vouchers = useSelector((s) => s.user.voucher.items)
+    const { submitting, error } = useSelector((s) => s.user.order)
+    
+    // Đọc config cửa hàng từ store (gồm có latitude, longitude)
+    const { profile: storeProfile } = useSelector((s) => s.app.storeProfile || {})
+    const cafeLat = storeProfile?.latitude
+    const cafeLng = storeProfile?.longitude
 
     // ── Address states ─────────────────────────────────────────────────────
     const [addressId, setAddressId] = useState('')
     const [addressTab, setAddressTab] = useState(TAB_SAVED)
     const [mapAddress, setMapAddress] = useState(null) // { address, lat, lng, distanceKm }
-    const [savedDistanceKm, setSavedDistanceKm] = useState(null)
-    const [distanceCalculating, setDistanceCalculating] = useState(false)
 
     // Thông tin người nhận khi chọn địa chỉ mới trên bản đồ (tự động prefill từ user)
     const [recipientName, setRecipientName] = useState(user?.fullName || '')
@@ -72,20 +73,8 @@ export default function CheckoutPage() {
 
     // ── Payment & Voucher states ───────────────────────────────────────────
     const [paymentMethod, setPaymentMethod] = useState('COD')
-    const [voucherCode, setVoucherCode] = useState('')
-    const [voucherInput, setVoucherInput] = useState('')
-    const [voucherResult, setVoucherResult] = useState(null) // { isValid, discountAmount, message }
-    const [voucherChecking, setVoucherChecking] = useState(false)
-    const [showVoucherModal, setShowVoucherModal] = useState(false)
-    const voucherDebounceRef = useRef(null)
 
     const [note, setNote] = useState(location.state?.note || '')
-
-    // ── Shipping fee & Error states ────────────────────────────────────────
-    const [apiShippingFee, setApiShippingFee] = useState(null)
-    const [feeCalculating, setFeeCalculating] = useState(false)
-    const [shippingError, setShippingError] = useState('')
-    const shipDebounceRef = useRef(null)
 
     // ── Bootstrap Data ─────────────────────────────────────────────────────
     useEffect(() => {
@@ -139,212 +128,40 @@ export default function CheckoutPage() {
         }
     }
 
-    // Bước 2 & Bước 3: Tính khoảng cách Mapbox khi user chọn radio hoặc tick tự động
-    useEffect(() => {
-        if (addressTab !== TAB_SAVED || !selectedAddr) {
-            return
-        }
+    const {
+        savedDistanceKm,
+        distanceCalculating,
+        currentDistanceKm,
+        shippingFee,
+        feeCalculating,
+        shippingError,
+        setShippingError,
+        isShippingError
+    } = useCheckoutMap({
+        addressTab,
+        selectedAddr,
+        cafeLat,
+        cafeLng,
+        mapAddress,
+        subtotal,
+        TAB_SAVED,
+        TAB_MAP
+    })
 
-        let cancelled = false
-        setDistanceCalculating(true)
-        setShippingError('')
-
-        const calculateDistance = (toLng, toLat) => {
-            mapService
-                .getDrivingDistance(cafeLng, cafeLat, toLng, toLat)
-                .then((dist) => {
-                    if (!cancelled) {
-                        setSavedDistanceKm(dist ?? 0)
-                        setDistanceCalculating(false)
-                    }
-                })
-                .catch(() => {
-                    if (!cancelled) {
-                        const directDist = mapService.calculateHaversineDistance?.(cafeLat, cafeLng, toLat, toLng)
-                        setSavedDistanceKm(directDist ?? 0)
-                        setDistanceCalculating(false)
-                    }
-                })
-        }
-
-        const lat = selectedAddr.latitude
-        const lng = selectedAddr.longitude
-
-        // Nếu địa chỉ cũ trong DB chưa có tọa độ GPS, tự động tìm tọa độ qua Mapbox Geocoding
-        if (!lat || !lng || Number(lat) === 0 || Number(lng) === 0) {
-            mapService
-                .searchAddress(selectedAddr.fullAddress)
-                .then((features) => {
-                    if (cancelled) return
-                    if (features && features.length > 0) {
-                        const [autoLng, autoLat] = features[0].center
-                        calculateDistance(autoLng, autoLat)
-                    } else {
-                        setSavedDistanceKm(0)
-                        setDistanceCalculating(false)
-                        setShippingError('Chưa xác định được tọa độ địa chỉ. Bạn có thể chọn lại trên bản đồ.')
-                    }
-                })
-                .catch(() => {
-                    if (!cancelled) {
-                        setSavedDistanceKm(0)
-                        setDistanceCalculating(false)
-                    }
-                })
-            return
-        }
-
-        calculateDistance(lng, lat)
-
-        return () => {
-            cancelled = true
-        }
-    }, [addressTab, selectedAddr, cafeLat, cafeLng])
-
-    // Khoảng cách hiện tại dùng để tính phí ship (km)
-    const currentDistanceKm = useMemo(() => {
-        if (addressTab === TAB_MAP) {
-            return Number(mapAddress?.distanceKm ?? 0)
-        }
-        return Number(savedDistanceKm ?? 0)
-    }, [addressTab, mapAddress, savedDistanceKm])
-
-    // Bước 4: Xin báo giá phí vận chuyển từ Backend (POST /api/Order/calculate-fee)
-    // CỬA HÀNG KHÔNG CÓ GIỚI HẠN KM: Giao mọi khoảng cách, tính phí linh hoạt
-    useEffect(() => {
-        clearTimeout(shipDebounceRef.current)
-
-        if (!currentDistanceKm || currentDistanceKm <= 0) {
-            setApiShippingFee(0)
-            setFeeCalculating(false)
-            setShippingError('')
-            return
-        }
-
-        setFeeCalculating(true)
-        shipDebounceRef.current = setTimeout(async () => {
-            try {
-                const res = await orderService.calculateShippingFee({
-                    distanceKm: currentDistanceKm,
-                    orderTotal: subtotal,
-                })
-                const fee = unwrapApi(res)
-
-                setApiShippingFee(Number(fee ?? 0))
-                setShippingError('')
-            } catch (err) {
-                // Cửa hàng KHÔNG CÓ GIỚI HẠN KM:
-                // Nếu BE chưa cấu hình hoặc tạm thời không phản hồi, fallback tính phí:
-                // <= 3km = 15.000đ; mỗi km tiếp theo + 5.000đ (đồng nhất với Mapbox)
-                const fallbackFee = Math.round(15000 + Math.max(0, currentDistanceKm - 3) * 5000)
-                setApiShippingFee(fallbackFee)
-                setShippingError('')
-            } finally {
-                setFeeCalculating(false)
-            }
-        }, 500)
-
-        return () => clearTimeout(shipDebounceRef.current)
-    }, [currentDistanceKm, subtotal])
-
-    const shippingFee = apiShippingFee != null ? apiShippingFee : 0
-
-    // ── Kiểm tra voucher ───────────────────────────────────────────────────
-    const runVoucherCheck = useCallback(
-        async (code) => {
-            const cleanCode = (code || '').trim().toUpperCase()
-            if (!cleanCode) {
-                setVoucherResult(null)
-                return
-            }
-            setVoucherChecking(true)
-
-            const checkItems = isBuyNow
-                ? (buyNowItems ?? []).map((i) => ({
-                    productId: Number(i.productId),
-                    sizeId: i.sizeId != null ? Number(i.sizeId) : null,
-                    quantity: Number(i.quantity),
-                    toppings: (i.toppings || []).map((t) => ({
-                        toppingId: Number(t.toppingId),
-                        quantity: Number(t.quantity || 1),
-                    })),
-                }))
-                : null
-
-            try {
-                const res = await voucherService.checkVoucher({
-                    voucherCode: cleanCode,
-                    isBuyNow: Boolean(isBuyNow),
-                    distanceKm: currentDistanceKm,
-                    items: checkItems,
-                })
-                const data = unwrapApi(res)
-                const obj = data && typeof data === 'object' ? data : {}
-
-                setVoucherResult({
-                    isValid: true,
-                    discountAmount: Number(obj.discountAmount ?? obj.DiscountAmount ?? 0),
-                    finalTotal: obj.finalTotal != null ? Number(obj.finalTotal) : null,
-                    finalOrderAmount: obj.finalOrderAmount != null ? Number(obj.finalOrderAmount) : null,
-                    finalShippingFee: obj.finalShippingFee != null ? Number(obj.finalShippingFee) : null,
-                    applyType: obj.applyType ?? obj.ApplyType ?? null,
-                    message: obj.message || obj.Message || 'Áp dụng mã giảm giá thành công!',
-                })
-            } catch (err) {
-                setVoucherResult({
-                    isValid: false,
-                    discountAmount: 0,
-                    message: pickErrorMessage(err, 'Mã không hợp lệ hoặc đã hết hạn'),
-                })
-            } finally {
-                setVoucherChecking(false)
-            }
-        },
-        [isBuyNow, buyNowItems, currentDistanceKm]
-    )
-
-    // Áp dụng voucher từ modal chọn mã
-    const applyVoucher = useCallback(
-        (code) => {
-            setVoucherCode(code)
-            setVoucherInput(code)
-            runVoucherCheck(code)
-        },
-        [runVoucherCheck]
-    )
-
-    // Xử lý ô nhập voucher tay với debounce
-    const handleVoucherInputChange = (e) => {
-        const val = e.target.value.toUpperCase()
-        setVoucherInput(val)
-        setVoucherCode(val)
-        clearTimeout(voucherDebounceRef.current)
-        if (!val.trim()) {
-            setVoucherResult(null)
-            return
-        }
-        voucherDebounceRef.current = setTimeout(() => runVoucherCheck(val), 700)
-    }
-
-    const handleApplyManual = () => {
-        clearTimeout(voucherDebounceRef.current)
-        if (voucherInput.trim()) {
-            setVoucherCode(voucherInput.trim().toUpperCase())
-            runVoucherCheck(voucherInput.trim().toUpperCase())
-        }
-    }
-
-    const handleClearVoucher = () => {
-        clearTimeout(voucherDebounceRef.current)
-        setVoucherInput('')
-        setVoucherCode('')
-        setVoucherResult(null)
-    }
-
-    const discountAmount =
-        voucherResult?.isValid && Number(voucherResult?.discountAmount) > 0
-            ? Number(voucherResult.discountAmount)
-            : 0
+    // ── Gọn gàng lại bằng Custom Hook ──────────────────────────────────────
+    const {
+        voucherCode,
+        voucherInput,
+        voucherResult,
+        voucherChecking,
+        showVoucherModal,
+        discountAmount,
+        setShowVoucherModal,
+        handleVoucherInputChange,
+        handleApplyManual,
+        handleClearVoucher,
+        applyVoucher
+    } = useCheckoutVoucher(isBuyNow, buyNowItems, currentDistanceKm)
 
     // ── Kiểm tra điều kiện Submit ──────────────────────────────────────────
     const mapValid = Boolean(mapAddress) && Boolean(recipientName.trim()) && Boolean(phone.trim())
@@ -353,7 +170,7 @@ export default function CheckoutPage() {
             ? Boolean(selectedAddressId) && !distanceCalculating
             : mapValid
 
-    const canSubmit = hasValidAddress && !shippingError && !feeCalculating && !distanceCalculating
+    const canSubmit = hasValidAddress && !shippingError && !isShippingError && !feeCalculating && !distanceCalculating
 
     // ── Submit Đơn Hàng ────────────────────────────────────────────────────
     const submit = async (e) => {
@@ -420,7 +237,7 @@ export default function CheckoutPage() {
             }
             navigate('/order-success')
         } else {
-            message.error(result.payload || 'Đặt hàng thất bại!')
+            /* API Error Modal will handle this */
         }
     }
 
@@ -588,6 +405,7 @@ export default function CheckoutPage() {
                     submitting={submitting}
                     canSubmit={canSubmit}
                     shippingError={shippingError}
+                    isShippingError={isShippingError}
                     addressTab={addressTab}
                     mapValid={mapValid}
                 />

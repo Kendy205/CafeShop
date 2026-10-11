@@ -8,8 +8,10 @@ import {
     setDefaultAddress,
     updateAddress,
 } from '../../redux/actions/user/addressAction'
-import MapboxAddressPicker from '../map/MapboxAddressPicker'
+import MapboxLocationPicker from '../map/MapboxLocationPicker'
 import LoadingLink from '../loading/LoadingLink'
+import { AppToast, AppConfirm } from '../common/AppNotification'
+
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -35,9 +37,16 @@ async function geocodeAddress(query) {
 const INPUT_TAB_MAP = 'map'
 const INPUT_TAB_MANUAL = 'manual'
 
+/**
+ * AddressManager Component
+ * Quản lý sổ địa chỉ của khách hàng (thêm, sửa, xoá, đặt mặc định).
+ * Hỗ trợ nhập tay thủ công hoặc ghim trên bản đồ (MapboxLocationPicker) để lấy toạ độ giao hàng.
+ */
 export default function AddressManager({ hideTitle = false }) {
     const dispatch = useDispatch()
-    const { items: addresses, loading, submitting } = useSelector((s) => s.address)
+    const { items: addresses, loading, submitting } = useSelector((s) => s.user.address)
+    const { profile: storeProfile } = useSelector((s) => s.app.storeProfile || {})
+
 
     // Trạng thái đang sửa địa chỉ
     const [editingId, setEditingId] = useState(null)
@@ -115,18 +124,18 @@ export default function AddressManager({ hideTitle = false }) {
 
         // Validation
         if (!trimmedName) {
-            message.warning('Vui lòng nhập tên người nhận!')
+            AppToast.warning('Vui lòng nhập tên người nhận!')
             return
         }
 
         const phoneRegex = /^(0|\+84)\d{9,10}$/
         if (!phoneRegex.test(trimmedPhone)) {
-            message.warning('Số điện thoại không hợp lệ (VD: 0912345678)!')
+            AppToast.warning('Số điện thoại không hợp lệ (VD: 0912345678)!')
             return
         }
 
         if (!trimmedAddress) {
-            message.warning('Vui lòng nhập hoặc chọn địa chỉ trên bản đồ!')
+            AppToast.warning('Vui lòng nhập hoặc chọn địa chỉ trên bản đồ!')
             return
         }
 
@@ -156,20 +165,20 @@ export default function AddressManager({ hideTitle = false }) {
         if (editingId) {
             const res = await dispatch(updateAddress({ id: editingId, body: payload }))
             if (updateAddress.fulfilled.match(res)) {
-                message.success('Cập nhật địa chỉ thành công!')
+                AppToast.success('Cập nhật địa chỉ thành công!')
                 resetForm()
                 dispatch(getAddresses())
             } else {
-                message.error(res.payload || 'Cập nhật địa chỉ thất bại!')
+                /* API Error Modal will handle this */
             }
         } else {
             const res = await dispatch(createAddress(payload))
             if (createAddress.fulfilled.match(res)) {
-                message.success('Đã thêm địa chỉ mới thành công!')
+                AppToast.success('Đã thêm địa chỉ mới thành công!')
                 resetForm()
                 dispatch(getAddresses())
             } else {
-                message.error(res.payload || 'Thêm địa chỉ thất bại!')
+                /* API Error Modal will handle this */
             }
         }
     }
@@ -178,16 +187,16 @@ export default function AddressManager({ hideTitle = false }) {
     const handleSetDefault = async (addressId) => {
         const res = await dispatch(setDefaultAddress(addressId))
         if (setDefaultAddress.fulfilled.match(res)) {
-            message.success('Đã đặt làm địa chỉ mặc định!')
+            AppToast.success('Đã đặt làm địa chỉ mặc định!')
             dispatch(getAddresses())
         } else {
-            message.error(res.payload || 'Không thể đặt mặc định!')
+            /* API Error Modal will handle this */
         }
     }
 
     // Xóa địa chỉ với Modal xác nhận Ant Design
     const handleDelete = (addr) => {
-        Modal.confirm({
+        AppConfirm({
             title: 'Xóa địa chỉ này?',
             content: `Bạn có chắc chắn muốn xóa địa chỉ của "${addr.recipientName}" (${addr.fullAddress}) không?`,
             okText: 'Xóa vĩnh viễn',
@@ -197,11 +206,11 @@ export default function AddressManager({ hideTitle = false }) {
             onOk: async () => {
                 const res = await dispatch(deleteAddress(addr.addressId))
                 if (deleteAddress.fulfilled.match(res)) {
-                    message.success('Đã xóa địa chỉ thành công!')
+                    AppToast.success('Đã xóa địa chỉ thành công!')
                     if (editingId === addr.addressId) resetForm()
                     dispatch(getAddresses())
                 } else {
-                    message.error(res.payload || 'Xóa địa chỉ thất bại!')
+                    /* API Error Modal will handle this */
                 }
             },
         })
@@ -455,7 +464,7 @@ export default function AddressManager({ hideTitle = false }) {
                                         <p className="text-[11px] text-sky-900 font-medium">
                                             💡 Click trực tiếp lên bản đồ hoặc tìm kiếm để lấy vị trí và tự động tính khoảng cách!
                                         </p>
-                                        <MapboxAddressPicker onAddressSelected={handleMapAddressSelected} />
+                                        <MapboxLocationPicker onLocationSelected={handleMapAddressSelected} />
 
                                         {fullAddress && (
                                             <div className="rounded-3xl border border-slate-200 bg-white p-2.5 shadow-2xs">

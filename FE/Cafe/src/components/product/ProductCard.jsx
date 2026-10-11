@@ -1,6 +1,11 @@
 import LoadingLink from '../loading/LoadingLink'
 import { formatVnd } from '../../utils/helpers/format'
 
+/**
+ * ProductCard Component
+ * Thẻ hiển thị tóm tắt thông tin sản phẩm (ảnh, tên, giá, số lượng tồn kho).
+ * Dùng ở màn hình danh sách sản phẩm (ProductGrid). Có xử lý hiển thị giá thấp nhất nếu có nhiều size.
+ */
 export default function ProductCard({ product }) {
     const id = product.productId
     const isOutOfStock = Boolean(product.isOutOfStock || (product.totalStock !== undefined && product.totalStock <= 0))
@@ -20,21 +25,19 @@ export default function ProductCard({ product }) {
 
     return (
         <LoadingLink
-            to={`/menu/${id}`}
-            className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg ${
-                isOutOfStock ? 'opacity-85' : ''
-            }`}
+            to={`/product/${id}`}
+            className={`group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg ${isOutOfStock ? 'opacity-85' : ''
+                }`}
         >
             {/* ── Khung ảnh sản phẩm ── */}
             <div>
-                <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
                     {product.imageUrl ? (
                         <img
                             src={product.imageUrl}
                             alt={product.name}
-                            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                                isOutOfStock ? 'grayscale-40 contrast-90' : ''
-                            }`}
+                            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? 'grayscale-40 contrast-90' : ''
+                                }`}
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-sky-50/50 text-3xl text-sky-800/40">
@@ -84,10 +87,18 @@ export default function ProductCard({ product }) {
 
                 {/* ── Thông tin sản phẩm ── */}
                 <div className="p-4">
-                    {/* Tên món */}
-                    <h3 className="text-base font-bold text-slate-800 line-clamp-1 transition-colors group-hover:text-sky-900">
-                        {product.name}
-                    </h3>
+                    {/* Tên món & Đánh giá */}
+                    <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-bold text-slate-800 line-clamp-1 transition-colors group-hover:text-sky-900 flex-1">
+                            {product.name}
+                        </h3>
+                        {(product.rating != null || product.averageRating != null) && Number(product.rating || product.averageRating) > 0 && (
+                            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-extrabold text-amber-700 border border-amber-200">
+                                <span>⭐</span>
+                                <span>{Number(product.rating || product.averageRating).toFixed(1)}</span>
+                            </span>
+                        )}
+                    </div>
 
                     {/* Mô tả sản phẩm */}
                     {product.description ? (
@@ -106,14 +117,13 @@ export default function ProductCard({ product }) {
                             <span className="text-[11px] font-medium text-slate-400">Size:</span>
                             {sizes.map((s) => (
                                 <span
-                                    key={s.sizeId || s.name}
-                                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
-                                        s.isOutOfStock
-                                            ? 'bg-slate-100 text-slate-400 line-through'
-                                            : 'bg-sky-50 text-sky-900 border border-sky-200/80'
-                                    }`}
+                                    key={s.sizeId || s.sizeName || s.name}
+                                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold transition-colors ${s.isOutOfStock
+                                        ? 'bg-slate-100 text-slate-400 line-through'
+                                        : 'bg-sky-50 text-sky-900 border border-sky-200/80'
+                                        }`}
                                 >
-                                    {s.name}
+                                    {s.sizeName ?? s.name}
                                 </span>
                             ))}
                         </div>
@@ -135,11 +145,10 @@ export default function ProductCard({ product }) {
 
                     <button
                         type="button"
-                        className={`inline-flex items-center gap-1 rounded-3xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${
-                            isOutOfStock
-                                ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                                : 'bg-sky-800 text-white hover:bg-sky-900 group-hover:shadow-sm'
-                        }`}
+                        className={`inline-flex items-center gap-1 rounded-3xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${isOutOfStock
+                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                            : 'bg-sky-800 text-white hover:bg-sky-900 group-hover:shadow-sm'
+                            }`}
                     >
                         <span>{isOutOfStock ? 'Hết món' : 'Đặt món'}</span>
                         {!isOutOfStock && <span className="text-[10px]">→</span>}

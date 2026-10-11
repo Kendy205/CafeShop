@@ -1,20 +1,20 @@
-﻿using CafeShop.DTO.Feedback;
+using CafeShop.DTO.Feedback.Requests;
+using CafeShop.DTO.Feedback.Responses;
 using CafeShop.Service.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CafeShop.Service.IService.Users
 {
     public interface IFeedbackService
     {
-        Task AddFeedbackAsync(int userId, CreateFeedbackDto request);
-        // Lấy danh sách đánh giá của 1 món (Dùng cho FE cuộn/phân trang)
-        Task<PagedResult<FeedbackResponseDto>> GetProductFeedbacksAsync(int productId, int pageNumber, int pageSize);
+        Task<(bool IsSuccess, string Message, int? FeedbackId)> CreateFeedbackAsync(int userId, CreateFeedbackRequestDto request);
+        Task<(bool IsSuccess, string Message)> UploadFeedbackImagesAsync(int userId, int feedbackId, List<Microsoft.AspNetCore.Http.IFormFile> files);
+        Task<(bool IsSuccess, string Message)> DeleteFeedbackImageAsync(int userId, int feedbackId, int imageId);
+        
+        Task<(bool IsSuccess, string Message)> UpdateFeedbackAsync(int userId, int feedbackId, UpdateFeedbackRequestDto request);
+        Task<(bool IsSuccess, string Message)> DeleteFeedbackAsync(int userId, int feedbackId);
 
-        // Lấy thống kê đánh giá (Điểm trung bình, tổng số lượt)
-        Task<FeedbackSummaryDto> GetFeedbackSummaryAsync(int productId);
+        Task<PagedResult<FeedbackResponseDto>> GetProductFeedbacksAsync(int productId, FeedbackFilterDto filter);
+        Task<FeedbackSummaryResponseDto> GetFeedbackSummaryAsync(int productId);
     }
 }

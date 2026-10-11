@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -24,11 +24,13 @@ namespace CafeShop.Model
         public string? ImagePublicId { get; set; }
         public string? Description { get; set; }
         public bool IsAvailable { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
         [ConcurrencyCheck]
         public int StockQuantity { get; set; } = 0; // Thêm dòng này
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }
         public virtual ICollection<ProductSize>? ProductSizes { get; set; }
+        public virtual ICollection<ProductTopping>? ProductToppings { get; set; }
         public virtual ICollection<Feedback>? Feedbacks { get; set; }
     }
 }

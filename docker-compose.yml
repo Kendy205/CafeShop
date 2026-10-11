@@ -1,0 +1,68 @@
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: cafeshop_mysql
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./CafeShop_SeedData_MySQL.sql:/docker-entrypoint-initdb.d/CafeShop_SeedData_MySQL.sql
+    networks:
+      - cafeshop_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cafeshop_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cafeshop_network
+  backend:
+    build:
+      context: ./BE_2/CafeShop
+      dockerfile: Dockerfile
+    container_name: cafeshop_backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080" # Ánh xạ cổng HTTP thay vì HTTPS
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - mysql_db
+      - redis
+    networks:
+      - cafeshop_network
+
+  frontend:
+    build:
+      context: ./FE/Cafe
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    container_name: cafeshop_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80" # Nginx phục vụ ở cổng 80, expose ra 5173
+    networks:
+      - cafeshop_network
+
+volumes:
+  db_data:
+  redis_data:
+
+networks:
+  cafeshop_network:
+    driver: bridge

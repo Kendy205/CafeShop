@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { message } from 'antd'
 import LoadingLink from '../../components/loading/LoadingLink'
 import { formatVnd } from '../../utils/helpers/format'
+import { AppToast, AppConfirm } from '../../components/common/AppNotification'
 import {
     PAYMENT_LABEL,
     getStatusConfig,
@@ -45,9 +46,13 @@ function AnimatedCheck() {
     )
 }
 
-// ── Component chính OrderSuccessPage ──────────────────────────────────────────
+/**
+ * OrderSuccessPage Component
+ * Trang hiển thị thông báo Đặt hàng Thành công sau khi Checkout xong.
+ * Có hiệu ứng checkmark đẹp mắt và tổng hợp thông tin đơn hàng vừa đặt.
+ */
 export default function OrderSuccessPage() {
-    const order = useSelector((s) => s.order.lastOrder)
+    const order = useSelector((s) => s.user.order.lastOrder)
 
     // Trích xuất các trường từ data trả về từ API Checkout / Buy Now
     const orderId = order?.orderId ?? order?.id
@@ -58,7 +63,8 @@ export default function OrderSuccessPage() {
     const totalAmount = order?.totalAmount ?? order?.total
     const shippingFee = order?.shippingFee ?? 0
     const distanceKm = order?.distanceKm
-    const discountAmount = order?.discountAmount ?? 0
+    const orderDiscount = order?.orderDiscount ?? 0
+    const shippingDiscount = order?.shippingDiscount ?? 0
 
     // Mảng items theo đặc tả API
     const items = useMemo(() => {
@@ -87,9 +93,9 @@ export default function OrderSuccessPage() {
         if (orderId) {
             try {
                 navigator.clipboard.writeText(String(orderId))
-                message.success(`Đã sao chép mã đơn #${orderId}!`)
+                AppToast.success(`Đã sao chép mã đơn #${orderId}!`)
             } catch {
-                message.success(`Mã đơn: #${orderId}`)
+                AppToast.success(`Mã đơn: #${orderId}`)
             }
         }
     }
@@ -287,10 +293,16 @@ export default function OrderSuccessPage() {
                             <span className="font-semibold text-slate-800">{formatVnd(shippingFee)}</span>
                         </div>
 
-                        {discountAmount > 0 && (
+                        {orderDiscount > 0 && (
                             <div className="flex justify-between text-emerald-700 font-bold">
-                                <span>Giảm giá Voucher:</span>
-                                <span>−{formatVnd(discountAmount)}</span>
+                                <span>Giảm giá món ăn:</span>
+                                <span>−{formatVnd(orderDiscount)}</span>
+                            </div>
+                        )}
+                        {shippingDiscount > 0 && (
+                            <div className="flex justify-between text-emerald-700 font-bold">
+                                <span>Giảm cước ship:</span>
+                                <span>−{formatVnd(shippingDiscount)}</span>
                             </div>
                         )}
                     </div>

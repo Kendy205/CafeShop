@@ -1,6 +1,8 @@
 using System.Security.Claims;
-using CafeShop.DTO.Order;
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -95,6 +97,43 @@ namespace CafeShop.Controllers.User
         }
 
         // =========================================================================
+
+        [HttpPost("best-for-checkout")]
+        public async Task<IActionResult> GetBestVoucher([FromBody] BestVoucherRequestDto request)
+        {
+            try
+            {
+                int userId = GetUserId();
+                var result = await _voucherService.GetBestVoucherAsync(userId, request);
+
+                if (result == null)
+                {
+                    return Ok(new ApiResponse<object>
+                    {
+                        Success = true,
+                        StatusCode = 200,
+                        Message = "Không có mã giảm giá nào phù hợp cho đơn hàng này.",
+                        Data = null
+                    });
+                }
+
+                return Ok(new ApiResponse<BestVoucherResponseDto>
+                {
+                    Success = true,
+                    StatusCode = 200,
+                    Message = "Tìm thấy mã giảm giá tốt nhất!",
+                    Data = result
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new ApiResponse<object> { Success = false, StatusCode = 401, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<object> { Success = false, StatusCode = 500, Message = $"Lỗi hệ thống: {ex.Message}" });
+            }
+        }
 
         // =========================================================================
         // HELPER METHOD: Lấy UserId an toàn từ Claims (Chống lỗi 401 null claim)

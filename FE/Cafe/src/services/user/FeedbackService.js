@@ -8,13 +8,7 @@ export class FeedbackService extends BaseServices {
      */
     addFeedback = async (body) => {
         const res = await this.post('/api/Feedback', body)
-        const raw = res?.data !== undefined ? res.data : res
-        if (raw && (raw.success === false || (raw.statusCode && raw.statusCode >= 400))) {
-            const err = new Error(raw.message || 'Gửi đánh giá thất bại')
-            err.response = { data: raw }
-            throw err
-        }
-        return raw
+        return unwrapApi(res)
     }
 
     /**
@@ -37,11 +31,22 @@ export class FeedbackService extends BaseServices {
         const pageSize = params.pageSize || 10
         const pageNumber = params.pageNumber || 1
         const res = await this.get(`/api/Feedback/product/${productId}`, {
-            params: { pageNumber, pageSize },
+            params: { pageNumber, pageSize, rating: params.rating, hasImages: params.hasImages },
             __skipGlobalLoading: true,
         })
         const data = unwrapApi(res)
         return normalizePagedResult(data, pageSize)
+    }
+
+    /**
+     * 4. Upload ảnh cho đánh giá (sau khi tạo text thành công): POST /api/Feedback/{id}/images
+     */
+    uploadFeedbackImages = async (feedbackId, formData) => {
+        const res = await this.post(`/api/Feedback/${feedbackId}/images`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            __skipGlobalLoading: true,
+        })
+        return unwrapApi(res)
     }
 }
 

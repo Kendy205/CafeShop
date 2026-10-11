@@ -1,4 +1,5 @@
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace CafeShop.Services.IServices
         //Task UpdateAsync(Order entity);
         //Task DeleteAsync(int id);
 
-        Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request);
+        Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request, string? ipAddress = null);
 
         Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize, string? status = null);
         Task CancelOrderAsync(int userId, int orderId);

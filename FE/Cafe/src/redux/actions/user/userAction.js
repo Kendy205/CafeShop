@@ -6,10 +6,14 @@ import { updateUserProfile } from '../../slices/authSlice'
 // 1. Lấy thông tin cá nhân
 export const getProfile = createAsyncThunk(
     'user/getProfile',
-    async (_, { rejectWithValue }) => {
+    async (_, { dispatch, rejectWithValue }) => {
         try {
             const res = await userService.getProfile()
-            return unwrapApi(res)
+            const profile = unwrapApi(res)
+            if (profile) {
+                dispatch(updateUserProfile(profile))
+            }
+            return profile
         } catch (e) {
             return rejectWithValue(pickErrorMessage(e, 'Không lấy được thông tin người dùng'))
         }

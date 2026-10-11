@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.IMP;
+using CafeShop.Data.Repository.IMP;
 using CafeShop.Data.Repository.IRepository;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Repositories.Repository;
@@ -15,6 +15,7 @@ namespace CafeShop.Data.Repository.UnitOfWork
         private readonly ApplicationDbContext _context;
         public ICartItemToppingRepository CartItemTopping { get; private set; }
         public IUserRepository User { get; private set; }
+        public INewsRepository News { get; private set; }
         public ICartRepository Cart { get; private set; }
         public ICartItemRepository CartItem { get; private set; }
         //public IRoleRepository Role { get; private set; }
@@ -27,17 +28,28 @@ namespace CafeShop.Data.Repository.UnitOfWork
         public IOrderRepository Order { get; private set; }
         public IOrderDetailRepository OrderDetail { get; private set; }
         public IOrderDetailToppingRepository OrderDetailTopping { get; private set; }
+        public IOrderStatusHistoryRepository OrderStatusHistory { get; private set; }
 
         public IProductSizeRepository ProductSize { get; private set; }
+        public IProductToppingRepository ProductTopping { get; private set; }
         public IUserVoucherRepository UserVoucher { get; private set; }
         public IFeedbackRepository Feedback { get; private set; }
+        public IFeedbackImageRepository FeedbackImage { get; private set; }
+        public IFeedbackReplyRepository FeedbackReply { get; private set; }
         public IShippingConfigRepository ShippingConfig { get; private set; }
+        public IRoleRepository Role { get; private set; }
+        public IPermissionRepository Permission { get; private set; }
+        public IUserRoleRepository UserRole { get; private set; }
+        public IRolePermissionRepository RolePermission { get; private set; }
+        public IStoreProfileRepository StoreProfile { get; private set; }
+        public IPaymentRepository Payment { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
             User = new UserRepository(_context);
-            // Role = new RoleRepository(_context);
+            News = new NewsRepository(_context);
+            //Role = new RoleRepository(_context);
             Address = new AddressRepository(_context);
             Category = new CategoryRepository(_context);
             Product = new ProductRepository(_context);
@@ -47,13 +59,23 @@ namespace CafeShop.Data.Repository.UnitOfWork
             Order = new OrderRepository(_context);
             OrderDetail = new OrderDetailRepository(_context);
             OrderDetailTopping = new OrderDetailToppingRepository(_context);
+            OrderStatusHistory = new OrderStatusHistoryRepository(_context);
             Cart = new CartRepository(_context);
             CartItem = new CartItemRepository(_context);
             CartItemTopping = new CartItemToppingRepository(_context);
             ProductSize = new ProductSizeRepository(_context);
+            ProductTopping = new ProductToppingRepository(_context);
             UserVoucher = new UserVoucherRepository(_context);
             Feedback = new FeedbackRepository(_context);
+            FeedbackImage = new FeedbackImageRepository(_context);
+            FeedbackReply = new FeedbackReplyRepository(_context);
             ShippingConfig = new ShippingConfigRepository(_context);
+            Role = new RoleRepository(_context);
+            Permission = new PermissionRepository(_context);
+            UserRole = new UserRoleRepository(_context);
+            RolePermission = new RolePermissionRepository(_context);
+            StoreProfile = new StoreProfileRepository(_context);
+            Payment = new PaymentRepository(_context);
         }
 
         public async Task<int> SaveAsync()

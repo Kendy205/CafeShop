@@ -1,6 +1,7 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using CafeShop.Model;
 using CafeShop.Service.IService.Admin;
 using CafeShop.Service.Helpers;
@@ -25,19 +26,20 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<PagedResult<VoucherDto>> GetAllVouchersAsync(int pageNumber, int pageSize)
         {
-            var vouchers = await _unitOfWork.Voucher.GetAllAsync();
-            var totalItems = vouchers.Count();
-            var pagedData = vouchers.OrderByDescending(v => v.VoucherId)
-                                    .Skip((pageNumber - 1) * pageSize)
-                                    .Take(pageSize)
-                                    .ToList();
+            var vouchers = await _unitOfWork.Voucher.GetAllAsync(
+                pageSize: pageSize,
+                pageNumber: pageNumber,
+                orderBy: q => q.OrderByDescending(v => v.VoucherId)
+            );
+            
+            var totalItems = await _unitOfWork.Voucher.CountAsync();
 
             return new PagedResult<VoucherDto>
             {
                 Total = totalItems,
                 Page = pageNumber,
                 PageSize = pageSize,
-                Items = _mapper.Map<List<VoucherDto>>(pagedData)
+                Items = _mapper.Map<List<VoucherDto>>(vouchers)
             };
         }
 

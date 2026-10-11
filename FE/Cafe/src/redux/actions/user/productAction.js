@@ -26,5 +26,17 @@ export const getProductDetail = createAsyncThunk(
     }
 )
 
+export const getProductSuggestions = createAsyncThunk(
+    'product/getSuggestions',
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await productService.getSuggestions()
+            return unwrapApi(res)
+        } catch (e) {
+            return rejectWithValue(pickErrorMessage(e, 'Không tải được gợi ý tìm kiếm'))
+        }
+    }
+)
+
 // Re-export getCategories từ categoryAction để đảm bảo tương thích ngược
 export { getCategories } from './categoryAction'

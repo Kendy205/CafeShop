@@ -1,8 +1,13 @@
 import { useSelector } from 'react-redux'
 
+/**
+ * Loading Component
+ * Màn hình mờ (Overlay) với spinner quay tròn, dùng để block UI khi hệ thống đang gọi API (Redux state: loadingCount > 0)
+ * hoặc khi đang chuyển trang (routeLoadingCount > 0).
+ */
 export default function Loading() {
     const visible = useSelector(
-        (s) => s.ui.loadingCount > 0 || s.ui.routeLoadingCount > 0
+        (s) => s.app.ui.loadingCount > 0 || s.app.ui.routeLoadingCount > 0
     )
 
     if (!visible) return null

@@ -3,6 +3,11 @@ import { createSlice } from '@reduxjs/toolkit'
 const initialState = {
     loadingCount: 0,
     routeLoadingCount: 0,
+    apiError: {
+        show: false,
+        message: '',
+        statusCode: null,
+    },
 }
 
 const uiSlice = createSlice({
@@ -21,6 +26,16 @@ const uiSlice = createSlice({
         stopRouteLoading: (state) => {
             state.routeLoadingCount = Math.max(0, state.routeLoadingCount - 1)
         },
+        showApiError: (state, action) => {
+            state.apiError.show = true
+            state.apiError.message = action.payload?.message || 'Đã có lỗi xảy ra'
+            state.apiError.statusCode = action.payload?.statusCode || null
+        },
+        hideApiError: (state) => {
+            state.apiError.show = false
+            state.apiError.message = ''
+            state.apiError.statusCode = null
+        },
     },
 })
 
@@ -29,6 +44,8 @@ export const {
     stopGlobalLoading,
     startRouteLoading,
     stopRouteLoading,
+    showApiError,
+    hideApiError,
 } = uiSlice.actions
 
 export default uiSlice.reducer

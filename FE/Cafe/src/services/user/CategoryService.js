@@ -6,9 +6,11 @@ import { BaseServices } from '../BaseService'
  * - GET /api/Category/{id}: Lấy thông tin chi tiết một danh mục theo ID
  */
 export class CategoryService extends BaseServices {
-    getCategories = () => this.get('/api/Category')
+    getCategories = (config = {}) =>
+        this.get('/api/Category', { __skipGlobalLoading: true, ...config })
 
-    getCategoryById = (id) => this.get(`/api/Category/${id}`)
+    getCategoryById = (id, config = {}) =>
+        this.get(`/api/Category/${id}`, { __skipGlobalLoading: true, ...config })
 }
 
 export const categoryService = new CategoryService()

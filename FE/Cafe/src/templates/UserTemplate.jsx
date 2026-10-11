@@ -1,6 +1,6 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
     CoffeeOutlined,
     EnvironmentOutlined,
@@ -15,9 +15,9 @@ import {
     TagOutlined,
 } from '@ant-design/icons'
 import LoadingLink from '../components/loading/LoadingLink'
-import AuthModal from '../components/auth/AuthModal'
 import { logout, openAuthModal } from '../redux/slices/authSlice'
 import { getCart } from '../redux/actions/user/cartAction'
+import { getProfile } from '../redux/actions/user/userAction'
 import { isAdminRole } from '../utils/auth/authRole'
 import { THEME, getButtonClass } from '../utils/constants/Theme'
 
@@ -25,10 +25,10 @@ function NavItem({ to, icon, label, className = '' }) {
     return (
         <LoadingLink
             to={to}
-            className={`inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600 ${className}`}
+            className={`inline-flex items-center gap-1.5 rounded-2xl px-2.5 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600 ${className}`}
         >
-            <span className="text-lg leading-none">{icon}</span>
-            <span className="hidden sm:inline font-medium">{label}</span>
+            <span className="text-base leading-none shrink-0">{icon}</span>
+            <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">{label}</span>
         </LoadingLink>
     )
 }
@@ -36,12 +36,33 @@ function NavItem({ to, icon, label, className = '' }) {
 export default function UserTemplate() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { isAuthenticated, user, role } = useSelector((s) => s.auth)
-    const cartCount = useSelector((s) => s.cart.items.reduce((n, i) => n + (Number(i.quantity) || 0), 0))
+    const location = useLocation()
+    const { isAuthenticated, user, role } = useSelector((s) => s.app.auth)
+    const cartCount = useSelector((s) => s.user.cart.items.length)
+    const [orderUpdateCount, setOrderUpdateCount] = useState(0)
 
     useEffect(() => {
-        if (isAuthenticated) dispatch(getCart())
+        if (isAuthenticated) {
+            dispatch(getCart())
+            dispatch(getProfile())
+        }
     }, [isAuthenticated, dispatch])
+
+    useEffect(() => {
+        const handleUpdate = () => {
+            setOrderUpdateCount((prev) => prev + 1)
+        }
+        window.addEventListener('app:user-order-update', handleUpdate)
+        return () => {
+            window.removeEventListener('app:user-order-update', handleUpdate)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (location.pathname === '/orders') {
+            setOrderUpdateCount(0)
+        }
+    }, [location.pathname])
 
     return (
         <div className={`flex min-h-screen flex-col ${THEME.colors.background}`}>
@@ -58,26 +79,39 @@ export default function UserTemplate() {
                         <span className="hidden xs:inline sm:inline">Cafe<span className="text-sky-500">Order</span></span>
                     </LoadingLink>
 
-                    <nav className="flex flex-wrap items-center gap-2 text-sm">
+                    <nav className="flex items-center gap-0.5 text-sm overflow-x-auto no-scrollbar">
                         <NavItem to="/" icon={<CoffeeOutlined />} label="Thực đơn" />
                         <NavItem to="/search" icon={<SearchOutlined />} label="Tìm kiếm" />
                         
                         {isAuthenticated && (
                             <>
                                 <NavItem to="/addresses" icon={<EnvironmentOutlined />} label="Địa chỉ" />
-                                <NavItem to="/orders"    icon={<OrderedListOutlined />} label="Đơn hàng" />
-                                <NavItem to="/vouchers"  icon={<TagOutlined />}         label="Voucher" />
+                                <LoadingLink
+                                    to="/orders"
+                                    className="relative inline-flex items-center gap-1.5 rounded-2xl px-2.5 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600"
+                                >
+                                    <span className="relative inline-flex text-base leading-none shrink-0">
+                                        <OrderedListOutlined />
+                                        {orderUpdateCount > 0 && (
+                                            <span className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-bounce">
+                                                {orderUpdateCount > 9 ? '9+' : orderUpdateCount}
+                                            </span>
+                                        )}
+                                    </span>
+                                    <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">Đơn hàng</span>
+                                </LoadingLink>
+                                <NavItem to="/vouchers"  icon={<TagOutlined />} label="Voucher" />
                             </>
                         )}
 
-                        <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
+                        <div className="w-px h-5 bg-slate-200 mx-0.5 hidden lg:block"></div>
 
                         <LoadingLink
                             to="/cart"
                             className="relative inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600"
                             aria-label="Giỏ hàng"
                         >
-                            <span className="relative inline-flex text-xl leading-none">
+                            <span className="relative inline-flex text-xl leading-none shrink-0">
                                 <ShoppingCartOutlined />
                                 {cartCount > 0 && (
                                     <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
@@ -85,7 +119,7 @@ export default function UserTemplate() {
                                     </span>
                                 )}
                             </span>
-                            <span className="hidden sm:inline font-medium">Giỏ hàng</span>
+                            <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">Giỏ hàng</span>
                         </LoadingLink>
 
                         {isAdminRole(role) && (
@@ -110,7 +144,7 @@ export default function UserTemplate() {
                                             {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <UserOutlined />}
                                         </span>
                                     )}
-                                    <span className="hidden sm:inline font-semibold text-sm max-w-[130px] truncate">
+                                    <span className="hidden lg:inline font-semibold text-sm max-w-[100px] truncate">
                                         {user?.fullName || 'Hồ sơ'}
                                     </span>
                                 </LoadingLink>
@@ -162,9 +196,6 @@ export default function UserTemplate() {
                     <span>Cafe Ordering System © {new Date().getFullYear()} - Designed with <span className="text-sky-500">Apple Style</span></span>
                 </div>
             </footer>
-
-            {/* Popup Đăng nhập & Đăng ký */}
-            <AuthModal />
         </div>
     )
 }

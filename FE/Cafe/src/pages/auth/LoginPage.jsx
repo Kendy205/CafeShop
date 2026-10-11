@@ -1,6 +1,11 @@
 import LoginForm from '../../components/auth/LoginForm'
 import LoadingLink from '../../components/loading/LoadingLink'
 
+/**
+ * LoginPage Component
+ * Trang Đăng nhập hệ thống (cho cả User và Admin).
+ * Bọc ngoài LoginForm component, quản lý route và giao diện trang đăng nhập độc lập.
+ */
 export default function LoginPage() {
     return (
         <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm">

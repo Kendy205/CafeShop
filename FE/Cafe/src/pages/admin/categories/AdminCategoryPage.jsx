@@ -1,25 +1,41 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { message, Modal, Table, Button, Input, Card, Tag, Space, Tooltip } from 'antd'
-import { EditOutlined, DeleteOutlined, PlusOutlined, AppstoreOutlined, SearchOutlined, FolderOpenOutlined } from '@ant-design/icons'
+import { message, Modal, Space, Button } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
+import { EditOutlined, DeleteOutlined, PlusOutlined, AppstoreOutlined, FolderOpenOutlined } from '@ant-design/icons'
 import {
     fetchAdminCategories,
     createAdminCategory,
     updateAdminCategory,
     deleteAdminCategory,
 } from '../../../redux/actions/admin/adminCategoryAction'
-import AppPagination from '../../../components/common/AppPagination'
+import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AdminTable from '../../../components/admin/common/AdminTable'
+import AdminModalBanner from '../../../components/admin/common/AdminModalBanner'
+import AppButton from '../../../components/common/AppButton'
+import AppSearchBox from '../../../components/common/AppSearchBox'
+import { Formik, Form, Field } from 'formik'
+import * as Yup from 'yup'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
+
+const categorySchema = Yup.object().shape({
+    name: Yup.string().required('Vui lòng nhập tên danh mục'),
+    description: Yup.string().nullable()
+})
+
+/**
+ * AdminCategoryPage Component
+ * Trang quản lý Danh mục sản phẩm trong Admin.
+ * Cho phép xem danh sách, thêm mới, sửa và xóa danh mục.
+ */
 export default function AdminCategoryPage() {
     const dispatch = useDispatch()
-    const { items, loading, submitting } = useSelector((s) => s.adminCategory)
+    const { items, loading, submitting } = useSelector((s) => s.admin.category)
 
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [form, setForm] = useState({ name: '', description: '' })
     const [searchText, setSearchText] = useState('')
-
-    // Pagination states
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10
 
@@ -29,7 +45,6 @@ export default function AdminCategoryPage() {
 
     const openModal = (item = null) => {
         setEditingItem(item)
-        setForm(item ? { name: item.name, description: item.description || '' } : { name: '', description: '' })
         setIsModalVisible(true)
     }
 
@@ -38,34 +53,30 @@ export default function AdminCategoryPage() {
         setEditingItem(null)
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (!form.name.trim()) {
-            message.warning('Vui lòng nhập tên danh mục!')
-            return
-        }
-
+    const handleSubmit = async (values, { resetForm }) => {
         if (editingItem) {
-            const res = await dispatch(updateAdminCategory({ id: editingItem.categoryId, data: form }))
+            const res = await dispatch(updateAdminCategory({ id: editingItem.categoryId, data: values }))
             if (updateAdminCategory.fulfilled.match(res)) {
-                message.success('Cập nhật thành công!')
+                AppToast.success('Cập nhật thành công!')
                 closeModal()
+                resetForm()
             } else {
-                message.error(res.payload || 'Cập nhật thất bại')
+                /* API Error Modal will handle this */
             }
         } else {
-            const res = await dispatch(createAdminCategory(form))
+            const res = await dispatch(createAdminCategory(values))
             if (createAdminCategory.fulfilled.match(res)) {
-                message.success('Thêm mới thành công!')
+                AppToast.success('Thêm mới thành công!')
                 closeModal()
+                resetForm()
             } else {
-                message.error(res.payload || 'Thêm mới thất bại')
+                /* API Error Modal will handle this */
             }
         }
     }
 
     const handleDelete = (id) => {
-        Modal.confirm({
+        AppConfirm({
             title: 'Xác nhận xóa danh mục',
             content: 'Bạn có chắc chắn muốn xóa danh mục này? Hành động này không thể hoàn tác.',
             okText: 'Xóa',
@@ -75,20 +86,17 @@ export default function AdminCategoryPage() {
             onOk: async () => {
                 const res = await dispatch(deleteAdminCategory(id))
                 if (deleteAdminCategory.fulfilled.match(res)) {
-                    message.success('Xóa danh mục thành công!')
+                    AppToast.success('Xóa danh mục thành công!')
                 } else {
-                    message.error(res.payload || 'Xóa thất bại')
+                    /* API Error Modal will handle this */
                 }
             },
         })
     }
 
-    const filteredItems = items.filter(cat => cat.name.toLowerCase().includes(searchText.toLowerCase()))
-
-    // Client-side pagination
+    const filteredItems = items.filter(cat => cat.name.toLowerCase().includes(searchText.toLowerCase()) || (cat.description && cat.description.toLowerCase().includes(searchText.toLowerCase())))
     const paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-    // Reset page when search changes
     useEffect(() => {
         setCurrentPage(1)
     }, [searchText])
@@ -126,130 +134,129 @@ export default function AdminCategoryPage() {
             width: 120,
             align: 'right',
             render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="Chỉnh sửa">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined className="text-blue-600" />}
-                            className="bg-blue-50 hover:bg-blue-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                <div className="flex items-center justify-end gap-2">
+                    <AdminTooltip title="Chỉnh sửa danh mục">
+                        <button
                             onClick={() => openModal(record)}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Xóa">
-                        <Button
-                            type="text"
-                            icon={<DeleteOutlined className="text-red-600" />}
-                            className="bg-red-50 hover:bg-red-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                            className="admin-action-btn admin-action-btn-edit"
+                        >
+                            <EditOutlined />
+                            <span>Sửa</span>
+                        </button>
+                    </AdminTooltip>
+                    <AdminTooltip title="Xóa danh mục">
+                        <button
                             onClick={() => handleDelete(record.categoryId)}
-                        />
-                    </Tooltip>
-                </Space>
+                            className="admin-action-btn admin-action-btn-delete"
+                        >
+                            <DeleteOutlined className="text-red-600" />
+                            <span>Xóa</span>
+                        </button>
+                    </AdminTooltip>
+                </div>
             ),
         },
     ]
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800">Quản lý Danh mục</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        Tổ chức và phân loại các sản phẩm trong cửa hàng của bạn.
-                    </p>
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+                <AppSearchBox
+                    initialValue={searchText}
+                    placeholder="Tìm kiếm danh mục theo tên hoặc mô tả..."
+                    onSearch={(val) => { setSearchText(val); setCurrentPage(1); }}
+                    className="flex-1 min-w-[220px] max-w-md"
+                />
+
+                <div className="flex items-center gap-4">
+                    <div className="text-xs text-slate-500 font-semibold hidden sm:block">
+                        Đang hiển thị: <strong className="text-sky-700">{filteredItems.length}</strong> danh mục
+                    </div>
+                    <AppButton onClick={() => openModal()} className="!px-5">
+                        <PlusOutlined />
+                        <span>Thêm danh mục mới</span>
+                    </AppButton>
                 </div>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center gap-2 rounded-3xl bg-gradient-to-r from-sky-700 to-sky-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-900/30 hover:scale-105 transition-all duration-300"
-                >
-                    <PlusOutlined /> Thêm danh mục mới
-                </button>
             </div>
 
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden" bodyStyle={{ padding: 0 }}>
-                <div className="p-5 border-b border-slate-100 bg-white flex justify-between items-center">
-                    <Input
-                        placeholder="Tìm kiếm danh mục..."
-                        prefix={<SearchOutlined className="text-slate-400" />}
-                        className="max-w-md rounded-3xl px-4 py-2 hover:border-sky-500 focus:border-sky-500"
-                        value={searchText}
-                        onChange={e => setSearchText(e.target.value)}
-                    />
-                    <Tag color="orange" className="rounded-full px-3 py-1 font-semibold border-none bg-sky-50 text-sky-700">
-                        Tổng cộng: {items.length}
-                    </Tag>
-                </div>
-                {loading ? (
-                    <div className="p-5 space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-12 w-full animate-pulse rounded-3xl bg-slate-100/80" />
-                        ))}
-                    </div>
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={paginatedItems}
-                        rowKey="categoryId"
-                        pagination={false}
-                        className="custom-admin-table"
-                    />
-                )}
-                <AppPagination
-                    current={currentPage}
-                    pageSize={pageSize}
-                    total={filteredItems.length}
-                    onChange={(p) => setCurrentPage(p)}
-                />
-            </Card>
+            <AdminTable
+                columns={columns}
+                dataSource={paginatedItems}
+                rowKey="categoryId"
+                loading={loading}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalItems={filteredItems.length}
+                onPageChange={setCurrentPage}
+            />
 
             <Modal
-                title={<div className="text-xl font-black text-slate-800 border-b border-slate-100 pb-4 mb-2">{editingItem ? 'Sửa danh mục' : 'Thêm danh mục mới'}</div>}
                 open={isModalVisible}
                 onCancel={closeModal}
                 footer={null}
                 centered
                 width={500}
+                destroyOnClose
                 className="custom-admin-modal"
-                closeIcon={<div className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors text-slate-500">✕</div>}
+                closeIcon={null}
             >
-                <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-                    <div>
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">Tên danh mục <span className="text-red-500">*</span></label>
-                        <input
-                            type="text"
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            placeholder="Nhập tên danh mục (VD: Cà phê, Trà sữa...)"
-                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-500/10 transition-all"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1.5 block text-sm font-bold text-slate-700">Mô tả chi tiết</label>
-                        <textarea
-                            value={form.description}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                            placeholder="Thêm mô tả cho danh mục này..."
-                            rows={4}
-                            className="w-full rounded-3xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-800 outline-none focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-500/10 transition-all custom-scrollbar"
-                        />
-                    </div>
-                    <div className="flex justify-end gap-3 pt-6 mt-2">
-                        <button
-                            type="button"
-                            onClick={closeModal}
-                            className="rounded-3xl px-6 py-2.5 font-bold text-slate-500 hover:bg-slate-100 transition-colors"
-                        >
-                            Hủy bỏ
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="rounded-3xl bg-gradient-to-r from-sky-700 to-sky-900 px-8 py-2.5 font-bold text-white shadow-lg shadow-sky-900/30 hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 transition-all duration-300"
-                        >
-                            {submitting ? 'Đang lưu...' : 'Lưu danh mục'}
-                        </button>
-                    </div>
-                </form>
+                <AdminModalBanner 
+                    title={editingItem ? 'Sửa Danh Mục' : 'Thêm Danh Mục Mới'}
+                    subtitle="Tổ chức menu đồ uống chuyên nghiệp"
+                    icon={<AppstoreOutlined className="text-2xl" />}
+                    badgeText={editingItem ? 'CẬP NHẬT' : 'THÊM MỚI'}
+                    onClose={closeModal}
+                />
+
+                <Formik
+                    enableReinitialize
+                    initialValues={{
+                        name: editingItem?.name || '',
+                        description: editingItem?.description || ''
+                    }}
+                    validationSchema={categorySchema}
+                    onSubmit={handleSubmit}
+                >
+                    {({ errors, touched }) => (
+                        <Form className="px-6 py-6 space-y-5 bg-white">
+                            <div>
+                                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                    Tên danh mục <span className="text-red-500">*</span>
+                                </label>
+                                <Field
+                                    name="name"
+                                    placeholder="VD: Cà phê, Trà sữa..."
+                                    className={`custom-admin-input ${touched.name && errors.name ? 'custom-admin-input-error' : ''}`}
+                                />
+                                {touched.name && errors.name && (
+                                    <p className="mt-1 text-xs font-medium text-red-500">{errors.name}</p>
+                                )}
+                            </div>
+                            
+                            <div>
+                                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                    Mô tả chi tiết
+                                </label>
+                                <Field
+                                    as="textarea"
+                                    name="description"
+                                    rows={4}
+                                    placeholder="Thêm mô tả cho danh mục này..."
+                                    className="custom-admin-input custom-scrollbar resize-none"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-6 mt-2">
+                                <AppButton type="button" variant="ghost" onClick={closeModal}>
+                                    Hủy bỏ
+                                </AppButton>
+                                <AppButton type="submit" variant="primary" disabled={submitting}>
+                                    {submitting ? 'Đang lưu...' : 'Lưu danh mục'}
+                                </AppButton>
+                            </div>
+                        </Form>
+                    )}
+                </Formik>
             </Modal>
         </div>
     )

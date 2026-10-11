@@ -1,7 +1,7 @@
 import { BaseServices } from '../BaseService'
 
 export class CartService extends BaseServices {
-    getCart = () => this.get('/api/Cart')
+    getCart = () => this.get('/api/Cart', { __skipGlobalLoading: true })
 
     addToCart = (body) => this.post('/api/Cart/add', body)
 

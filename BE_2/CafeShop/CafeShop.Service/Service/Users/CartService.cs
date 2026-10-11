@@ -1,7 +1,9 @@
-﻿using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Cart;
+using CafeShop.Data.Repository.UnitOfWork;
+using CafeShop.DTO.Cart.Requests;
+using CafeShop.DTO.Cart.Responses;
 using CafeShop.Model;
 using CafeShop.Service.IService;
+using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +24,14 @@ namespace CafeShop.Service.Service
         public async Task<CartResponseDto> GetCartAsync(int userId)
         {
             var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(
-                c => c.UserId == userId && c.Status == "active",
+                c => c.UserId == userId && c.Status == CartStatus.Active,
                 includeProperties: "CartItems.Product.ProductSizes,CartItems.Size,CartItems.CartItemToppings.Topping");
 
             if (cart == null)
+            {
                 throw new ArgumentException("Không tìm thấy giỏ hàng của người dùng!");
+
+            }
 
             var response = new CartResponseDto
             {
@@ -91,7 +96,7 @@ namespace CafeShop.Service.Service
             if (cart == null)
                 throw new ArgumentException("Giỏ hàng không tồn tại!");
 
-            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == request.ProductId);
+            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == request.ProductId && !p.IsDeleted);
             if (product == null)
                 throw new ArgumentException("Sản phẩm không tồn tại!");
 

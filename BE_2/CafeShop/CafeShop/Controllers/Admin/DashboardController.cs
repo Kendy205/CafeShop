@@ -1,6 +1,15 @@
 using System;
 using System.Threading.Tasks;
-using CafeShop.DTO.Admin;
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +19,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    // [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+    [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
     public class DashboardController : ControllerBase
     {
         private readonly IAdminDashboardService _dashboardService;
@@ -41,6 +50,20 @@ namespace CafeShop.Controllers.Admin
             {
                 var topProducts = await _dashboardService.GetTopProductsAsync(top, startDate, endDate);
                 return Ok(ApiResponse<object>.Succeeded(topProducts, 200, "Lấy danh sách sản phẩm bán chạy thành công!"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed($"Lỗi hệ thống: {ex.Message}", 500));
+            }
+        }
+
+        [HttpGet("top-customers")]
+        public async Task<IActionResult> GetTopCustomers([FromQuery] int top = 5, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+        {
+            try
+            {
+                var topCustomers = await _dashboardService.GetTopCustomersAsync(top, startDate, endDate);
+                return Ok(ApiResponse<object>.Succeeded(topCustomers, 200, "Lấy danh sách khách hàng hàng đầu thành công!"));
             }
             catch (Exception ex)
             {

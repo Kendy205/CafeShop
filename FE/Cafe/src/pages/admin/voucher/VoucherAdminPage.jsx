@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Formik, Form, Field } from 'formik'
-import * as Yup from 'yup'
-import { message, Modal, Select } from 'antd'
+import { message, Switch } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import {
     createAdminVoucher,
     getAdminVouchers,
@@ -11,46 +10,25 @@ import {
     assignAdminVoucher,
 } from '../../../redux/actions/admin/adminVoucherAction'
 import { fetchAdminUsers } from '../../../redux/actions/admin/adminUserAction'
-import { AdminModal, AdminTable, FormField, PageHeader } from '../adminShared'
+import { AdminTable } from '../adminShared'
+import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AssignVoucherModal from '../../../components/admin/VoucherAdmin/AssignVoucherModal'
+import VoucherFormModal from '../../../components/admin/VoucherAdmin/VoucherFormModal'
+import { TagOutlined, PlusOutlined, GiftOutlined, EditOutlined } from '@ant-design/icons'
 import { formatVnd } from '../../../utils/helpers/format'
-import { TARGET_TYPE_LABEL, APPLY_TYPE_LABEL, DiscountType, VoucherTargetType, VoucherApplyType } from '../../../utils/constants/VoucherConstants'
-import { getButtonClass } from '../../../utils/constants/Theme'
+import { TARGET_TYPE_LABEL, APPLY_TYPE_LABEL, DiscountType, VoucherTargetType } from '../../../utils/constants/VoucherConstants'
+import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
-const schema = Yup.object({
-    code: Yup.string().required('Nhập mã'),
-    description: Yup.string().required('Nhập mô tả'),
-    targetType: Yup.string().required(),
-    applyType: Yup.string().required(),
-    discountType: Yup.string().required(),
-    discountValue: Yup.number().min(0).required('Nhập giá trị giảm'),
-    minOrderValue: Yup.number().min(0).required(),
-    maxDiscountAmount: Yup.number().min(0).required(),
-    startDate: Yup.string().required(),
-    endDate: Yup.string().required(),
-    usageLimit: Yup.number().min(1).required(),
-})
 
-function toInputDate(value) {
-    if (!value) return ''
-    return String(value).slice(0, 16)
-}
-
-function toPayload(values) {
-    return {
-        ...values,
-        discountValue: Number(values.discountValue),
-        minOrderValue: Number(values.minOrderValue),
-        maxDiscountAmount: Number(values.maxDiscountAmount),
-        usageLimit: Number(values.usageLimit),
-        startDate: values.startDate.length === 16 ? `${values.startDate}:00` : values.startDate,
-        endDate: values.endDate.length === 16 ? `${values.endDate}:00` : values.endDate,
-    }
-}
-
+/**
+ * VoucherAdminPage Component
+ * Trang quản lý Khuyến mãi (Vouchers/Coupons) cho Admin.
+ * Hiển thị danh sách, phân quyền (assign) voucher cho khách hàng, bật/tắt tự do.
+ */
 export default function VoucherAdminPage() {
     const dispatch = useDispatch()
-    const { items, loading, submitting, error } = useSelector((s) => s.adminVoucher)
-    const { items: usersList, loading: usersLoading } = useSelector((s) => s.adminUser)
+    const { items, loading, submitting, error } = useSelector((s) => s.admin.voucher)
+    const { items: usersList, loading: usersLoading } = useSelector((s) => s.admin.user)
 
     const [open, setOpen] = useState(false)
     const [editing, setEditing] = useState(null)
@@ -65,18 +43,23 @@ export default function VoucherAdminPage() {
         dispatch(fetchAdminUsers({ pageSize: 1000 }))
     }, [dispatch])
 
-    const empty = {
-        code: '',
-        description: '',
-        targetType: VoucherTargetType.PUBLIC,
-        applyType: VoucherApplyType.ORDER,
-        discountType: DiscountType.FIXED,
-        discountValue: 15000,
-        minOrderValue: 50000,
-        maxDiscountAmount: 15000,
-        startDate: '',
-        endDate: '',
-        usageLimit: 100,
+    const handleSaveVoucher = async (body) => {
+        const result = editing
+            ? await dispatch(
+                  updateAdminVoucher({ id: editing.voucherId ?? editing.id, body })
+              )
+            : await dispatch(createAdminVoucher(body))
+
+        if (
+            createAdminVoucher.fulfilled.match(result) ||
+            updateAdminVoucher.fulfilled.match(result)
+        ) {
+            AppToast.success(editing ? 'Đã cập nhật mã thành công' : 'Đã tạo mã mới thành công')
+            setOpen(false)
+            dispatch(getAdminVouchers())
+        } else {
+            /* API Error Modal will handle this */
+        }
     }
 
     const openAssignModal = (voucher) => {
@@ -88,7 +71,7 @@ export default function VoucherAdminPage() {
 
     const handleAssignUser = async () => {
         if (!selectedUsers.length) {
-            message.warning('Vui lòng chọn ít nhất một người dùng')
+            AppToast.warning('Vui lòng chọn ít nhất một người dùng')
             return
         }
         const body = {
@@ -98,31 +81,41 @@ export default function VoucherAdminPage() {
         }
         const res = await dispatch(assignAdminVoucher(body))
         if (assignAdminVoucher.fulfilled.match(res)) {
-            message.success('Đã tặng Voucher thành công')
+            AppToast.success('Đã tặng Voucher thành công')
             setAssignModalOpen(false)
         } else {
-            message.error(res.payload || 'Tặng Voucher thất bại')
+            /* API Error Modal will handle this */
         }
     }
 
     return (
-        <div>
-            <PageHeader
-                title="Mã giảm giá"
+        <div className="space-y-6">
+            <AdminPageBanner
+                badge="Khuyến Mãi & Tri Ân Khách Hàng"
+                title="Mã Giảm Giá (Voucher)"
+                description="Tạo và quản lý các chương trình ưu đãi giảm giá, chiết khấu theo %, tặng mã trực tiếp cho khách hàng."
+                icon={<TagOutlined className="text-amber-400 text-xl" />}
                 extra={
                     <button
                         type="button"
-                        className={getButtonClass('primary')}
+                        className="flex items-center gap-2 rounded-2xl bg-sky-500 hover:bg-sky-400 px-5 py-2.5 text-xs font-black text-white shadow-lg shadow-sky-500/30 transition-all cursor-pointer active:scale-95"
                         onClick={() => {
                             setEditing(null)
                             setOpen(true)
                         }}
                     >
-                        Tạo mã
+                        <PlusOutlined />
+                        <span>Tạo mã mới</span>
                     </button>
                 }
+                stats={
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
+                        <span className="text-slate-300 font-medium">Tổng số voucher:</span>
+                        <strong className="text-white text-sm font-black">{items.length}</strong>
+                    </div>
+                }
             />
-            {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+            {error && <p className="mb-3 text-sm text-red-600">⚠️ {error}</p>}
             {loading ? (
                 <div className="space-y-4 pt-4">
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -164,51 +157,62 @@ export default function VoucherAdminPage() {
                         {
                             key: 'active',
                             title: 'Trạng thái',
-                            render: (r) => (
-                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.isActive === false ? 'bg-slate-100 text-slate-500' : 'bg-green-50 text-green-600 border border-green-100'}`}>
-                                    {r.isActive === false ? 'Tắt' : 'Bật'}
-                                </span>
-                            ),
+                            align: 'center',
+                            render: (r) => {
+                                const id = r.voucherId ?? r.id
+                                const isAct = r.isActive !== false
+                                return (
+                                    <div className="flex items-center gap-2">
+                                        <Switch
+                                            checked={isAct}
+                                            onChange={async () => {
+                                                const result = await dispatch(toggleAdminVoucher(id))
+                                                if (toggleAdminVoucher.fulfilled.match(result)) {
+                                                    AppToast.success(`Đã ${!isAct ? 'kích hoạt' : 'tạm ngưng'} mã ${r.code}`)
+                                                    dispatch(getAdminVouchers())
+                                                } else {
+                                                    /* API Error Modal will handle this */
+                                                }
+                                            }}
+                                            className={`custom-admin-switch ${isAct ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                        />
+                                        <span className={`text-xs font-bold ${isAct ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            {isAct ? 'Hoạt động' : 'Tạm dừng'}
+                                        </span>
+                                    </div>
+                                )
+                            },
                         },
                         {
                             key: 'actions',
-                            title: '',
+                            title: 'Hành động',
                             render: (r) => (
-                                <div className="flex gap-3 flex-wrap">
-                                    <button
-                                        type="button"
-                                        className="text-sky-500 font-semibold hover:text-sky-700 transition-colors"
-                                        onClick={() => {
-                                            setEditing(r)
-                                            setOpen(true)
-                                        }}
-                                    >
-                                        Sửa
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="text-slate-500 font-medium hover:text-slate-800 transition-colors"
-                                        onClick={async () => {
-                                            const id = r.voucherId ?? r.id
-                                            const result = await dispatch(toggleAdminVoucher(id))
-                                            if (toggleAdminVoucher.fulfilled.match(result)) {
-                                                message.success('Đã đổi trạng thái mã')
-                                                dispatch(getAdminVouchers())
-                                            } else {
-                                                message.error(result.payload || 'Không đổi được trạng thái')
-                                            }
-                                        }}
-                                    >
-                                        Bật/Tắt
-                                    </button>
-                                    {r.targetType === VoucherTargetType.USER && (
+                                <div className="flex items-center gap-2">
+                                    <AdminTooltip title="Chỉnh sửa voucher">
                                         <button
                                             type="button"
-                                            className="text-purple-500 font-semibold hover:text-purple-700 transition-colors"
-                                            onClick={() => openAssignModal(r)}
+                                            className="admin-action-btn admin-action-btn-edit"
+                                            onClick={() => {
+                                                setEditing(r)
+                                                setOpen(true)
+                                            }}
                                         >
-                                            Tặng User
+                                            <EditOutlined />
+                                            <span>Sửa</span>
                                         </button>
+                                    </AdminTooltip>
+
+                                    {r.targetType === VoucherTargetType.USER && (
+                                        <AdminTooltip title="Tặng mã ưu đãi này riêng cho khách hàng">
+                                            <button
+                                                type="button"
+                                                className="admin-action-btn admin-action-btn-assign"
+                                                onClick={() => openAssignModal(r)}
+                                            >
+                                                <GiftOutlined className="text-purple-600" />
+                                                <span>Tặng User</span>
+                                            </button>
+                                        </AdminTooltip>
                                     )}
                                 </div>
                             ),
@@ -218,160 +222,28 @@ export default function VoucherAdminPage() {
             )}
 
             {/* Modal Tạo/Sửa Voucher */}
-            <AdminModal
+            <VoucherFormModal
                 open={open}
-                title={editing ? 'Cập nhật mã' : 'Tạo mã mới'}
+                editing={editing}
                 onClose={() => setOpen(false)}
-            >
-                <Formik
-                    enableReinitialize
-                    initialValues={
-                        editing
-                            ? {
-                                code: editing.code || '',
-                                description: editing.description || '',
-                                targetType: editing.targetType || VoucherTargetType.PUBLIC,
-                                applyType: editing.applyType || VoucherApplyType.ORDER,
-                                discountType: editing.discountType || DiscountType.FIXED,
-                                discountValue: editing.discountValue ?? 0,
-                                minOrderValue: editing.minOrderValue ?? 0,
-                                maxDiscountAmount: editing.maxDiscountAmount ?? 0,
-                                startDate: toInputDate(editing.startDate),
-                                endDate: toInputDate(editing.endDate),
-                                usageLimit: editing.usageLimit ?? 1,
-                            }
-                            : empty
-                    }
-                    validationSchema={schema}
-                    onSubmit={async (values) => {
-                        const body = toPayload(values)
-                        const result = editing
-                            ? await dispatch(
-                                updateAdminVoucher({ id: editing.voucherId ?? editing.id, body })
-                            )
-                            : await dispatch(createAdminVoucher(body))
-                        if (
-                            createAdminVoucher.fulfilled.match(result) ||
-                            updateAdminVoucher.fulfilled.match(result)
-                        ) {
-                            message.success(editing ? 'Đã cập nhật mã' : 'Đã tạo mã')
-                            setOpen(false)
-                            dispatch(getAdminVouchers())
-                        } else {
-                            message.error(result.payload || 'Không lưu được mã')
-                        }
-                    }}
-                >
-                    {({ errors, touched }) => (
-                        <Form className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                            <FormField label="Mã Voucher" error={touched.code && errors.code}>
-                                <Field name="code" className="w-full rounded-2xl border px-3 py-2" />
-                            </FormField>
-                            <FormField label="Mô tả" error={touched.description && errors.description}>
-                                <Field name="description" className="w-full rounded-2xl border px-3 py-2" />
-                            </FormField>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField label="Đối tượng (Target Type)">
-                                    <Field as="select" name="targetType" className="w-full rounded-2xl border px-3 py-2">
-                                        <option value={VoucherTargetType.PUBLIC}>Ưu đãi chung (PUBLIC)</option>
-                                        <option value={VoucherTargetType.USER}>Dành riêng cho bạn (USER)</option>
-                                    </Field>
-                                </FormField>
-                                <FormField label="Loại áp dụng (Apply Type)">
-                                    <Field as="select" name="applyType" className="w-full rounded-2xl border px-3 py-2">
-                                        <option value={VoucherApplyType.ORDER}>Giảm tiền món</option>
-                                        <option value={VoucherApplyType.SHIPPING}>Giảm phí ship</option>
-                                    </Field>
-                                </FormField>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField label="Loại giảm">
-                                    <Field as="select" name="discountType" className="w-full rounded-2xl border px-3 py-2">
-                                        <option value={DiscountType.FIXED}>Số tiền cố định</option>
-                                        <option value={DiscountType.PERCENTAGE}>Phần trăm</option>
-                                    </Field>
-                                </FormField>
-                                <FormField label="Giá trị giảm" error={touched.discountValue && errors.discountValue}>
-                                    <Field name="discountValue" type="number" className="w-full rounded-2xl border px-3 py-2" />
-                                </FormField>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField label="Đơn tối thiểu">
-                                    <Field name="minOrderValue" type="number" className="w-full rounded-2xl border px-3 py-2" />
-                                </FormField>
-                                <FormField label="Giảm tối đa">
-                                    <Field name="maxDiscountAmount" type="number" className="w-full rounded-2xl border px-3 py-2" />
-                                </FormField>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField label="Bắt đầu">
-                                    <Field name="startDate" type="datetime-local" className="w-full rounded-2xl border px-3 py-2" />
-                                </FormField>
-                                <FormField label="Kết thúc">
-                                    <Field name="endDate" type="datetime-local" className="w-full rounded-2xl border px-3 py-2" />
-                                </FormField>
-                            </div>
-
-                            <FormField label="Giới hạn lượt dùng">
-                                <Field name="usageLimit" type="number" className="w-full rounded-2xl border px-3 py-2" />
-                            </FormField>
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="mt-4 w-full rounded-3xl bg-sky-800 py-3 font-bold text-white shadow hover:bg-sky-700 transition"
-                            >
-                                {submitting ? 'Đang lưu...' : 'Lưu Voucher'}
-                            </button>
-                        </Form>
-                    )}
-                </Formik>
-            </AdminModal>
+                onSubmit={handleSaveVoucher}
+                submitting={submitting}
+            />
 
             {/* Modal Tặng Voucher (Assign User) */}
-            <Modal
-                title={`Tặng Voucher: ${selectedVoucher?.code}`}
+            <AssignVoucherModal
                 open={assignModalOpen}
                 onCancel={() => setAssignModalOpen(false)}
-                onOk={handleAssignUser}
-                okText="Gửi Tặng"
-                cancelText="Hủy"
-                confirmLoading={submitting}
-                okButtonProps={{ className: 'bg-sky-600 hover:bg-sky-700' }}
-            >
-                <div className="space-y-4 pt-4">
-                    <div>
-                        <label className="block text-sm font-semibold mb-1">Chọn Khách Hàng</label>
-                        <Select
-                            mode="multiple"
-                            allowClear
-                            style={{ width: '100%' }}
-                            placeholder="Chọn người dùng..."
-                            value={selectedUsers}
-                            onChange={setSelectedUsers}
-                            options={usersList.map(u => ({
-                                label: `${u.fullName || 'Khách'} (@${u.username})`,
-                                value: u.userId || u.id
-                            }))}
-                            loading={usersLoading}
-                            optionFilterProp="label"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold mb-1">Lượt dùng tối đa mỗi người</label>
-                        <input
-                            type="number"
-                            min="1"
-                            value={usageLimitPerUser}
-                            onChange={e => setUsageLimitPerUser(e.target.value)}
-                            className="w-full rounded-2xl border px-3 py-2 outline-none focus:border-sky-500"
-                        />
-                    </div>
-                </div>
-            </Modal>
+                selectedVoucher={selectedVoucher}
+                usersList={usersList}
+                usersLoading={usersLoading}
+                selectedUsers={selectedUsers}
+                setSelectedUsers={setSelectedUsers}
+                usageLimitPerUser={usageLimitPerUser}
+                setUsageLimitPerUser={setUsageLimitPerUser}
+                handleAssignUser={handleAssignUser}
+                submitting={submitting}
+            />
         </div>
     )
 }

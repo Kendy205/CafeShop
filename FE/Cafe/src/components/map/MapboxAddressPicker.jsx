@@ -17,160 +17,8 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 
 // ── Config từ env ───────────────────────────────────────────────────────────
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
-const STORE_LAT = parseFloat(import.meta.env.VITE_STORE_LAT ?? '21.0285')
-const STORE_LNG = parseFloat(import.meta.env.VITE_STORE_LNG ?? '105.8542')
 
 mapboxgl.accessToken = MAPBOX_TOKEN
-
-// ── Styles ──────────────────────────────────────────────────────────────────
-const S = {
-    root: {
-        width: '100%',
-        fontFamily: "'Inter', system-ui, sans-serif",
-        position: 'relative',
-    },
-    label: {
-        fontWeight: '600',
-        fontSize: '13px',
-        color: '#374151',
-        display: 'block',
-        marginBottom: '8px',
-        letterSpacing: '0.01em',
-    },
-    searchWrap: { position: 'relative', zIndex: 20, marginBottom: '12px' },
-    searchInput: {
-        width: '100%',
-        padding: '11px 44px 11px 14px',
-        borderRadius: '10px',
-        border: '1.5px solid #e5e7eb',
-        fontSize: '14px',
-        outline: 'none',
-        boxSizing: 'border-box',
-        transition: 'border-color .2s',
-        background: '#fff',
-    },
-    searchIcon: {
-        position: 'absolute',
-        right: '12px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        color: '#9ca3af',
-        pointerEvents: 'none',
-        fontSize: '16px',
-    },
-    dropdown: {
-        position: 'absolute',
-        top: 'calc(100% + 4px)',
-        left: 0,
-        right: 0,
-        background: '#fff',
-        border: '1px solid #e5e7eb',
-        borderRadius: '10px',
-        boxShadow: '0 8px 24px rgba(0,0,0,.12)',
-        maxHeight: '220px',
-        overflowY: 'auto',
-        listStyle: 'none',
-        padding: '4px 0',
-        margin: 0,
-    },
-    dropdownItem: {
-        padding: '10px 14px',
-        cursor: 'pointer',
-        fontSize: '13px',
-        color: '#374151',
-        borderBottom: '1px solid #f3f4f6',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '8px',
-        transition: 'background .15s',
-    },
-    actions: {
-        display: 'flex',
-        gap: '8px',
-        marginBottom: '10px',
-        flexWrap: 'wrap',
-    },
-    btn: (active) => ({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '8px 14px',
-        borderRadius: '8px',
-        border: active ? '1.5px solid #92400e' : '1.5px solid #e5e7eb',
-        background: active ? '#fef3c7' : '#fff',
-        color: active ? '#92400e' : '#374151',
-        fontSize: '13px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        transition: 'all .2s',
-    }),
-    mapWrap: {
-        borderRadius: '12px',
-        overflow: 'hidden',
-        height: '340px',
-        border: '1.5px solid #e5e7eb',
-        position: 'relative',
-    },
-    mapHint: {
-        position: 'absolute',
-        top: '10px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(0,0,0,.62)',
-        color: '#fff',
-        fontSize: '12px',
-        padding: '5px 12px',
-        borderRadius: '20px',
-        pointerEvents: 'none',
-        whiteSpace: 'nowrap',
-        zIndex: 10,
-    },
-    infoBar: {
-        marginTop: '10px',
-        borderRadius: '10px',
-        border: '1px solid #fde68a',
-        background: 'linear-gradient(135deg,#fffbeb,#fef3c7)',
-        padding: '12px 16px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: '12px',
-        flexWrap: 'wrap',
-    },
-    infoText: { fontSize: '13px', color: '#78350f', lineHeight: 1.5, flex: 1 },
-    badge: (color) => ({
-        background: color,
-        color: '#fff',
-        borderRadius: '8px',
-        padding: '4px 10px',
-        fontSize: '12px',
-        fontWeight: '700',
-        whiteSpace: 'nowrap',
-        alignSelf: 'flex-start',
-    }),
-    loading: {
-        position: 'absolute',
-        inset: 0,
-        background: 'rgba(255,255,255,.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 15,
-        borderRadius: '12px',
-        fontSize: '13px',
-        color: '#6b7280',
-        gap: '8px',
-    },
-    errText: {
-        marginTop: '8px',
-        fontSize: '12px',
-        color: '#dc2626',
-        background: '#fef2f2',
-        border: '1px solid #fecaca',
-        borderRadius: '8px',
-        padding: '8px 12px',
-    },
-}
 
 // ── Main component ──────────────────────────────────────────────────────────
 /**
@@ -178,18 +26,19 @@ const S = {
  *
  * Props:
  *  onAddressSelected({ address, lat, lng, distanceKm, shippingFee }) — callback khi chọn xong
- *  storeLat / storeLng — override tọa độ cửa hàng (default lấy từ .env)
+ *  storeLat / storeLng — tọa độ cửa hàng từ API
  */
 export default function MapboxAddressPicker({
     onAddressSelected,
-    storeLat = STORE_LAT,
-    storeLng = STORE_LNG,
+    storeLat,
+    storeLng,
 }) {
     const mapContainer = useRef(null)
     const mapRef = useRef(null)
     const customerMarkerRef = useRef(null)
     const storeMarkerRef = useRef(null)
     const debounceRef = useRef(null)
+    const mapInitialized = useRef(false)
 
     const [searchText, setSearchText] = useState('')
     const [suggestions, setSuggestions] = useState([])
@@ -201,12 +50,29 @@ export default function MapboxAddressPicker({
 
     const [selectedInfo, setSelectedInfo] = useState(null) // { address, lat, lng, distanceKm }
 
-    // ── Init map ──────────────────────────────────────────────────────────
+    // Dọn dẹp map khi unmount
+    useEffect(() => {
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.remove()
+                mapRef.current = null
+                mapInitialized.current = false
+            }
+        }
+    }, [])
+
+    // ── Init map khi đã có storeLat và storeLng ───────────────────────────
     useEffect(() => {
         if (!MAPBOX_TOKEN || MAPBOX_TOKEN.includes('YOUR_MAPBOX')) {
             setError('⚠️ Chưa cấu hình VITE_MAPBOX_TOKEN trong file .env')
             return
         }
+
+        // Chỉ init map khi có tọa độ hợp lệ từ API
+        if (!storeLat || !storeLng) return
+        if (mapInitialized.current) return
+        
+        mapInitialized.current = true
 
         const map = new mapboxgl.Map({
             container: mapContainer.current,
@@ -233,32 +99,50 @@ export default function MapboxAddressPicker({
                 .setLngLat([storeLng, storeLat])
                 .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<b>☕ Quán cà phê</b><br>Điểm xuất phát'))
                 .addTo(map)
-
-            // Customer marker (draggable)
-            const custEl = document.createElement('div')
-            custEl.innerHTML = '📍'
-            custEl.style.cssText = 'font-size:32px;cursor:grab;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));transition:transform .15s'
-
-            customerMarkerRef.current = new mapboxgl.Marker({ element: custEl, anchor: 'bottom', draggable: true })
-                .setLngLat([storeLng, storeLat])
-                .addTo(map)
-
-            customerMarkerRef.current.on('dragend', () => {
-                const { lng, lat } = customerMarkerRef.current.getLngLat()
-                reverseGeocode(lng, lat)
-            })
         })
 
         // Click on map to set delivery point
         map.on('click', (e) => {
             const { lng, lat } = e.lngLat
-            customerMarkerRef.current?.setLngLat([lng, lat])
+            
+            if (!customerMarkerRef.current) {
+                const custEl = document.createElement('div')
+                custEl.innerHTML = '📍'
+                custEl.style.cssText = 'font-size:32px;cursor:grab;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));transition:transform .15s'
+
+                customerMarkerRef.current = new mapboxgl.Marker({ element: custEl, anchor: 'bottom', draggable: true })
+                    .setLngLat([lng, lat])
+                    .addTo(map)
+
+                customerMarkerRef.current.on('dragend', () => {
+                    const { lng: dLng, lat: dLat } = customerMarkerRef.current.getLngLat()
+                    reverseGeocode(dLng, dLat)
+                })
+            } else {
+                customerMarkerRef.current.setLngLat([lng, lat])
+            }
+            
             reverseGeocode(lng, lat)
         })
 
         mapRef.current = map
-        return () => map.remove()
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [storeLat, storeLng]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Cập nhật bản đồ khi tọa độ quán thay đổi (ví dụ API trả về sau) ──
+    useEffect(() => {
+        const map = mapRef.current
+        if (!map || !mapReady) return
+
+        // Cập nhật vị trí marker của quán
+        if (storeMarkerRef.current && storeLng && storeLat) {
+            storeMarkerRef.current.setLngLat([storeLng, storeLat])
+        }
+
+        // Nếu khách chưa chọn địa chỉ nào, dời bản đồ về vị trí quán mới
+        if (!selectedInfo && storeLng && storeLat) {
+            map.flyTo({ center: [storeLng, storeLat], zoom: 13, speed: 1.2 })
+        }
+    }, [storeLat, storeLng, mapReady]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Reverse geocode → lấy tên địa chỉ từ tọa độ ─────────────────────
     const reverseGeocode = useCallback(async (lng, lat) => {
@@ -368,8 +252,27 @@ export default function MapboxAddressPicker({
 
     // ── Fly map to position ───────────────────────────────────────────────
     const flyTo = useCallback((lng, lat, zoom = 16) => {
-        mapRef.current?.flyTo({ center: [lng, lat], zoom, speed: 1.4 })
-        customerMarkerRef.current?.setLngLat([lng, lat])
+        const map = mapRef.current
+        if (!map) return
+        
+        map.flyTo({ center: [lng, lat], zoom, speed: 1.4 })
+        
+        if (!customerMarkerRef.current) {
+            const custEl = document.createElement('div')
+            custEl.innerHTML = '📍'
+            custEl.style.cssText = 'font-size:32px;cursor:grab;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));transition:transform .15s'
+
+            customerMarkerRef.current = new mapboxgl.Marker({ element: custEl, anchor: 'bottom', draggable: true })
+                .setLngLat([lng, lat])
+                .addTo(map)
+
+            customerMarkerRef.current.on('dragend', () => {
+                const { lng: dLng, lat: dLat } = customerMarkerRef.current.getLngLat()
+                reverseGeocode(dLng, dLat)
+            })
+        } else {
+            customerMarkerRef.current.setLngLat([lng, lat])
+        }
     }, [])
 
     // ── Geolocation: lấy vị trí hiện tại ─────────────────────────────────
@@ -443,33 +346,51 @@ export default function MapboxAddressPicker({
         setSelectedInfo(null)
         setError('')
         clearRoute()
-        flyTo(storeLng, storeLat, 13)
+        
+        if (customerMarkerRef.current) {
+            customerMarkerRef.current.remove()
+            customerMarkerRef.current = null
+        }
+        
+        if (mapRef.current && storeLng && storeLat) {
+            mapRef.current.flyTo({ center: [storeLng, storeLat], zoom: 13 })
+        }
         onAddressSelected?.(null)
     }
 
     return (
-        <div style={S.root}>
-            <label style={S.label}>📍 Địa chỉ giao hàng</label>
+        <div className="w-full font-sans relative">
+            <label className="font-semibold text-[13px] text-gray-700 block mb-2 tracking-wide">
+                📍 Địa chỉ giao hàng
+            </label>
 
             {/* ── Action buttons ── */}
-            <div style={S.actions}>
+            <div className="flex gap-2 mb-2.5 flex-wrap">
                 <button
                     type="button"
-                    style={S.btn(locating)}
+                    className={`flex items-center gap-1.5 px-[14px] py-2 rounded-lg border-[1.5px] text-[13px] font-medium transition-all duration-200 ${
+                        locating
+                            ? 'border-amber-800 bg-amber-100 text-amber-800'
+                            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
                     onClick={handleGetLocation}
                     disabled={locating}
                 >
                     {locating ? '⏳' : '🎯'} {locating ? 'Đang định vị...' : 'Vị trí của tôi'}
                 </button>
                 {selectedInfo && (
-                    <button type="button" style={S.btn(false)} onClick={handleReset}>
+                    <button 
+                        type="button" 
+                        className="flex items-center gap-1.5 px-[14px] py-2 rounded-lg border-[1.5px] border-gray-200 bg-white text-gray-700 text-[13px] font-medium transition-all duration-200 hover:bg-gray-50"
+                        onClick={handleReset}
+                    >
                         ✕ Xóa chọn
                     </button>
                 )}
             </div>
 
             {/* ── Search input ── */}
-            <div style={S.searchWrap}>
+            <div className="relative z-20 mb-3">
                 <input
                     type="text"
                     value={searchText}
@@ -477,22 +398,20 @@ export default function MapboxAddressPicker({
                     onFocus={() => suggestions.length > 0 && setShowDrop(true)}
                     onBlur={() => setTimeout(() => setShowDrop(false), 180)}
                     placeholder="Gõ địa chỉ hoặc nhấn 'Vị trí của tôi'..."
-                    style={S.searchInput}
+                    className="w-full py-[11px] pr-[44px] pl-[14px] rounded-[10px] border-[1.5px] border-gray-200 text-sm outline-none transition-colors duration-200 bg-white focus:border-amber-700"
                 />
-                <span style={S.searchIcon}>🔍</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-base">🔍</span>
 
                 {/* Dropdown suggestions */}
                 {showDrop && suggestions.length > 0 && (
-                    <ul style={S.dropdown}>
+                    <ul className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] max-h-[220px] overflow-y-auto list-none py-1 m-0">
                         {suggestions.map((f) => (
                             <li
                                 key={f.id}
-                                style={S.dropdownItem}
+                                className="px-[14px] py-[10px] cursor-pointer text-[13px] text-gray-700 border-b border-gray-100 flex items-start gap-2 transition-colors duration-150 hover:bg-amber-50"
                                 onMouseDown={() => handleSelectSuggestion(f)}
-                                onMouseOver={(e) => (e.currentTarget.style.background = '#fffbeb')}
-                                onMouseOut={(e) => (e.currentTarget.style.background = '#fff')}
                             >
-                                <span style={{ marginTop: '1px', flexShrink: 0 }}>📌</span>
+                                <span className="mt-[1px] shrink-0">📌</span>
                                 <span>{f.place_name}</span>
                             </li>
                         ))}
@@ -501,71 +420,66 @@ export default function MapboxAddressPicker({
             </div>
 
             {/* ── Map ── */}
-            <div style={S.mapWrap}>
-                <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+            <div className="rounded-xl overflow-hidden h-[340px] border-[1.5px] border-gray-200 relative">
+                <div ref={mapContainer} className="w-full h-full" />
 
-                {mapReady && !selectedInfo && (
-                    <div style={S.mapHint}>
+                {(!storeLat || !storeLng) && (
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-[15] rounded-xl text-[13px] text-gray-500 gap-2">
+                        <span className="text-[20px]">⏳</span> Đang tải vị trí cửa hàng...
+                    </div>
+                )}
+
+                {mapReady && !selectedInfo && storeLat && storeLng && (
+                    <div className="absolute top-2.5 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full pointer-events-none whitespace-nowrap z-10">
                         Click bản đồ hoặc kéo 📍 để chọn điểm giao
                     </div>
                 )}
 
                 {locating && (
-                    <div style={S.loading}>
-                        <span style={{ fontSize: '20px' }}>⏳</span> Đang lấy vị trí GPS...
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-[15] rounded-xl text-[13px] text-gray-500 gap-2">
+                        <span className="text-[20px]">⏳</span> Đang lấy vị trí GPS...
                     </div>
                 )}
 
                 {routeLoading && !locating && (
-                    <div style={{ ...S.loading, background: 'rgba(255,255,255,.6)' }}>
-                        <span style={{ fontSize: '18px' }}>🗺️</span> Đang tải tuyến đường...
+                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-[15] rounded-xl text-[13px] text-gray-500 gap-2">
+                        <span className="text-[18px]">🗺️</span> Đang tải tuyến đường...
                     </div>
                 )}
             </div>
 
             {/* ── Error message ── */}
-            {error && <p style={S.errText}>{error}</p>}
+            {error && <p className="mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
 
             {/* ── Info bar: Địa chỉ & Khoảng cách (không hiện phí ship) ── */}
             {selectedInfo && (
-                <div style={S.infoBar}>
-                    <div style={S.infoText}>
-                        <div style={{ fontWeight: 700, marginBottom: '4px', color: '#78350f', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="mt-2.5 rounded-[10px] border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 px-4 py-3 flex justify-between items-start gap-3 flex-wrap">
+                    <div className="text-[13px] text-amber-900 leading-relaxed flex-1">
+                        <div className="font-bold mb-1 text-amber-900 flex items-center gap-1.5">
                             <span>📍 Địa chỉ đã chọn</span>
                             {!selectedInfo.isEstimate ? (
-                                <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', borderRadius: '6px', padding: '1px 7px', fontWeight: 600, border: '1px solid #fde68a' }}>
+                                <span className="text-[11px] bg-amber-100 text-amber-800 rounded-md px-[7px] py-[1px] font-semibold border border-amber-200">
                                     🛣️ Tuyến đường thực tế
                                 </span>
                             ) : (
-                                <span style={{ fontSize: '11px', background: '#f3f4f6', color: '#4b5563', borderRadius: '6px', padding: '1px 7px', fontWeight: 500 }}>
+                                <span className="text-[11px] bg-gray-100 text-gray-600 rounded-md px-[7px] py-[1px] font-medium">
                                     Ước tính
                                 </span>
                             )}
                         </div>
-                        <div style={{ color: '#374151', fontSize: '13px', lineHeight: '1.45' }}>{selectedInfo.address}</div>
+                        <div className="text-gray-700 text-[13px] leading-relaxed">{selectedInfo.address}</div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0 }}>
-                        <div style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            background: '#78350f',
-                            color: '#ffffff',
-                            padding: '6px 12px',
-                            borderRadius: '10px',
-                            fontWeight: 700,
-                            fontSize: '13px',
-                            boxShadow: '0 1px 3px rgba(120,53,15,0.2)'
-                        }}>
+                    <div className="flex flex-col gap-1 items-end justify-center shrink-0">
+                        <div className="inline-flex items-center gap-[5px] bg-amber-900 text-white px-3 py-1.5 rounded-[10px] font-bold text-[13px] shadow-[0_1px_3px_rgba(120,53,15,0.2)]">
                             <span>📏</span>
                             {routeLoading ? (
-                                <span style={{ fontStyle: 'italic', fontWeight: 500, fontSize: '12px' }}>Đang đo...</span>
+                                <span className="italic font-medium text-[12px]">Đang đo...</span>
                             ) : (
                                 <span>{selectedInfo.distanceKm} km</span>
                             )}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#92400e', fontWeight: 500 }}>
+                        <div className="text-[11px] text-amber-800 font-medium">
                             Khoảng cách tới quán
                         </div>
                     </div>

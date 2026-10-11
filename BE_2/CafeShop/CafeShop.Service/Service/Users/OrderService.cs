@@ -1,11 +1,13 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
 using CafeShop.Service.IService.Users;
+using CafeShop.Service.IService.Notifications;
 using CafeShop.Services.IServices;
 using CafeShop.Uitls;
 using System;
@@ -21,25 +23,45 @@ namespace CafeShop.Services.Services
         private readonly IVoucherService _voucherService;
         private readonly IShippingService _shippingService;
         private readonly IMapper _mapper;
+        private readonly ISignalRService _signalRService;
+        private readonly IOrderStatusHistoryService _historyService;
+        private readonly IVnPayService _vnPayService;
+
+        // Cổng khóa đồng bộ (Lock) chống Đụng độ Kho (Concurrency)
+        private static readonly System.Threading.SemaphoreSlim _stockSemaphore = new System.Threading.SemaphoreSlim(1, 1);
 
         // Tọa độ quán của bạn (Dùng để kiểm tra chống hack phí ship)
         private const double CAFE_LAT = 21.0285;
         private const double CAFE_LNG = 105.8542;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IVoucherService voucherService, IShippingService shippingService)
+        public OrderService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IVoucherService voucherService,
+            IShippingService shippingService,
+            ISignalRService signalRService,
+            IOrderStatusHistoryService historyService,
+            IVnPayService vnPayService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _voucherService = voucherService;
             _shippingService = shippingService;
+            _signalRService = signalRService;
+            _historyService = historyService;
+            _vnPayService = vnPayService;
         }
 
         // ================= XỬ LÝ ĐẶT HÀNG (GỘP CHUNG MUA NGAY & TỪ GIỎ HÀNG) =================
-        public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request)
+        public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request, string? ipAddress = null)
         {
-            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            // Bắt đầu xếp hàng vào cổng đồng bộ (Chỉ cho phép 1 luồng xử lý kho lúc này)
+            await _stockSemaphore.WaitAsync();
             try
             {
+                using var transaction = await _unitOfWork.BeginTransactionAsync();
+                try
+                {
                 List<OrderDetail> orderDetails;
                 decimal orderTotal = 0;
                 Cart? cartToClear = null;
@@ -79,34 +101,48 @@ namespace CafeShop.Services.Services
                 decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm, orderTotal);
 
                 // 4. XỬ LÝ VOUCHER KHUYẾN MÃI
-                decimal discountAmount = 0;
+                decimal orderDiscount = 0;
+                decimal shippingDiscount = 0;
                 int? voucherId = null;
 
                 if (!string.IsNullOrEmpty(request.VoucherCode))
                 {
                     var voucherResult = await _voucherService.ConsumeVoucherAsync(request.VoucherCode, userId, orderTotal, shippingFee);
                     voucherId = voucherResult.VoucherId;
-                    discountAmount = voucherResult.DiscountAmount;
+                    
+                    if (voucherResult.ApplyType == CafeShop.Uitls.VoucherApplyType.SHIPPING)
+                        shippingDiscount = voucherResult.DiscountAmount;
+                    else
+                        orderDiscount = voucherResult.DiscountAmount;
                 }
 
-                // 5. LƯU ĐƠN HÀNG VÀO DATABASE
+                // 5. LẤY SNAPSHOT ĐỊA CHỈ & LƯU ĐƠN HÀNG VÀO DATABASE
+                var finalAddress = await _unitOfWork.Address.GetFirstOrDefaultAsync(a => a.AddressId == finalAddressId);
+                
                 var order = new Order
                 {
                     UserId = userId,
                     AddressId = finalAddressId,
+                    RecipientName = finalAddress?.RecipientName,
+                    Phone = finalAddress?.Phone,
+                    FullAddress = finalAddress?.FullAddress,
                     DistanceKm = request.DistanceKm,
                     ShippingFee = shippingFee,
                     OrderDate = DateTime.UtcNow,
                     CurrentStatus = OrderStatus.Pending,
-                    PaymentMethod = request.PaymentMethod ?? "COD",
+                    PaymentMethod = !string.IsNullOrWhiteSpace(request.PaymentMethod) ? request.PaymentMethod.ToUpper() : PaymentMethodConstants.COD,
+                    PaymentStatus = PaymentStatusConstants.Unpaid,
                     Note = request.Note,
                     VoucherId = voucherId,
-                    DiscountAmount = discountAmount,
-                    TotalAmount = Math.Max(0, orderTotal + shippingFee - discountAmount),
+                    SubTotal = orderTotal,
+                    OrderDiscount = orderDiscount,
+                    ShippingDiscount = shippingDiscount,
+                    TotalAmount = Math.Max(0, orderTotal - orderDiscount) + Math.Max(0, shippingFee - shippingDiscount),
                     OrderDetails = orderDetails
                 };
 
                 await _unitOfWork.Order.AddAsync(order);
+                await _unitOfWork.SaveAsync(); // Lưu để sinh OrderId
 
                 // Nếu khách thanh toán từ giỏ hàng -> Xóa sạch các món trong giỏ
                 if (!request.IsBuyNow && cartToClear != null)
@@ -114,10 +150,27 @@ namespace CafeShop.Services.Services
                     _unitOfWork.CartItem.RemoveRange(cartToClear.CartItems);
                 }
 
+                // Ghi lịch sử tạo đơn
+                await _historyService.AddHistoryAsync(order.OrderId, OrderStatus.Pending, userId, "Khách hàng đặt đơn mới");
+
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
 
-                return _mapper.Map<OrderResponseDto>(order);
+                try
+                {
+                    var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == userId);
+                    string customerName = user?.FullName ?? "Khách hàng";
+                    await _signalRService.NotifyNewOrderToAdminsAsync(order.OrderId, customerName);
+                }
+                catch { /* Ignore notification error */ }
+
+                var response = _mapper.Map<OrderResponseDto>(order);
+                if (string.Equals(order.PaymentMethod, PaymentMethodConstants.VNPAY, StringComparison.OrdinalIgnoreCase))
+                {
+                    response.PaymentUrl = _vnPayService.CreatePaymentUrl(order, ipAddress ?? "127.0.0.1");
+                }
+
+                return response;
             }
             catch (Exception)
             {
@@ -125,8 +178,14 @@ namespace CafeShop.Services.Services
                 throw;
             }
         }
+        finally
+        {
+            // Nhả cổng sau khi xong hoặc có lỗi
+            _stockSemaphore.Release();
+        }
+    }
 
-        // ================= LẤY LỊCH SỬ ĐƠN HÀNG =================
+    // ================= LẤY LỊCH SỬ ĐƠN HÀNG =================
         public async Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(int userId, int pageNumber, int pageSize, string? status = null)
         {
             if (pageNumber < 1) pageNumber = 1;
@@ -138,7 +197,7 @@ namespace CafeShop.Services.Services
 
             var orders = await _unitOfWork.Order.GetAllAsync(
                 filter: filter,
-                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,Customer,Address",
+                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,User,Address",
                 pageSize: pageSize,
                 pageNumber: pageNumber,
                 orderBy: q => q.OrderByDescending(o => o.OrderDate)
@@ -181,6 +240,10 @@ namespace CafeShop.Services.Services
 
                 order.CurrentStatus = OrderStatus.Cancelled;
                 _unitOfWork.Order.Update(order);
+                
+                // Ghi lịch sử hủy đơn
+                await _historyService.AddHistoryAsync(order.OrderId, OrderStatus.Cancelled, userId, "Khách hàng hủy đơn");
+
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
             }
@@ -399,7 +462,7 @@ namespace CafeShop.Services.Services
                 var orderDetail = new OrderDetail
                 {
                     ProductId = cartItem.ProductId,
-                    SizeId = cartItem.SizeId ?? 0,
+                    SizeId = cartItem.SizeId ,
                     Quantity = cartItem.Quantity,
                     UnitPrice = cartItem.UnitPrice,
                     OrderDetailToppings = cartItem.CartItemToppings.Select(t => new OrderDetailTopping
@@ -487,7 +550,7 @@ namespace CafeShop.Services.Services
                 details.Add(new OrderDetail
                 {
                     ProductId = item.ProductId,
-                    SizeId = item.SizeId ?? 0,
+                    SizeId = item.SizeId ,
                     Quantity = qty,
                     UnitPrice = unitPrice,
                     OrderDetailToppings = orderDetailToppings

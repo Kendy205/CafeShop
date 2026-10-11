@@ -9,7 +9,7 @@ import { BaseServices } from '../BaseService'
  */
 export class UserService extends BaseServices {
     // 1. Lấy thông tin cá nhân
-    getProfile = () => this.get('/api/User/profile')
+    getProfile = () => this.get('/api/User/profile', { __skipGlobalLoading: true })
 
     // 2. Cập nhật hồ sơ & Ảnh đại diện (Content-Type: multipart/form-data)
     updateProfile = (formData) =>

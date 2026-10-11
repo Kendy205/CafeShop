@@ -1,9 +1,12 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
+using CafeShop.Service.IService.Notifications;
+using CafeShop.Service.IService.Users;
 using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
@@ -16,24 +19,55 @@ namespace CafeShop.Service.Service.Admin
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ISignalRService _signalRService;
+        private readonly IOrderStatusHistoryService _historyService;
 
-        public AdminOrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public AdminOrderService(IUnitOfWork unitOfWork, IMapper mapper, ISignalRService signalRService, IOrderStatusHistoryService historyService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _signalRService = signalRService;
+            _historyService = historyService;
         }
 
-        public async Task<PagedResult<OrderResponseDto>> GetAllOrdersAsync(int pageNumber, int pageSize, string? status = null)
+        public async Task<PagedResult<OrderResponseDto>> GetAllOrdersAsync(int pageNumber, int pageSize, string? status = null, DateTime? startDate = null, DateTime? endDate = null, string? keyword = null)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var (orders, totalCount) = await _unitOfWork.Order.GetAdminOrdersWithPagingAsync(
+                status: status,
+                startDate: startDate,
+                endDate: endDate,
+                keyword: keyword,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                includeProperties: "User,Address"
+            );
+            var items = _mapper.Map<List<OrderResponseDto>>(orders);
+
+            return new PagedResult<OrderResponseDto>
+            {
+                Items = items,
+                Total = totalCount,
+                Page = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<PagedResult<OrderResponseDto>> GetUserCompletedOrdersAsync(int userId, int pageNumber, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
             System.Linq.Expressions.Expression<Func<Order, bool>> filter = x =>
-                string.IsNullOrEmpty(status) || x.CurrentStatus == status;
+                x.UserId == userId && x.CurrentStatus == OrderStatus.Completed &&
+                (!startDate.HasValue || x.OrderDate >= startDate.Value) &&
+                (!endDate.HasValue || x.OrderDate <= endDate.Value);
 
             var orders = await _unitOfWork.Order.GetAllAsync(
                 filter: filter,
-                includeProperties: "Customer,Address",
+                includeProperties: "User,Address",
                 pageSize: pageSize,
                 pageNumber: pageNumber,
                 orderBy: q => q.OrderByDescending(o => o.OrderDate)
@@ -55,7 +89,7 @@ namespace CafeShop.Service.Service.Admin
         {
             var order = await _unitOfWork.Order.GetFirstOrDefaultAsync(
                 o => o.OrderId == orderId,
-                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,Customer,Address"
+                includeProperties: "OrderDetails.Product,OrderDetails.Size,OrderDetails.OrderDetailToppings.Topping,OrderDetails.Feedbacks,User,Address"
             );
 
             if (order == null)
@@ -64,7 +98,7 @@ namespace CafeShop.Service.Service.Admin
             return _mapper.Map<OrderResponseDto>(order);
         }
 
-        public async Task UpdateOrderStatusAsync(int orderId, string newStatus)
+        public async Task UpdateOrderStatusAsync(int adminId, int orderId, string newStatus, string? cancelReason = null)
         {
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
@@ -77,8 +111,23 @@ namespace CafeShop.Service.Service.Admin
                 if (order == null)
                     throw new ArgumentException("Không tìm thấy đơn hàng!");
 
-                if (order.CurrentStatus == OrderStatus.Cancelled || order.CurrentStatus == OrderStatus.Completed)
+                var currentStatus = order.CurrentStatus;
+
+                if (currentStatus == OrderStatus.Cancelled || currentStatus == OrderStatus.Completed)
                     throw new ArgumentException("Không thể thay đổi trạng thái của đơn hàng đã Hủy hoặc Hoàn thành!");
+
+                // === STATE MACHINE PATTERN ===
+                bool isValidTransition = OrderStatus.IsValidTransition(currentStatus, newStatus);
+
+                if (!isValidTransition)
+                {
+                    throw new ArgumentException($"Sai quy trình! Không thể chuyển trực tiếp từ '{currentStatus}' sang '{newStatus}'.");
+                }
+
+                if (newStatus == OrderStatus.Cancelled && string.IsNullOrWhiteSpace(cancelReason))
+                {
+                    throw new ArgumentException("Bắt buộc phải cung cấp lý do (CancelReason) khi Hủy đơn hàng!");
+                }
 
                 // Nếu admin chuyển trạng thái sang Hủy/Từ chối thì phải refund
                 if (newStatus == OrderStatus.Cancelled)
@@ -88,9 +137,27 @@ namespace CafeShop.Service.Service.Admin
                 }
 
                 order.CurrentStatus = newStatus;
+                if (newStatus == OrderStatus.Cancelled)
+                {
+                    // Lưu lý do hủy vào order.Note tạm thời hoặc cần thêm CancelReason vào DB sau (tuỳ nhu cầu sau này)
+                    // Tạm thời sẽ ghi vào HistoryService.
+                }
+
                 _unitOfWork.Order.Update(order);
+                
+                string historyNote = newStatus == OrderStatus.Cancelled 
+                                     ? $"Admin Hủy Đơn. Lý do: {cancelReason}" 
+                                     : $"Admin chuyển trạng thái sang {newStatus}";
+                await _historyService.AddHistoryAsync(order.OrderId, newStatus, adminId, historyNote);
+
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
+
+                try
+                {
+                    await _signalRService.NotifyOrderStatusToUserAsync(order.UserId, order.OrderId, newStatus);
+                }
+                catch { /* Ignore notification error */ }
             }
             catch
             {

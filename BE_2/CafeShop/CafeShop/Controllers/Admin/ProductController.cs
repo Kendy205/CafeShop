@@ -1,5 +1,15 @@
-using CafeShop.DTO.Admin;
-using CafeShop.DTO.Product;
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
+using CafeShop.DTO.User;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Shipping;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -29,13 +39,15 @@ namespace CafeShop.Controllers.Admin
             [FromQuery] int? categoryId = null,
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
+            [FromQuery] bool? isAvailable = null,
+            [FromQuery] bool? outOfStock = null,
             [FromQuery] string? sortBy = null,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _productService.GetAllAsync(keyword, categoryId, minPrice, maxPrice, sortBy, pageNumber, pageSize);
+                var result = await _productService.GetAllAsync(keyword, categoryId, minPrice, maxPrice, isAvailable, outOfStock, sortBy, pageNumber, pageSize);
                 return Ok(ApiResponse<PagedResult<ProductResponseDto>>.Succeeded(result, 200, "Lấy danh sách sản phẩm thành công"));
             }
             catch (Exception ex)

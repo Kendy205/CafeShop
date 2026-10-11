@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Modal, Table, Button, Input, Card, Tag, Space, Tooltip, Switch, Select, message } from 'antd'
-import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined } from '@ant-design/icons'
+import { Modal, Table, Button, Input, Card, Tag, Space, Switch, Select, Checkbox, message } from 'antd'
+import AdminTooltip from '../../../components/admin/common/AdminTooltip'
+import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
     fetchAdminProducts,
     toggleProductAvailability,
@@ -9,42 +10,68 @@ import {
 } from '../../../redux/actions/admin/adminProductAction'
 import { fetchAdminCategories } from '../../../redux/actions/admin/adminCategoryAction'
 import { fetchAdminSizes } from '../../../redux/actions/admin/adminSizeAction'
+import { fetchAdminToppings } from '../../../redux/actions/admin/adminToppingAction'
 import { formatVnd } from '../../../utils/helpers/format'
-import AppPagination from '../../../components/common/AppPagination'
-import ProductFormModal from '../../../components/admin/ProductFormModal'
+import ProductFormModal from '../../../components/admin/ProductAdmin/ProductFormModal'
+import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
+import AdminTable from '../../../components/admin/common/AdminTable'
+import FeedbackDrawer from '../../../components/admin/FeedbackAdmin/FeedbackDrawer'
+import AppSearchBox from '../../../components/common/AppSearchBox'
 
+/**
+ * AdminProductPage Component
+ * Trang quản lý Sản phẩm (Menu) lớn nhất của Admin.
+ * Hiển thị danh sách sản phẩm, lọc theo danh mục, giá, tìm kiếm tên.
+ * Gồm chức năng Thêm mới, Sửa, Đổi trạng thái hiển thị (Còn/Hết hàng) và xem Feedbacks.
+ */
 export default function AdminProductPage() {
     const dispatch = useDispatch()
-    const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.adminProduct)
-    const { items: categories } = useSelector((s) => s.adminCategory)
-    const { items: masterSizes } = useSelector((s) => s.adminSize)
+    const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.admin.product)
+    const { items: categories } = useSelector((s) => s.admin.category)
+    const { items: masterSizes } = useSelector((s) => s.admin.size)
+    const { items: masterToppings } = useSelector((s) => s.admin.topping)
 
     // filter states
     const [keyword, setKeyword] = useState('')
     const [categoryId, setCategoryId] = useState(null)
+    const [minPrice, setMinPrice] = useState('')
+    const [maxPrice, setMaxPrice] = useState('')
+    const [isAvailable, setIsAvailable] = useState('ALL')
+    const [outOfStock, setOutOfStock] = useState(false)
+    const [sortBy, setSortBy] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
 
     // modal states
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
+    
+    // feedback drawer states
+    const [isFeedbackDrawerVisible, setIsFeedbackDrawerVisible] = useState(false)
+    const [selectedProductId, setSelectedProductId] = useState(null)
 
     useEffect(() => {
         dispatch(fetchAdminCategories())
         dispatch(fetchAdminSizes())
+        dispatch(fetchAdminToppings())
     }, [dispatch])
 
     const loadData = useCallback(
         (p) => {
             dispatch(
                 fetchAdminProducts({
-                    page: p,
+                    pageNumber: p,
                     pageSize: 10,
                     keyword: keyword.trim() || undefined,
                     categoryId: categoryId || undefined,
+                    minPrice: minPrice !== '' ? Number(minPrice) : undefined,
+                    maxPrice: maxPrice !== '' ? Number(maxPrice) : undefined,
+                    isAvailable: isAvailable !== 'ALL' ? isAvailable === 'true' : undefined,
+                    outOfStock: outOfStock ? true : undefined,
+                    sortBy: sortBy || undefined,
                 })
             )
         },
-        [dispatch, keyword, categoryId]
+        [dispatch, keyword, categoryId, minPrice, maxPrice, isAvailable, outOfStock, sortBy]
     )
 
     useEffect(() => {
@@ -71,7 +98,7 @@ export default function AdminProductPage() {
         if (toggleProductAvailability.fulfilled.match(res)) {
             message.success(`Đã ${checked ? 'bật' : 'tắt'} hiển thị sản phẩm!`)
         } else {
-            message.error(res.payload || 'Đổi trạng thái thất bại')
+            /* API Error Modal will handle this */
         }
     }
 
@@ -89,7 +116,7 @@ export default function AdminProductPage() {
                     message.success('Xóa sản phẩm thành công!')
                     loadData(currentPage)
                 } else {
-                    message.error(res.payload || 'Xóa thất bại')
+                    /* API Error Modal will handle this */
                 }
             },
         })
@@ -127,14 +154,21 @@ export default function AdminProductPage() {
             title: 'Giá / Kích cỡ',
             key: 'sizes',
             render: (_, record) => (
-                <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                    {record.productSizes?.map((sz) => (
-                        <Tooltip key={sz.sizeId} title={`Tồn kho: ${sz.stockQuantity ?? 0}`}>
-                            <span className="inline-flex items-center rounded-2xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-800 border border-sky-200">
-                                {sz.name ?? sz.sizeName ?? '?'}: {formatVnd(sz.price)}
-                            </span>
-                        </Tooltip>
-                    ))}
+                <div className="space-y-1.5">
+                    {record.basePrice !== undefined && record.basePrice !== null && (
+                        <div className="text-xs text-slate-500 font-medium">
+                            Giá gốc: <span className="font-bold text-slate-800 font-mono">{formatVnd(record.basePrice)}</span>
+                        </div>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 max-w-[200px]">
+                        {record.productSizes?.map((sz) => (
+                            <AdminTooltip key={sz.sizeId} title={`Tồn kho: ${sz.stockQuantity ?? 0}`}>
+                                <span className="inline-flex items-center rounded-2xl bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-800 border border-sky-200">
+                                    {sz.name ?? sz.sizeName ?? '?'}: {formatVnd(sz.price)}
+                                </span>
+                            </AdminTooltip>
+                        ))}
+                    </div>
                 </div>
             ),
         },
@@ -183,7 +217,7 @@ export default function AdminProductPage() {
                     <Switch
                         checked={isAvailable}
                         onChange={(checked) => handleToggle(record.productId, checked)}
-                        className={isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}
+                        className={`custom-admin-switch ${isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}
                     />
                     {isAvailable ? (
                         <span className="text-xs font-semibold text-emerald-600 min-w-[60px] text-left">Đang bán</span>
@@ -196,106 +230,166 @@ export default function AdminProductPage() {
         {
             title: 'Thao tác',
             key: 'action',
-            width: 120,
+            width: 150,
             align: 'right',
             render: (_, record) => (
-                <Space size="middle">
-                    <Tooltip title="Chỉnh sửa">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined className="text-blue-600" />}
-                            className="bg-blue-50 hover:bg-blue-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                <div className="flex items-center justify-end gap-2">
+                    <AdminTooltip title="Xem đánh giá">
+                        <button
+                            onClick={() => {
+                                setSelectedProductId(record.productId)
+                                setIsFeedbackDrawerVisible(true)
+                            }}
+                            className="admin-action-btn flex items-center justify-center rounded-lg bg-pink-50 p-2 text-pink-600 hover:bg-pink-100 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                            </svg>
+                        </button>
+                    </AdminTooltip>
+                    <AdminTooltip title="Chỉnh sửa sản phẩm">
+                        <button
                             onClick={() => openModal(record)}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Xóa">
-                        <Button
-                            type="text"
-                            icon={<DeleteOutlined className="text-red-600" />}
-                            className="bg-red-50 hover:bg-red-100 border-none rounded-2xl h-9 w-9 flex items-center justify-center"
+                            className="admin-action-btn admin-action-btn-edit"
+                        >
+                            <EditOutlined />
+                        </button>
+                    </AdminTooltip>
+                    <AdminTooltip title="Xóa sản phẩm">
+                        <button
                             onClick={() => handleDelete(record.productId)}
-                        />
-                    </Tooltip>
-                </Space>
+                            className="admin-action-btn admin-action-btn-delete"
+                        >
+                            <DeleteOutlined className="text-red-600" />
+                        </button>
+                    </AdminTooltip>
+                </div>
             ),
         },
     ]
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-800">Quản lý Sản phẩm</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        Thêm mới đồ uống, cấu hình giá bán và kho theo từng kích cỡ.
-                    </p>
-                </div>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center gap-2 rounded-3xl bg-gradient-to-r from-cyan-600 to-cyan-800 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-900/30 hover:scale-105 transition-all duration-300"
-                >
-                    <PlusOutlined /> Thêm Sản phẩm
-                </button>
-            </div>
-
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden" bodyStyle={{ padding: 0 }}>
-                <div className="p-5 border-b border-slate-100 bg-white flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2 w-full max-w-sm">
-                        <Input
-                            placeholder="Tìm tên sản phẩm..."
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
-                            onPressEnter={handleSearch}
-                            className="rounded-3xl px-4 py-2 hover:border-cyan-500 focus:border-cyan-500"
-                        />
-                        <Button
-                            type="primary"
-                            icon={<SearchOutlined />}
-                            onClick={handleSearch}
-                            className="rounded-3xl h-10 bg-cyan-600 hover:bg-cyan-700 shadow-none"
-                        />
+            {/* Header Banner cao cấp */}
+            <AdminPageBanner
+                badge="Quản Lý Thực Đơn & Kho Hàng"
+                title="Sản Phẩm & Thức Uống"
+                description="Thêm mới đồ uống, cấu hình hình ảnh, giá bán theo từng kích cỡ (S/M/L) và kiểm soát số lượng kho."
+                icon={<CoffeeOutlined className="text-amber-400 text-xl" />}
+                extra={
+                    <button
+                        onClick={() => openModal()}
+                        className="flex items-center gap-2 rounded-2xl bg-sky-500 hover:bg-sky-400 px-5 py-2.5 text-xs font-black text-white shadow-lg shadow-sky-500/30 transition-all cursor-pointer active:scale-95"
+                    >
+                        <PlusOutlined />
+                        <span>Thêm sản phẩm mới</span>
+                    </button>
+                }
+                stats={
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
+                        <span className="text-slate-300 font-medium">Tổng sản phẩm:</span>
+                        <strong className="text-white text-sm font-black">{total}</strong>
                     </div>
+                }
+            />
+
+            {/* Filter Toolbar */}
+            <div className="flex flex-col gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs mb-6">
+                {/* Hàng 1: Tìm kiếm & Phân loại cơ bản */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <AppSearchBox
+                        initialValue={keyword}
+                        placeholder="Tìm kiếm theo tên..."
+                        onSearch={(val) => { setKeyword(val); setCurrentPage(1); }}
+                        className="flex-1 min-w-[200px] max-w-sm"
+                    />
 
                     <Select
-                        placeholder="Lọc theo Danh mục"
+                        placeholder="Tất cả danh mục"
                         allowClear
                         value={categoryId}
-                        onChange={setCategoryId}
-                        className="min-w-[200px]"
+                        onChange={(val) => { setCategoryId(val); }}
+                        className="min-w-[160px]"
                         options={categories.map((c) => ({ value: c.categoryId, label: c.name }))}
                     />
 
-                    <div className="ml-auto">
-                        <Tag color="cyan" className="rounded-full px-3 py-1 font-semibold border-none bg-cyan-50 text-cyan-700 m-0">
-                            Tổng: {total} SP
-                        </Tag>
-                    </div>
+                    <Select
+                        value={sortBy}
+                        onChange={(val) => setSortBy(val)}
+                        className="min-w-[160px]"
+                        options={[
+                            { value: '', label: 'Mới nhất (Mặc định)' },
+                            { value: 'name_asc', label: 'Tên A-Z' },
+                            { value: 'price_asc', label: 'Giá tăng dần' },
+                            { value: 'price_desc', label: 'Giá giảm dần' },
+                            { value: 'stock_asc', label: 'Tồn kho ít nhất' },
+                            { value: 'stock_desc', label: 'Tồn kho nhiều nhất' }
+                        ]}
+                    />
                 </div>
 
-                {loading ? (
-                    <div className="p-5 space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-20 w-full animate-pulse rounded-3xl bg-slate-100/80" />
-                        ))}
+                {/* Hàng 2: Bộ lọc nâng cao */}
+                <div className="flex flex-wrap items-center gap-4 py-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-500">Giá:</span>
+                        <Input
+                            type="number"
+                            placeholder="Từ (VNĐ)"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            className="w-24 text-xs"
+                        />
+                        <span className="text-slate-400">-</span>
+                        <Input
+                            type="number"
+                            placeholder="Đến (VNĐ)"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            className="w-24 text-xs"
+                        />
                     </div>
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={items}
-                        rowKey="productId"
-                        pagination={false}
-                        className="custom-admin-table"
-                    />
-                )}
 
-                <AppPagination
-                    current={currentPage}
-                    pageSize={pageSize}
-                    total={total}
-                    totalPages={totalPages}
-                    onChange={(p) => setCurrentPage(p)}
-                />
-            </Card>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-500">Trạng thái:</span>
+                        <Select
+                            value={isAvailable}
+                            onChange={setIsAvailable}
+                            className="w-[120px]"
+                            options={[
+                                { value: 'ALL', label: 'Tất cả' },
+                                { value: 'true', label: 'Đang bán' },
+                                { value: 'false', label: 'Đã ẩn' }
+                            ]}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-2">
+                        <Checkbox checked={outOfStock} onChange={(e) => setOutOfStock(e.target.checked)}>
+                            <span className="text-xs font-semibold text-rose-600">Hết hàng</span>
+                        </Checkbox>
+                    </div>
+
+                    <div className="ml-auto">
+                        <button
+                            onClick={handleSearch}
+                            className="rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-6 py-2 text-xs font-bold transition-all cursor-pointer"
+                        >
+                            Lọc dữ liệu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <AdminTable
+                columns={columns}
+                dataSource={items}
+                rowKey="productId"
+                loading={loading}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalItems={total}
+                onPageChange={(p) => setCurrentPage(p)}
+            />
 
             <ProductFormModal
                 open={isModalVisible}
@@ -304,6 +398,16 @@ export default function AdminProductPage() {
                 onSuccess={() => loadData(currentPage)}
                 categories={categories}
                 masterSizes={masterSizes}
+                masterToppings={masterToppings}
+            />
+
+            <FeedbackDrawer 
+                open={isFeedbackDrawerVisible}
+                productId={selectedProductId}
+                onClose={() => {
+                    setIsFeedbackDrawerVisible(false)
+                    setSelectedProductId(null)
+                }}
             />
         </div>
     )

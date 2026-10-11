@@ -9,6 +9,8 @@ export class AdminDashboardService extends BaseServices {
 
     getTopProducts = (params) => this.get(`${this.basePath}/top-products`, { params, __skipGlobalLoading: true })
 
+    getTopCustomers = (params) => this.get(`${this.basePath}/top-customers`, { params, __skipGlobalLoading: true })
+
     getOrderStats = (params) => this.get(`${this.basePath}/order-stats`, { params, __skipGlobalLoading: true })
 }
 

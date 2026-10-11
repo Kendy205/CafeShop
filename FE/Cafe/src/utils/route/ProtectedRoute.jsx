@@ -7,7 +7,7 @@ import { openAuthModal } from '../../redux/slices/authSlice'
 export default function ProtectedRoute({ allowedRoles }) {
     const location = useLocation()
     const dispatch = useDispatch()
-    const { isAuthenticated, role } = useSelector((s) => s.auth)
+    const { isAuthenticated, role } = useSelector((s) => s.app.auth)
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -23,8 +23,9 @@ export default function ProtectedRoute({ allowedRoles }) {
 
     if (allowedRoles && allowedRoles.length > 0) {
         const current = normalizeRole(role)
-        const allow = allowedRoles.map(normalizeRole)
-        if (!current || !allow.includes(current)) {
+        const allow = allowedRoles.flatMap(normalizeRole)
+        const hasAccess = current.some((r) => allow.includes(r))
+        if (!hasAccess) {
             return <Navigate to="/" replace />
         }
     }

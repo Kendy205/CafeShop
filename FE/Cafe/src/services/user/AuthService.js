@@ -5,7 +5,7 @@ export class AuthService extends BaseServices {
 
     register = (body) => this.post('/api/Auth/register', body)
 
-    refreshTokens = (body) => this.post('/api/Auth/refresh', body)
+    refreshTokens = (body) => this.post('/api/Auth/refresh-token', body)
 }
 
 export const authService = new AuthService()

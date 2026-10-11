@@ -10,6 +10,7 @@ const initialState = {
     },
     revenueChart: [],
     topProducts: [],
+    topCustomers: [],
     orderStats: [],
     loading: false,
     error: null,
@@ -30,6 +31,7 @@ const adminDashboardSlice = createSlice({
                 state.summary = action.payload.summary
                 state.revenueChart = action.payload.revenueChart
                 state.topProducts = action.payload.topProducts
+                state.topCustomers = action.payload.topCustomers
                 state.orderStats = action.payload.orderStats
             })
             .addCase(fetchDashboardData.rejected, (state, action) => {

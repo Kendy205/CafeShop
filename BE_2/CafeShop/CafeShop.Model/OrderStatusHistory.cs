@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -13,7 +13,7 @@ namespace CafeShop.Model
         [Key]
         public int HistoryId { get; set; }
         public int OrderId { get; set; }
-        [StringLength(500)]
+        [StringLength(50)]
         public string? Status { get; set; }
         public int ChangedBy { get; set; }
         public DateTime ChangedAt { get; set; } = DateTime.UtcNow;

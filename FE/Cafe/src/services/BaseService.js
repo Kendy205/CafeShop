@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { DOMAIN, REFRESH_TOKEN, TOKEN } from '../utils/constants/System'
 import { resolveRoleFromAuth } from '../utils/auth/authRole'
-import { startGlobalLoading, stopGlobalLoading } from '../redux/slices/uiSlice'
+import { AppToast } from '../components/common/AppNotification'
 
 export const http = axios.create({
     baseURL: DOMAIN,
@@ -11,11 +11,11 @@ export const http = axios.create({
 })
 
 function isPublicAuthPath(url) {
-    const u = String(url || '')
+    const u = String(url || '').toLowerCase()
     return (
-        u.includes('Auth/login') ||
-        u.includes('Auth/register') ||
-        u.includes('Auth/refresh')
+        u.includes('auth/login') ||
+        u.includes('auth/register') ||
+        u.includes('auth/refresh-token')
     )
 }
 
@@ -28,13 +28,13 @@ export const injectStore = (store) => {
 
 function dispatchStartLoading() {
     if (appStore) {
-        appStore.dispatch(startGlobalLoading())
+        appStore.dispatch({ type: 'ui/startGlobalLoading' })
     }
 }
 
 function dispatchStopLoading() {
     if (appStore) {
-        appStore.dispatch(stopGlobalLoading())
+        appStore.dispatch({ type: 'ui/stopGlobalLoading' })
     }
 }
 
@@ -90,6 +90,15 @@ http.interceptors.response.use(
         const originalRequest = error.config
         const status = error.response?.status
         const shouldStopLoading = Boolean(originalRequest?.__globalLoadingCountered)
+        
+        // // ── Xử lý Global Api Error ──
+        if (status && status >= 400 && status !== 401) {
+            const body = error.response?.data
+            const msg = body?.Message || body?.message || error.message || 'Lỗi không xác định từ máy chủ'
+            
+            // Thay vì show popup to đùng, ta hiển thị dạng Toast
+            AppToast.error(msg)
+        }
 
         if (status !== 401 || !originalRequest) {
             if (shouldStopLoading) dispatchStopLoading()
@@ -140,8 +149,8 @@ http.interceptors.response.use(
 
         try {
             const { data: body } = await axios.post(
-                `${DOMAIN}/api/Auth/refresh`,
-                { accessToken, refreshToken, token: accessToken },
+                `${DOMAIN}/api/auth/refresh-token`,
+                { accessToken, refreshToken },
                 { headers: { 'Content-Type': 'application/json' } }
             )
 

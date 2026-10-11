@@ -74,28 +74,23 @@ namespace CafeShop.Data.Migrations
                 {
                     b.Property<int>("CartId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("cart_id");
+                        .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("CartId"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("status");
+                        .HasColumnType("varchar(20)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
+                        .HasColumnType("int");
 
                     b.HasKey("CartId");
 
@@ -131,7 +126,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnName("size_id");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)")
                         .HasColumnName("unit_price");
 
                     b.HasKey("CartItemId");
@@ -166,7 +162,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnName("topping_id");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)")
                         .HasColumnName("unit_price");
 
                     b.HasKey("CartItemToppingId");
@@ -215,6 +212,11 @@ namespace CafeShop.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<bool>("IsVisible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("OrderDetailId")
                         .HasColumnType("int");
 
@@ -224,18 +226,88 @@ namespace CafeShop.Data.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("FeedbackId");
 
-                    b.HasIndex("OrderDetailId");
+                    b.HasIndex("CreatedAt");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("OrderDetailId")
+                        .IsUnique();
+
+                    b.HasIndex("Rating");
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("ProductId", "IsVisible", "CreatedAt");
+
                     b.ToTable("Feedbacks");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.FeedbackImage", b =>
+                {
+                    b.Property<int>("FeedbackImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FeedbackImageId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FeedbackId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePublicId")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("FeedbackImageId");
+
+                    b.HasIndex("FeedbackId");
+
+                    b.ToTable("FeedbackImages");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.FeedbackReply", b =>
+                {
+                    b.Property<int>("FeedbackReplyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FeedbackReplyId"));
+
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("FeedbackId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReplyContent")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("FeedbackReplyId");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("FeedbackId")
+                        .IsUnique();
+
+                    b.ToTable("FeedbackReplies");
                 });
 
             modelBuilder.Entity("CafeShop.Model.News", b =>
@@ -246,9 +318,6 @@ namespace CafeShop.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("NewsId"));
 
-                    b.Property<int>("AuthorId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Content")
                         .HasColumnType("longtext");
 
@@ -258,12 +327,49 @@ namespace CafeShop.Data.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Title")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ScheduledPublishAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Summary")
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
 
                     b.HasKey("NewsId");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "ScheduledPublishAt");
+
+                    b.HasIndex("Status", "IsDeleted", "PublishedAt");
 
                     b.ToTable("News");
                 });
@@ -282,11 +388,12 @@ namespace CafeShop.Data.Migrations
                     b.Property<string>("CurrentStatus")
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(65,30)");
-
                     b.Property<double>("DistanceKm")
                         .HasColumnType("double");
+
+                    b.Property<string>("FullAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -295,14 +402,41 @@ namespace CafeShop.Data.Migrations
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<decimal>("OrderDiscount")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("RecipientName")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<decimal>("ShippingDiscount")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
                     b.Property<decimal>("ShippingFee")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -341,11 +475,12 @@ namespace CafeShop.Data.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("SizeId")
+                    b.Property<int?>("SizeId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.HasKey("OrderDetailId");
 
@@ -376,7 +511,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.HasKey("Id");
 
@@ -408,8 +544,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("HistoryId");
 
@@ -418,6 +554,86 @@ namespace CafeShop.Data.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderStatusHistories");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("PaymentProvider")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("TransactionCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Permission", b =>
+                {
+                    b.Property<int>("PermissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("PermissionId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("PermissionId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Permissions");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Product", b =>
@@ -429,7 +645,8 @@ namespace CafeShop.Data.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ProductId"));
 
                     b.Property<decimal>("BasePrice")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -444,6 +661,9 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
@@ -471,7 +691,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<int>("StockQuantity")
                         .IsConcurrencyToken()
@@ -482,6 +703,61 @@ namespace CafeShop.Data.Migrations
                     b.HasIndex("SizeId");
 
                     b.ToTable("ProductSizes");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.ProductTopping", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ToppingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductId", "ToppingId");
+
+                    b.HasIndex("ToppingId");
+
+                    b.ToTable("ProductToppings");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Role", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RoleId"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("RoleId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.RolePermission", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("CafeShop.Model.ShippingConfig", b =>
@@ -496,10 +772,19 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("double");
 
                     b.Property<decimal>("BaseFee")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<decimal>("ExtraFeePerKm")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<decimal>("FreeShippingThreshold")
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<bool>("IsFreeShippingEnabled")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<double>("MaxDistanceKm")
                         .HasColumnType("double");
@@ -511,7 +796,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("NightSurcharge")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<int>("PeakHourEnd")
                         .HasColumnType("int");
@@ -520,10 +806,12 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("PeakHourSurcharge")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<decimal>("WeekendSurcharge")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.HasKey("Id");
 
@@ -543,12 +831,58 @@ namespace CafeShop.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)");
 
-                    b.Property<decimal>("PercentIncrease")
-                        .HasColumnType("decimal(65,30)");
-
                     b.HasKey("SizeId");
 
                     b.ToTable("Sizes");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.StoreProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FullAddress")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Hotline")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsAcceptingOrders")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsMaintenanceMode")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRealtimeNotificationEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double");
+
+                    b.Property<string>("StoreName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StoreProfiles");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Topping", b =>
@@ -571,7 +905,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<int>("StockQuantity")
                         .IsConcurrencyToken()
@@ -595,9 +930,6 @@ namespace CafeShop.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("Address")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("AvatarPublicId")
                         .HasColumnType("longtext");
 
@@ -608,7 +940,7 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("FullName")
                         .HasColumnType("longtext");
@@ -629,9 +961,6 @@ namespace CafeShop.Data.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Role")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -639,7 +968,28 @@ namespace CafeShop.Data.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.UserRole", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("CafeShop.Model.UserVoucher", b =>
@@ -657,6 +1007,7 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("UsedCount")
+                        .IsConcurrencyToken()
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -685,7 +1036,7 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Code")
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -695,7 +1046,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<decimal>("DiscountValue")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
@@ -704,10 +1056,12 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<decimal>("MaxDiscountAmount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<decimal>("MinOrderValue")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18)
+                        .HasColumnType("decimal(18,0)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
@@ -720,9 +1074,13 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("UsedCount")
+                        .IsConcurrencyToken()
                         .HasColumnType("int");
 
                     b.HasKey("VoucherId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
 
                     b.ToTable("Vouchers");
                 });
@@ -820,15 +1178,45 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("CafeShop.Model.News", b =>
+            modelBuilder.Entity("CafeShop.Model.FeedbackImage", b =>
                 {
-                    b.HasOne("CafeShop.Model.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
+                    b.HasOne("CafeShop.Model.Feedback", "Feedback")
+                        .WithMany("FeedbackImages")
+                        .HasForeignKey("FeedbackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Author");
+                    b.Navigation("Feedback");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.FeedbackReply", b =>
+                {
+                    b.HasOne("CafeShop.Model.User", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CafeShop.Model.Feedback", "Feedback")
+                        .WithOne("FeedbackReply")
+                        .HasForeignKey("CafeShop.Model.FeedbackReply", "FeedbackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+
+                    b.Navigation("Feedback");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.News", b =>
+                {
+                    b.HasOne("CafeShop.Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Order", b =>
@@ -867,14 +1255,12 @@ namespace CafeShop.Data.Migrations
                     b.HasOne("CafeShop.Model.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CafeShop.Model.Size", "Size")
                         .WithMany()
-                        .HasForeignKey("SizeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SizeId");
 
                     b.Navigation("Order");
 
@@ -921,6 +1307,17 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("UserAction");
                 });
 
+            modelBuilder.Entity("CafeShop.Model.Payment", b =>
+                {
+                    b.HasOne("CafeShop.Model.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("CafeShop.Model.Product", b =>
                 {
                     b.HasOne("CafeShop.Model.Category", "Category")
@@ -949,6 +1346,63 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Size");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.ProductTopping", b =>
+                {
+                    b.HasOne("CafeShop.Model.Product", "Product")
+                        .WithMany("ProductToppings")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CafeShop.Model.Topping", "Topping")
+                        .WithMany("ProductToppings")
+                        .HasForeignKey("ToppingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Topping");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.RolePermission", b =>
+                {
+                    b.HasOne("CafeShop.Model.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CafeShop.Model.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.UserRole", b =>
+                {
+                    b.HasOne("CafeShop.Model.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CafeShop.Model.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CafeShop.Model.UserVoucher", b =>
@@ -982,9 +1436,18 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("CafeShop.Model.Feedback", b =>
+                {
+                    b.Navigation("FeedbackImages");
+
+                    b.Navigation("FeedbackReply");
+                });
+
             modelBuilder.Entity("CafeShop.Model.Order", b =>
                 {
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("StatusHistories");
                 });
@@ -996,16 +1459,35 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("OrderDetailToppings");
                 });
 
+            modelBuilder.Entity("CafeShop.Model.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
             modelBuilder.Entity("CafeShop.Model.Product", b =>
                 {
                     b.Navigation("Feedbacks");
 
                     b.Navigation("ProductSizes");
+
+                    b.Navigation("ProductToppings");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Size", b =>
                 {
                     b.Navigation("ProductSizes");
+                });
+
+            modelBuilder.Entity("CafeShop.Model.Topping", b =>
+                {
+                    b.Navigation("ProductToppings");
                 });
 
             modelBuilder.Entity("CafeShop.Model.User", b =>
@@ -1017,6 +1499,8 @@ namespace CafeShop.Data.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("Orders");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("CafeShop.Model.Voucher", b =>

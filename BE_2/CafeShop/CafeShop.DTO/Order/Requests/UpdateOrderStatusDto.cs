@@ -1,0 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace CafeShop.DTO.Order.Requests
+{
+    public class UpdateOrderStatusDto
+    {
+        [Required(ErrorMessage = "Trạng thái mới không được để trống")]
+        public string NewStatus { get; set; } = string.Empty;
+        public string? CancelReason { get; set; }
+    }
+}

@@ -12,20 +12,12 @@ namespace CafeShop.Model
     {
         [Key]
         public int Id { get; set; }
-
         public int OrderDetailId { get; set; }
-
         public int ToppingId { get; set; }
-
-        // ==========================================
-        // BỔ SUNG 2 TRƯỜNG MỚI ĐỂ LƯU HÓA ĐƠN
-        // ==========================================
-        public int Quantity { get; set; } = 1; // Khách mua bao nhiêu (VD: 200)
-        public decimal UnitPrice { get; set; } // Thành tiền của phần Topping này
-
+        public int Quantity { get; set; } = 1; 
+        public decimal UnitPrice { get; set; } 
         [ForeignKey("OrderDetailId")]
         public virtual OrderDetail? OrderDetail { get; set; }
-
         [ForeignKey("ToppingId")]
         public virtual Topping? Topping { get; set; }
     }

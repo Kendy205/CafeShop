@@ -13,11 +13,16 @@ const schema = Yup.object({
     password: Yup.string().required('Vui lòng nhập mật khẩu'),
 })
 
+/**
+ * LoginForm Component
+ * Form đăng nhập dành cho người dùng và Admin, tích hợp validate bằng Formik & Yup.
+ * Xử lý luồng chuyển hướng (redirect) sau khi đăng nhập thành công.
+ */
 export default function LoginForm({ onSwitchRegister, onSuccess, isModal = false }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const { error, submitting, isAuthenticated, role } = useSelector((s) => s.auth)
+    const { error, submitting, isAuthenticated, role } = useSelector((s) => s.app.auth)
     const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {

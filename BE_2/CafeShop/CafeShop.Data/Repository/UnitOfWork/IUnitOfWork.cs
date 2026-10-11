@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.IRepository;
+using CafeShop.Data.Repository.IRepository;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 
@@ -13,7 +13,9 @@ namespace CafeShop.Data.Repository.UnitOfWork
     public interface IUnitOfWork : IDisposable
     {
         IUserRepository User { get; }
+        INewsRepository News { get; }
         IProductSizeRepository ProductSize { get; }
+        IProductToppingRepository ProductTopping { get; }
         ICartItemToppingRepository CartItemTopping { get; }
         IAddressRepository Address { get; }
         ICategoryRepository Category { get; }
@@ -24,11 +26,20 @@ namespace CafeShop.Data.Repository.UnitOfWork
         IOrderRepository Order { get; }
         IOrderDetailRepository OrderDetail { get; }
         IOrderDetailToppingRepository OrderDetailTopping { get; }
+        IOrderStatusHistoryRepository OrderStatusHistory { get; }
         ICartRepository Cart { get; }
         ICartItemRepository CartItem { get; }
         IUserVoucherRepository UserVoucher { get; }
         IFeedbackRepository Feedback { get; }
+        IFeedbackImageRepository FeedbackImage { get; }
+        IFeedbackReplyRepository FeedbackReply { get; }
         IShippingConfigRepository ShippingConfig { get; }
+        IRoleRepository Role { get; }
+        IPermissionRepository Permission { get; }
+        IUserRoleRepository UserRole { get; }
+        IRolePermissionRepository RolePermission { get; }
+        IStoreProfileRepository StoreProfile { get; }
+        IPaymentRepository Payment { get; }
         Task<int> SaveAsync();
         Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync();
     }

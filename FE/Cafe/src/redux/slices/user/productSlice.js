@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { getProductDetail, getProducts } from '../../actions/user/productAction'
+import { getProductDetail, getProducts, getProductSuggestions } from '../../actions/user/productAction'
 import { normalizePagedResult } from '../../../utils/helpers/api'
 
 const initialState = {
@@ -9,8 +9,13 @@ const initialState = {
     page: 1,
     pageSize: 8,
     detail: null,
+    suggestions: {
+        topSellingProducts: [],
+        newestProducts: [],
+    },
     loading: false,
     detailLoading: false,
+    suggestionsLoading: false,
     error: null,
 }
 
@@ -54,6 +59,20 @@ const productSlice = createSlice({
             .addCase(getProductDetail.rejected, (state, action) => {
                 state.detailLoading = false
                 state.error = action.payload
+            })
+            // ── getProductSuggestions ────────────────────────────────
+            .addCase(getProductSuggestions.pending, (state) => {
+                state.suggestionsLoading = true
+            })
+            .addCase(getProductSuggestions.fulfilled, (state, action) => {
+                state.suggestionsLoading = false
+                state.suggestions = {
+                    topSellingProducts: action.payload?.topSellingProducts || [],
+                    newestProducts: action.payload?.newestProducts || [],
+                }
+            })
+            .addCase(getProductSuggestions.rejected, (state) => {
+                state.suggestionsLoading = false
             })
     },
 })
