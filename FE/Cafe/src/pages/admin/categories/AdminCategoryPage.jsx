@@ -24,6 +24,11 @@ const categorySchema = Yup.object().shape({
     description: Yup.string().nullable()
 })
 
+/**
+ * AdminCategoryPage Component
+ * Trang quản lý Danh mục sản phẩm trong Admin.
+ * Cho phép xem danh sách, thêm mới, sửa và xóa danh mục.
+ */
 export default function AdminCategoryPage() {
     const dispatch = useDispatch()
     const { items, loading, submitting } = useSelector((s) => s.admin.category)

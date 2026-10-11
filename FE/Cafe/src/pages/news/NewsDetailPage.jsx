@@ -10,6 +10,11 @@ import {
     NewsDetailMeta,
 } from '../../components/news/NewsDetailComponents'
 
+/**
+ * NewsDetailPage Component
+ * Trang xem chi tiết một bài viết / tin tức.
+ * Dựa vào slug trên URL để gọi API, hỗ trợ ghi nhận lượt xem (View Count) tự động.
+ */
 export default function NewsDetailPage() {
     const { slug }   = useParams()
     const navigate   = useNavigate()

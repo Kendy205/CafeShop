@@ -22,6 +22,12 @@ import { logout } from '../redux/slices/authSlice'
 import { getProfile } from '../redux/actions/user/userAction'
 import { useState, useEffect } from 'react'
 
+/**
+ * AdminTemplate Component
+ * Template bao ngoài cho toàn bộ khu vực Admin.
+ * Quản lý Sidebar navigation, Header, Responsive layout (mobile/desktop),
+ * và lắng nghe các sự kiện realtime (ví dụ: đơn hàng mới) để cập nhật UI.
+ */
 export default function AdminTemplate() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -256,8 +262,8 @@ export default function AdminTemplate() {
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-sm font-bold text-white shadow-sm">
                                 {(user?.fullName || 'A').charAt(0).toUpperCase()}
                             </div>
-                            <div className="hidden flex-col md:flex">
-                                <span className="text-sm font-bold text-slate-800">{user?.fullName || 'Administrator'}</span>
+                            <div className="hidden flex-col md:flex max-w-[120px] xl:max-w-[160px]">
+                                <span className="text-sm font-bold text-slate-800 truncate">{user?.fullName || 'Administrator'}</span>
                                 <span className="text-[10px] font-semibold text-sky-600">Quản trị viên</span>
                             </div>
 

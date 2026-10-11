@@ -8,6 +8,11 @@ import {
 } from '@ant-design/icons'
 import { formatVnd } from '../../../utils/helpers/format'
 
+/**
+ * DashboardStatsGrid Component
+ * Lưới chứa các thẻ thông tin thống kê tổng quan (Tổng doanh thu, Đơn hàng mới, Khách hàng, Sản phẩm).
+ * Sử dụng icon, badge màu sắc và trend để so sánh/highlight số liệu.
+ */
 export default function DashboardStatsGrid({ summary, avgRevenue, totalOrdersCount, completedOrders, completionRate }) {
     const statsCards = [
         {

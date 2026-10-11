@@ -12,6 +12,8 @@ export function useCheckoutMap({ addressTab, selectedAddr, cafeLat, cafeLng, map
     const [shippingError, setShippingError] = useState('')
     const shipDebounceRef = useRef(null)
 
+    const [isShippingError, setIsShippingError] = useState(false)
+
     // Bước 2 & Bước 3: Tính khoảng cách Mapbox khi user chọn radio hoặc tick tự động
     useEffect(() => {
         if (addressTab !== TAB_SAVED || !selectedAddr) {
@@ -90,6 +92,7 @@ export function useCheckoutMap({ addressTab, selectedAddr, cafeLat, cafeLng, map
             setApiShippingFee(0)
             setFeeCalculating(false)
             setShippingError('')
+            setIsShippingError(false)
             return
         }
 
@@ -104,10 +107,12 @@ export function useCheckoutMap({ addressTab, selectedAddr, cafeLat, cafeLng, map
 
                 setApiShippingFee(Number(fee ?? 0))
                 setShippingError('')
+                setIsShippingError(false)
             } catch (err) {
-                // Tính phí dựa vào backend hoàn toàn, nếu lỗi thì báo lỗi chứ không dùng fallback tạm
+                // Đã có toast global báo lỗi từ Axios/Redux, không set shippingError để ẩn khung đỏ
                 setApiShippingFee(null)
-                setShippingError('Không thể tính phí vận chuyển từ hệ thống. Vui lòng thử lại sau.')
+                setShippingError('')
+                setIsShippingError(true)
             } finally {
                 setFeeCalculating(false)
             }
@@ -124,5 +129,6 @@ export function useCheckoutMap({ addressTab, selectedAddr, cafeLat, cafeLng, map
         feeCalculating,
         shippingError,
         setShippingError,
+        isShippingError,
     }
 }

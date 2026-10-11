@@ -5,6 +5,11 @@ import { getProfile, updateProfile } from '../../redux/actions/user/userAction'
 import { AppToast, AppConfirm } from '../common/AppNotification'
 
 
+/**
+ * UpdateProfileForm Component
+ * Form cho phép người dùng cập nhật thông tin cá nhân (Họ tên, SĐT, Avatar) trong trang Profile.
+ * Có xử lý preview ảnh avatar trước khi upload và giới hạn dung lượng ảnh (5MB).
+ */
 export default function UpdateProfileForm({ currentAvatarUrl, onAvatarChange }) {
     const dispatch = useDispatch()
     const { user } = useSelector((s) => s.app.auth)

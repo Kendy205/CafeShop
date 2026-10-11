@@ -6,6 +6,11 @@ import { createAdminUser, updateAdminUserInfo } from '../../../redux/actions/adm
 import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
 
+/**
+ * AdminUserModal Component
+ * Modal dùng để Tạo mới hoặc Sửa thông tin tài khoản Người dùng trong hệ thống.
+ * Có xử lý việc tạo tài khoản kèm phân quyền hoặc chỉ cập nhật thông tin cá nhân.
+ */
 export default function AdminUserModal({ visible, onClose, editingUser, roles }) {
     const [form] = Form.useForm()
     const dispatch = useDispatch()

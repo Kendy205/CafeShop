@@ -1,4 +1,5 @@
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using System.Threading.Tasks;
 
 namespace CafeShop.Service.IService.Admin

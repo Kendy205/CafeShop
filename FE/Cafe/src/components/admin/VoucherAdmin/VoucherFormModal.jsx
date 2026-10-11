@@ -50,6 +50,11 @@ function toPayload(values) {
     }
 }
 
+/**
+ * VoucherFormModal Component
+ * Modal dùng để thêm mới hoặc chỉnh sửa thông tin một Voucher (Mã giảm giá).
+ * Xử lý các loại voucher (Giảm theo % hoặc tiền mặt), ngày hết hạn, giới hạn số lượng bằng Formik & Yup.
+ */
 export default function VoucherFormModal({
     open,
     editing,

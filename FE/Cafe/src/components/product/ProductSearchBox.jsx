@@ -5,6 +5,11 @@ import { formatVnd } from '../../utils/helpers/format'
 import { unwrapApi } from '../../utils/helpers/api'
 import { useDebounce } from '../../hooks/useDebounce'
 
+/**
+ * ProductSearchBox Component
+ * Hộp tìm kiếm sản phẩm thông minh, có gợi ý từ khóa (Autocomplete/Suggestions) và debounce.
+ * Lấy dữ liệu sản phẩm mới nhất hoặc bán chạy nhất để gợi ý khi người dùng chưa gõ gì.
+ */
 export default function ProductSearchBox({
     initialValue = '',
     placeholder = 'Tìm món: Cà phê, trà đào, bạc xỉu...',
@@ -207,7 +212,7 @@ export default function ProductSearchBox({
 
             {/* Dropdown Gợi ý & Autocomplete */}
             {isOpen && (
-                <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[480px] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl transition-all duration-200 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[480px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-200 animate-in fade-in slide-in-from-top-2">
                     {/* TRƯỜNG HỢP 1: ĐANG GÕ TỪ KHÓA -> AUTOCOMPLETE */}
                     {keyword.trim().length > 0 ? (
                         <div>

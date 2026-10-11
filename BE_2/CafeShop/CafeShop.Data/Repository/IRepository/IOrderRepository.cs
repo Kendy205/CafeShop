@@ -11,5 +11,13 @@ namespace CafeShop.Repositories.IRepository
         Task<List<(User User, int TotalOrders, decimal TotalSpent)>> GetTopCustomersForAdminAsync(int top, DateTime? startDate, DateTime? endDate);
         Task<List<(string Label, decimal Revenue)>> GetRevenueChartDataAsync(DateTime? startDate, DateTime? endDate);
         Task<List<(string Status, int Count)>> GetOrderStatusStatsAsync(DateTime? startDate, DateTime? endDate);
+        Task<(IEnumerable<Order> Orders, int TotalCount)> GetAdminOrdersWithPagingAsync(
+            string? status,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? keyword,
+            int pageNumber,
+            int pageSize,
+            string? includeProperties = "User,Address");
     }
 }

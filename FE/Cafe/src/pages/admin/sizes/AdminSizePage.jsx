@@ -23,6 +23,11 @@ const sizeSchema = Yup.object().shape({
     name: Yup.string().required('Vui lòng nhập tên kích cỡ')
 })
 
+/**
+ * AdminSizePage Component
+ * Trang quản lý Kích cỡ (Size) đồ uống trong Admin.
+ * Thuộc cấu hình Menu. Cho phép thêm/sửa/xóa các size chuẩn (S, M, L).
+ */
 export default function AdminSizePage() {
     const dispatch = useDispatch()
     const { items, loading, submitting } = useSelector((s) => s.admin.size)

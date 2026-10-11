@@ -1,6 +1,11 @@
 import React from 'react'
 import { CloseOutlined } from '@ant-design/icons'
 
+/**
+ * AdminModalBanner Component
+ * Banner hiển thị ở phần header của các Modal trong trang Admin (ví dụ: Modal thêm sản phẩm, voucher).
+ * Thiết kế với background gradient, hỗ trợ hiển thị icon, title, subtitle, badge và nút đóng.
+ */
 export default function AdminModalBanner({ title, subtitle, icon, badgeText, onClose }) {
     return (
         <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 px-6 py-5 text-white">

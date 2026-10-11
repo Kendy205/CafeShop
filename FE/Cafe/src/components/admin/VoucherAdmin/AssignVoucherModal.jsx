@@ -11,6 +11,11 @@ import {
 import { formatVnd } from '../../../utils/helpers/format'
 import { DiscountType, APPLY_TYPE_LABEL } from '../../../utils/constants/VoucherConstants'
 
+/**
+ * AssignVoucherModal Component
+ * Modal dùng trong Admin để gán (phát) một voucher cho một hoặc nhiều người dùng cụ thể.
+ * Có chức năng chọn tất cả khách hàng, giới hạn số lần sử dụng cho mỗi người.
+ */
 export default function AssignVoucherModal({
     open,
     onCancel,

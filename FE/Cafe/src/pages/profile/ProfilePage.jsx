@@ -11,6 +11,11 @@ const TAB_PROFILE = 'profile'
 const TAB_ADDRESS = 'address'
 const TAB_PASSWORD = 'password'
 
+/**
+ * ProfilePage Component
+ * Trang Quản lý Hồ sơ cá nhân của khách hàng.
+ * Tích hợp Tabs để thay đổi giữa Thông tin chung, Địa chỉ và Đổi mật khẩu.
+ */
 export default function ProfilePage({ defaultTab }) {
     const dispatch = useDispatch()
     const [searchParams, setSearchParams] = useSearchParams()

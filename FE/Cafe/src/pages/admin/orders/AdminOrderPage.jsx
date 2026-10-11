@@ -20,6 +20,11 @@ import { AppToast, AppConfirm } from '../../../components/common/AppNotification
 
 
 // ─── Trang chính AdminOrderPage ───────────────────────────────────────────────
+/**
+ * AdminOrderPage Component
+ * Trang quản lý Đơn hàng (Order) dành cho Admin.
+ * Có chức năng xem chi tiết đơn hàng, cập nhật trạng thái đơn (đang pha chế, đang giao...) và hủy đơn.
+ */
 export default function AdminOrderPage() {
     const dispatch = useDispatch()
     const { items: orders, total, totalPages, loading, error } = useSelector((s) => s.admin.order)
@@ -104,20 +109,20 @@ export default function AdminOrderPage() {
             />
 
             {/* Toolbar: Search & Filter Tabs */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between gap-3 bg-white/70 backdrop-blur-md p-3 sm:p-4 rounded-3xl border border-slate-200/80 shadow-xs">
                 <AppSearchBox
                     initialValue={keyword}
-                    placeholder="Tìm theo tên khách hàng, số điện thoại, mã đơn..."
+                    placeholder="Tìm theo tên khách hàng, SĐT, mã đơn..."
                     onSearch={(val) => { setKeyword(val); setPageNumber(1); }}
-                    className="flex-1 min-w-[220px] max-w-md"
+                    className="w-52 sm:w-64 md:w-72 shrink-0"
                 />
 
-                <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1 justify-end">
                     {ORDER_STATUS_TABS.map((tab) => (
                         <button
                             key={tab.key}
                             onClick={() => handleTabChange(tab.key)}
-                            className={`rounded-2xl px-3.5 py-2 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeStatus === tab.key
+                            className={`shrink-0 rounded-2xl px-3 py-2 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeStatus === tab.key
                                 ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
                                 : 'bg-slate-100/80 hover:bg-slate-200/70 text-slate-600 hover:text-slate-900 border border-transparent'
                                 }`}
@@ -138,16 +143,16 @@ export default function AdminOrderPage() {
             {/* Table */}
             <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[700px] text-sm">
+                    <table className="w-full min-w-[900px] text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-bold uppercase tracking-wide text-slate-500">
-                                <th className="px-5 py-3.5 text-left">Mã đơn</th>
-                                <th className="px-5 py-3.5 text-left">Khách hàng</th>
-                                <th className="px-5 py-3.5 text-left">Thời gian</th>
-                                <th className="px-5 py-3.5 text-right">Tổng tiền</th>
-                                <th className="px-5 py-3.5 text-center">Trạng thái</th>
-                                <th className="px-5 py-3.5 text-center">Cập nhật</th>
-                                <th className="px-5 py-3.5 text-center">Hành động</th>
+                                <th className="px-4 py-3.5 text-left w-20">Mã đơn</th>
+                                <th className="px-4 py-3.5 text-left">Khách hàng</th>
+                                <th className="px-4 py-3.5 text-left whitespace-nowrap">Thời gian</th>
+                                <th className="px-4 py-3.5 text-right whitespace-nowrap">Tổng tiền</th>
+                                <th className="px-4 py-3.5 text-center whitespace-nowrap min-w-[140px]">Trạng thái</th>
+                                <th className="px-4 py-3.5 text-center whitespace-nowrap min-w-[140px]">Cập nhật</th>
+                                <th className="px-4 py-3.5 text-center whitespace-nowrap sticky right-0 bg-slate-50/95 backdrop-blur-xs z-10 shadow-[-6px_0_10px_rgba(0,0,0,0.04)]">Hành động</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -155,7 +160,7 @@ export default function AdminOrderPage() {
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i}>
                                         {Array.from({ length: 7 }).map((__, j) => (
-                                            <td key={j} className="px-5 py-4">
+                                            <td key={j} className="px-4 py-3.5">
                                                 <div className="h-4 rounded-2xl bg-slate-100 animate-pulse" />
                                             </td>
                                         ))}

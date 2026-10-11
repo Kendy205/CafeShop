@@ -2,6 +2,11 @@ import React from 'react'
 import { Table, Card } from 'antd'
 import AppPagination from '../../common/AppPagination'
 
+/**
+ * AdminTable Component
+ * Bọc lại bảng (Table) của Ant Design với giao diện bo góc, bóng mờ đồng nhất cho Admin.
+ * Tích hợp sẵn skeleton loading, custom phân trang (AppPagination) và text khi không có dữ liệu.
+ */
 export default function AdminTable({
     columns,
     dataSource,

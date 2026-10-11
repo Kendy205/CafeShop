@@ -2,10 +2,15 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Modal, Form, Input, Checkbox, message, Row, Col } from 'antd'
 import { CloseOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
-import { createRole, updateRole } from '../../../redux/actions/admin/adminRoleAction'
+import { createRole, updateRole, fetchRoles } from '../../../redux/actions/admin/adminRoleAction'
 import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
 
+/**
+ * AdminRoleModal Component
+ * Modal Thêm mới hoặc Chỉnh sửa Vai trò (Role) trong hệ thống.
+ * Cho phép cấp quyền (Permissions) bằng danh sách Checkbox.
+ */
 export default function AdminRoleModal({ visible, onClose, editingRole }) {
     const [form] = Form.useForm()
     const dispatch = useDispatch()
@@ -40,12 +45,14 @@ export default function AdminRoleModal({ visible, onClose, editingRole }) {
                 const res = await dispatch(updateRole({ id: roleId, data: values }))
                 if (updateRole.fulfilled.match(res)) {
                     AppToast.success('Cập nhật vai trò thành công!')
+                    dispatch(fetchRoles())
                     onClose()
                 }
             } else {
                 const res = await dispatch(createRole(values))
                 if (createRole.fulfilled.match(res)) {
                     AppToast.success('Thêm vai trò mới thành công!')
+                    dispatch(fetchRoles())
                     onClose()
                 }
             }

@@ -13,6 +13,11 @@ import AdminAssignRoleModal from './AdminAssignRoleModal'
 import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
 
+/**
+ * AdminUsersPage Component
+ * Trang quản lý Người dùng / Nhân viên (User Management) của Admin.
+ * Hiển thị danh sách tài khoản, Khóa/Mở tài khoản, và nút Phân quyền (Assign Role).
+ */
 export default function AdminUsersPage() {
     const dispatch = useDispatch()
     const { items, total, page, pageSize, loading, submitting } = useSelector((s) => s.admin.user)
@@ -25,7 +30,7 @@ export default function AdminUsersPage() {
     const [assigningUser, setAssigningUser] = useState(null)
 
     const loadData = (p = 1, search = '') => {
-        dispatch(fetchAdminUsers({ searchKeyword: search, pageNumber: p, pageSize }))
+        dispatch(fetchAdminUsers({ keyword: search, pageNumber: p, pageSize }))
     }
 
     // Initial load

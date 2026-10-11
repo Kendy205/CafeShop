@@ -11,6 +11,11 @@ import Skeleton from '../../components/loading/Skeleton'
 import ProductFeedbackSection from '../../components/feedback/ProductFeedbackSection'
 import { feedbackService } from '../../services/user/FeedbackService'
 
+/**
+ * ProductDetailPage Component
+ * Trang Chi tiết Sản phẩm.
+ * Hiển thị ảnh, mô tả, form chọn Size/Topping (ProductCustomize) và danh sách Feedback từ người mua trước.
+ */
 export default function ProductDetailPage() {
     const { id } = useParams()
     const dispatch = useDispatch()

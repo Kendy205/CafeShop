@@ -2,6 +2,11 @@ import { Link } from 'react-router-dom'
 import { FireOutlined } from '@ant-design/icons'
 import { formatVnd } from '../../../utils/helpers/format'
 
+/**
+ * DashboardTopProducts Component
+ * Danh sách hiển thị top các sản phẩm bán chạy nhất trong hệ thống Admin.
+ * Đánh dấu rank (Hạng 1, 2, 3...) theo màu sắc và hiển thị tổng số lượng đã bán.
+ */
 export default function DashboardTopProducts({ topProducts }) {
     const rankColors = [
         'from-amber-400 to-amber-600 text-white shadow-amber-500/25',

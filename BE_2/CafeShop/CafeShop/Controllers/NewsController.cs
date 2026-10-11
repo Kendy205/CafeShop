@@ -1,4 +1,5 @@
-using CafeShop.DTO.News;
+using CafeShop.DTO.News.Requests;
+using CafeShop.DTO.News.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
 using Microsoft.AspNetCore.Mvc;

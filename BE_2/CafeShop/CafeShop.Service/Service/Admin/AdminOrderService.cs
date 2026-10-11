@@ -1,6 +1,7 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
@@ -29,13 +30,40 @@ namespace CafeShop.Service.Service.Admin
             _historyService = historyService;
         }
 
-        public async Task<PagedResult<OrderResponseDto>> GetAllOrdersAsync(int pageNumber, int pageSize, string? status = null)
+        public async Task<PagedResult<OrderResponseDto>> GetAllOrdersAsync(int pageNumber, int pageSize, string? status = null, DateTime? startDate = null, DateTime? endDate = null, string? keyword = null)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var (orders, totalCount) = await _unitOfWork.Order.GetAdminOrdersWithPagingAsync(
+                status: status,
+                startDate: startDate,
+                endDate: endDate,
+                keyword: keyword,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                includeProperties: "User,Address"
+            );
+            var items = _mapper.Map<List<OrderResponseDto>>(orders);
+
+            return new PagedResult<OrderResponseDto>
+            {
+                Items = items,
+                Total = totalCount,
+                Page = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<PagedResult<OrderResponseDto>> GetUserCompletedOrdersAsync(int userId, int pageNumber, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
             System.Linq.Expressions.Expression<Func<Order, bool>> filter = x =>
-                string.IsNullOrEmpty(status) || x.CurrentStatus == status;
+                x.UserId == userId && x.CurrentStatus == OrderStatus.Completed &&
+                (!startDate.HasValue || x.OrderDate >= startDate.Value) &&
+                (!endDate.HasValue || x.OrderDate <= endDate.Value);
 
             var orders = await _unitOfWork.Order.GetAllAsync(
                 filter: filter,

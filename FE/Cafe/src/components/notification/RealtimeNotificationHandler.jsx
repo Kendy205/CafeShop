@@ -17,6 +17,12 @@ function parsePayload(raw) {
     return raw
 }
 
+/**
+ * RealtimeNotificationHandler Component
+ * Component này chạy ngầm (invisible) để quản lý kết nối SignalR (Websocket).
+ * Nhận và xử lý các sự kiện thời gian thực (ví dụ: đơn hàng mới, cập nhật trạng thái).
+ * Hiển thị thông báo (toast), phát âm thanh cảnh báo, và cập nhật badge cho Admin/User.
+ */
 export default function RealtimeNotificationHandler() {
     const navigate = useNavigate()
     const { isAuthenticated, accessToken, role } = useSelector((s) => s.app.auth)
@@ -101,7 +107,7 @@ export default function RealtimeNotificationHandler() {
             playNotificationSound()
 
             // Hiển thị duy nhất 1 toast với toastId cố định để chống đè
-            toast.success(`📦 ${msg}`, {
+            toast.info(`📦 ${msg}`, {
                 toastId: dedupKey,
                 autoClose: 6000,
                 hideProgressBar: false,

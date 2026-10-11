@@ -1,6 +1,11 @@
 import React from 'react'
 import { Tooltip } from 'antd'
 
+/**
+ * AdminTooltip Component
+ * Custom lại Tooltip của Ant Design với style màu đen (slate) và bo góc mềm mại, 
+ * dùng thống nhất cho các nút thao tác hoặc các text bị rút gọn trong khu vực Admin.
+ */
 export default function AdminTooltip({ title, children, placement = 'top', color = '#1e293b', ...props }) {
     if (!title) return children
     

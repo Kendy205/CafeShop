@@ -18,6 +18,12 @@ import AdminTable from '../../../components/admin/common/AdminTable'
 import FeedbackDrawer from '../../../components/admin/FeedbackAdmin/FeedbackDrawer'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 
+/**
+ * AdminProductPage Component
+ * Trang quản lý Sản phẩm (Menu) lớn nhất của Admin.
+ * Hiển thị danh sách sản phẩm, lọc theo danh mục, giá, tìm kiếm tên.
+ * Gồm chức năng Thêm mới, Sửa, Đổi trạng thái hiển thị (Còn/Hết hàng) và xem Feedbacks.
+ */
 export default function AdminProductPage() {
     const dispatch = useDispatch()
     const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.admin.product)

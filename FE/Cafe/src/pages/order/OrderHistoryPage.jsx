@@ -18,7 +18,11 @@ import { pickErrorMessage } from '../../utils/helpers/api'
 import { AppToast, AppConfirm } from '../../components/common/AppNotification'
 
 
-// ── Main Page Component ───────────────────────────────────────────────────────
+/**
+ * OrderHistoryPage Component
+ * Trang Lịch sử Đơn hàng của User.
+ * Hiển thị các đơn hàng phân loại theo Tab trạng thái, hỗ trợ Hủy đơn và Đánh giá (Feedback) món ăn.
+ */
 export default function OrderHistoryPage() {
     const dispatch = useDispatch()
 

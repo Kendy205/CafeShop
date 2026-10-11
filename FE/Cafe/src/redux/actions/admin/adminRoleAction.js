@@ -55,7 +55,11 @@ export const updateRole = createAsyncThunk(
     async ({ id, data }, { rejectWithValue }) => {
         try {
             const res = await adminRoleService.updateRole(id, data)
-            return unwrapApi(res)
+            const result = unwrapApi(res)
+            if (result && typeof result === 'object' && !Array.isArray(result)) {
+                return { roleId: id, id, ...result }
+            }
+            return { roleId: id, id, ...data }
         } catch (error) {
             return rejectWithValue(pickErrorMessage(error, 'Không thể cập nhật vai trò'))
         }

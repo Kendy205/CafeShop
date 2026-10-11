@@ -51,7 +51,11 @@ function RatingProgressBar({ starLabel, count = 0, total = 0 }) {
     )
 }
 
-// ── Component Khối Nhận Xét & Đánh Giá Sản Phẩm ─────────────────────────────
+/**
+ * ProductFeedbackSection Component
+ * Hiển thị phần đánh giá (review/feedback) của khách hàng về sản phẩm ở trang Chi tiết sản phẩm.
+ * Bao gồm thống kê số lượng sao (RatingProgressBar) và danh sách comment phân trang.
+ */
 export default function ProductFeedbackSection({ productId, summary: initialSummary }) {
     const [feedbacks, setFeedbacks] = useState([])
     const [page, setPage] = useState(1)

@@ -27,6 +27,11 @@ const getStatusTheme = (status) => {
     return STATUS_THEME[key] || { color: '#94a3b8', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', label: status || 'Khác' }
 }
 
+/**
+ * DashboardAdminPage Component
+ * Trang tổng quan (Dashboard) của Admin.
+ * Hiển thị các chỉ số thống kê, biểu đồ doanh thu, cơ cấu đơn hàng và danh sách top bán chạy.
+ */
 export default function DashboardAdminPage() {
     const dispatch = useDispatch()
     const { summary, revenueChart, topProducts, topCustomers, orderStats, loading } = useSelector(s => s.admin.dashboard)
@@ -132,6 +137,7 @@ export default function DashboardAdminPage() {
                         {/* Bảng xếp hạng Top khách hàng mua nhiều nhất */}
                         <DashboardTopCustomers 
                             topCustomers={topCustomers}
+                            dates={dates}
                         />
                     </div>
                 </>

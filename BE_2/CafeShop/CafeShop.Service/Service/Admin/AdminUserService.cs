@@ -1,11 +1,15 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Category;
-using CafeShop.DTO.Product;
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
 using CafeShop.DTO.User;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
@@ -28,16 +32,16 @@ namespace CafeShop.Service.Service.Admin
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(string? searchKeyword, int pageNumber, int pageSize)
+        public async Task<PagedResult<AdminUserDto>> GetAllUsersAsync(string? keyword, int pageNumber, int pageSize)
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
             System.Linq.Expressions.Expression<Func<User, bool>> filter = x =>
-                string.IsNullOrEmpty(searchKeyword) ||
-                x.Username.Contains(searchKeyword) ||
-                (x.FullName != null && x.FullName.Contains(searchKeyword)) ||
-                (x.PhoneNumber != null && x.PhoneNumber.Contains(searchKeyword));
+                string.IsNullOrEmpty(keyword) ||
+                x.Username.Contains(keyword) ||
+                (x.FullName != null && x.FullName.Contains(keyword)) ||
+                (x.PhoneNumber != null && x.PhoneNumber.Contains(keyword));
 
             var users = await _unitOfWork.User.GetAllAsync(
                 filter: filter,

@@ -23,9 +23,16 @@ import { AppToast, AppConfirm } from '../../../components/common/AppNotification
 const toppingSchema = Yup.object().shape({
     name: Yup.string().required('Vui lòng nhập tên Topping'),
     price: Yup.number().min(0, 'Giá không hợp lệ').required('Vui lòng nhập giá'),
+    unit: Yup.string().required('Vui lòng nhập đơn vị tính'),
+    stockQuantity: Yup.number().min(0, 'Số lượng không hợp lệ').required('Vui lòng nhập số lượng tồn'),
     imageFile: Yup.mixed()
 })
 
+/**
+ * AdminToppingPage Component
+ * Trang quản lý Topping trong Admin (Menu Config).
+ * Quản lý danh sách các topping, hỗ trợ tải ảnh lên và Bật/Tắt trạng thái phục vụ.
+ */
 export default function AdminToppingPage() {
     const dispatch = useDispatch()
     const { items, loading, submitting } = useSelector((s) => s.admin.topping)
@@ -55,8 +62,17 @@ export default function AdminToppingPage() {
 
     const handleSubmit = async (values, { resetForm }) => {
         const formData = new FormData()
-        formData.append('name', values.name.trim())
-        formData.append('price', values.price)
+        formData.append('name', (values.name || '').toString().trim())
+        formData.append('price', values.price || 0)
+        formData.append('unit', (values.unit || '').toString().trim())
+        formData.append('stockQuantity', values.stockQuantity || 0)
+
+        if (editingItem && editingItem.isAvailable !== undefined) {
+            formData.append('isAvailable', editingItem.isAvailable)
+        } else {
+            formData.append('isAvailable', true)
+        }
+
         if (values.imageFile) {
             formData.append('imageFile', values.imageFile)
         }
@@ -129,9 +145,20 @@ export default function AdminToppingPage() {
             title: 'Mức Giá',
             dataIndex: 'price',
             key: 'price',
-            render: (val) => (
+            render: (val, record) => (
                 <span className="inline-flex items-center rounded-2xl bg-emerald-50 px-3 py-1 font-bold text-emerald-700">
-                    {formatVnd(val)}
+                    {formatVnd(val)} / {record.unit || 'phần'}
+                </span>
+            ),
+        },
+        {
+            title: 'Tồn kho',
+            dataIndex: 'stockQuantity',
+            key: 'stockQuantity',
+            align: 'center',
+            render: (val) => (
+                <span className={`font-semibold ${val > 10 ? 'text-slate-700' : 'text-orange-500'}`}>
+                    {val ?? 0}
                 </span>
             ),
         },
@@ -215,7 +242,7 @@ export default function AdminToppingPage() {
                 className="custom-admin-modal"
                 closeIcon={null}
             >
-                <AdminModalBanner 
+                <AdminModalBanner
                     title={editingItem ? 'Sửa Topping' : 'Thêm Topping Mới'}
                     subtitle="Thiết lập tên topping và mức giá phụ thu"
                     icon={<CoffeeOutlined className="text-2xl" />}
@@ -228,6 +255,8 @@ export default function AdminToppingPage() {
                     initialValues={{
                         name: editingItem?.name || '',
                         price: editingItem?.price ?? 0,
+                        unit: editingItem?.unit || '',
+                        stockQuantity: editingItem?.stockQuantity ?? 0,
                         imageFile: null
                     }}
                     validationSchema={toppingSchema}
@@ -293,7 +322,7 @@ export default function AdminToppingPage() {
                                         <p className="mt-1 text-xs font-medium text-red-500">{errors.name}</p>
                                     )}
                                 </div>
-                                
+
                                 <div>
                                     <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
                                         Giá bán (VNĐ) <span className="text-red-500">*</span>
@@ -309,6 +338,35 @@ export default function AdminToppingPage() {
                                     </div>
                                     {touched.price && errors.price && (
                                         <p className="mt-1 text-xs font-medium text-red-500">{errors.price}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                        Đơn vị tính <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                        name="unit"
+                                        placeholder="VD: gram, ml, phần..."
+                                        className={`custom-admin-input focus:border-emerald-500 focus:ring-emerald-200 ${touched.unit && errors.unit ? 'custom-admin-input-error' : ''}`}
+                                    />
+                                    {touched.unit && errors.unit && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">{errors.unit}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                                        Số lượng tồn kho <span className="text-red-500">*</span>
+                                    </label>
+                                    <Field
+                                        type="number"
+                                        name="stockQuantity"
+                                        placeholder="0"
+                                        className={`custom-admin-input focus:border-emerald-500 focus:ring-emerald-200 font-mono ${touched.stockQuantity && errors.stockQuantity ? 'custom-admin-input-error' : ''}`}
+                                    />
+                                    {touched.stockQuantity && errors.stockQuantity && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">{errors.stockQuantity}</p>
                                     )}
                                 </div>
 

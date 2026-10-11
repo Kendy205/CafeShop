@@ -1,11 +1,15 @@
 using System;
 using System.Threading.Tasks;
-using CafeShop.DTO.Category;
-using CafeShop.DTO.Product;
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
 using CafeShop.DTO.User;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -27,13 +31,13 @@ namespace CafeShop.Controllers.Admin
 
         [HttpGet]
         public async Task<IActionResult> GetAllUsers(
-            [FromQuery] string? searchKeyword = null, 
+            [FromQuery] string? keyword = null, 
             [FromQuery] int pageNumber = 1, 
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _userService.GetAllUsersAsync(searchKeyword, pageNumber, pageSize);
+                var result = await _userService.GetAllUsersAsync(keyword, pageNumber, pageSize);
                 return Ok(ApiResponse<PagedResult<AdminUserDto>>.Succeeded(result, 200, "Lấy danh sách khách hàng thành công!"));
             }
             catch (Exception ex)

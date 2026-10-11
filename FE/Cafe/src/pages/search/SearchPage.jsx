@@ -35,6 +35,10 @@ function getCategoryIcon(catName) {
     return '✨'
 }
 
+/**
+ * SearchResults Component
+ * Component nội bộ dùng trong SearchPage, đảm nhiệm render kết quả tìm kiếm với layout tương tự HomePage.
+ */
 function SearchResults({ q, setParams }) {
     const dispatch = useDispatch()
     const { items, loading, error, totalPages, total, pageSize } = useSelector((s) => s.user.product)

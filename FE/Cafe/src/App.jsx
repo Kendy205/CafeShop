@@ -37,6 +37,12 @@ import NewsListPage from './pages/news/NewsListPage'
 import NewsDetailPage from './pages/news/NewsDetailPage'
 import AppInitializer from './components/common/AppInitializer'
 
+/**
+ * App Component
+ * Component gốc (Root) của toàn bộ ứng dụng CafeShop.
+ * Cấu hình Redux Provider, Khởi tạo dữ liệu ban đầu (AppInitializer), 
+ * Các Modal/Toast dùng chung toàn cục và Hệ thống Routing (React Router).
+ */
 function App() {
     return (
         <Provider store={store}>

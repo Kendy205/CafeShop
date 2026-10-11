@@ -2,6 +2,11 @@ import { useState, useMemo } from 'react'
 import { RiseOutlined, BarChartOutlined } from '@ant-design/icons'
 import { formatVnd } from '../../../utils/helpers/format'
 
+/**
+ * DashboardRevenueChart Component
+ * Biểu đồ hiển thị biến động doanh thu theo thời gian (Line chart & Area chart).
+ * Được code thuần bằng thẻ <svg> (SVG path generation) giúp render cực nhanh.
+ */
 export default function DashboardRevenueChart({ revenueChart, dates }) {
     const [chartMode, setChartMode] = useState('line')
     const [hoveredRevenueIndex, setHoveredRevenueIndex] = useState(null)

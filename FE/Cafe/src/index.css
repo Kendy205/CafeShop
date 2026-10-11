@@ -67,6 +67,8 @@
   .app-toast-warning .ant-message-notice-content { @apply border-amber-100; }
   .app-toast-info .ant-message-notice-content { @apply border-sky-100; }
 
+  
+
   /* Premium Confirm Modal Styles */
   .app-confirm-modal .ant-modal-content {
     @apply rounded-[28px] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-300/30 p-6;

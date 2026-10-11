@@ -1,5 +1,10 @@
 import React from 'react'
 
+/**
+ * ErrorBoundary Component
+ * Bắt lỗi (Catch exceptions) từ các component con trong React Tree để ngăn toàn bộ ứng dụng bị crash (trắng màn hình).
+ * Trả về một giao diện lỗi thân thiện (Fallback UI) và nút tải lại trang.
+ */
 export default class ErrorBoundary extends React.Component {
     constructor(props) {
         super(props)

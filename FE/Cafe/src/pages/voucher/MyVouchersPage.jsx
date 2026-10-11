@@ -43,6 +43,10 @@ const FILTERS = [
 ]
 
 // ── Voucher Ticket Card Component ─────────────────────────────────────────────
+/**
+ * VoucherCard Component
+ * Thẻ hiển thị một Voucher với giao diện như chiếc vé răng cưa.
+ */
 function VoucherCard({ voucher, onCopy, onUse }) {
     const isUserExclusive = voucher.targetType === VoucherTargetType.USER || voucher.targetType === 'USER'
     const isShipping =

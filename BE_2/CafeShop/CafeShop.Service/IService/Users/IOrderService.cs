@@ -1,4 +1,5 @@
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using System.Collections.Generic;

@@ -39,6 +39,11 @@ const storeProfileSchema = Yup.object().shape({
     longitude: Yup.number().typeError('Kinh độ (Longitude) phải là số').required('Bắt buộc nhập Kinh độ'),
 })
 
+/**
+ * GeneralSettingsTab Component
+ * Tab quản lý Cấu hình chung của hệ thống trong Admin.
+ * Bao gồm Form thông tin quán (Tên, Địa chỉ, Map) và Form cấu hình vận chuyển (Shipping Rules).
+ */
 export default function GeneralSettingsTab() {
     const dispatch = useDispatch()
     const { config, loading: shippingLoading, submitting: shippingSubmitting } = useSelector((s) => s.admin.shippingConfig)

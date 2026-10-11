@@ -5,6 +5,11 @@ import AdminCategoryPage from '../categories/AdminCategoryPage'
 import AdminToppingPage from '../toppings/AdminToppingPage'
 import AdminSizePage from '../sizes/AdminSizePage'
 
+/**
+ * AdminMenuConfigPage Component
+ * Trang gộp chung cấu hình thuộc tính của Menu: Danh mục, Topping, Kích cỡ (Size).
+ * Sử dụng Tabs để chuyển đổi qua lại giữa các màn hình cấu hình một cách tiện lợi.
+ */
 export default function AdminMenuConfigPage() {
     return (
         <div className="space-y-6">

@@ -46,7 +46,11 @@ function AnimatedCheck() {
     )
 }
 
-// ── Component chính OrderSuccessPage ──────────────────────────────────────────
+/**
+ * OrderSuccessPage Component
+ * Trang hiển thị thông báo Đặt hàng Thành công sau khi Checkout xong.
+ * Có hiệu ứng checkmark đẹp mắt và tổng hợp thông tin đơn hàng vừa đặt.
+ */
 export default function OrderSuccessPage() {
     const order = useSelector((s) => s.user.order.lastOrder)
 

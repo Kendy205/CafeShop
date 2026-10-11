@@ -20,6 +20,11 @@ import { TARGET_TYPE_LABEL, APPLY_TYPE_LABEL, DiscountType, VoucherTargetType } 
 import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
 
+/**
+ * VoucherAdminPage Component
+ * Trang quản lý Khuyến mãi (Vouchers/Coupons) cho Admin.
+ * Hiển thị danh sách, phân quyền (assign) voucher cho khách hàng, bật/tắt tự do.
+ */
 export default function VoucherAdminPage() {
     const dispatch = useDispatch()
     const { items, loading, submitting, error } = useSelector((s) => s.admin.voucher)

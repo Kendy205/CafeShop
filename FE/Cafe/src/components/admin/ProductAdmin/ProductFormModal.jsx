@@ -24,6 +24,11 @@ const productSchema = Yup.object().shape({
     isAvailable: Yup.boolean()
 })
 
+/**
+ * ProductFormModal Component
+ * Modal thêm mới hoặc chỉnh sửa sản phẩm trong Admin (ProductAdmin).
+ * Quản lý form phức tạp bao gồm: Tên, giá, mô tả, upload ảnh, chọn size và topping bằng Formik & Yup.
+ */
 export default function ProductFormModal({
     open,
     editingItem,

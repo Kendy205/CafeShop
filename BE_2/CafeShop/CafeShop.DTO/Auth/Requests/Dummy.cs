@@ -1,0 +1,1 @@
+namespace CafeShop.DTO.Auth.Requests { internal class Dummy { } }

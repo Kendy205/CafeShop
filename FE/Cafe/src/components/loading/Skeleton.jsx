@@ -1,3 +1,8 @@
+/**
+ * Skeleton Component
+ * Component hiển thị khung tải trang (loading placeholder) với hiệu ứng nhấp nháy mờ (pulse).
+ * Gồm Skeleton mặc định và ProductCardSkeleton dành riêng cho thẻ sản phẩm.
+ */
 export default function Skeleton({ className = '' }) {
     return <div className={`animate-pulse rounded-2xl bg-slate-200/80 ${className}`} />
 }

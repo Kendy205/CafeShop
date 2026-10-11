@@ -37,6 +37,11 @@ async function geocodeAddress(query) {
 const INPUT_TAB_MAP = 'map'
 const INPUT_TAB_MANUAL = 'manual'
 
+/**
+ * AddressManager Component
+ * Quản lý sổ địa chỉ của khách hàng (thêm, sửa, xoá, đặt mặc định).
+ * Hỗ trợ nhập tay thủ công hoặc ghim trên bản đồ (MapboxLocationPicker) để lấy toạ độ giao hàng.
+ */
 export default function AddressManager({ hideTitle = false }) {
     const dispatch = useDispatch()
     const { items: addresses, loading, submitting } = useSelector((s) => s.user.address)

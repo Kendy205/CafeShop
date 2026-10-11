@@ -1,5 +1,10 @@
 import { THEME } from '../../utils/constants/Theme'
 
+/**
+ * adminShared Component
+ * Chứa các component dùng chung cho toàn bộ layout và các trang Admin.
+ * Ví dụ: PageHeader (tiêu đề trang), FormField (trường nhập liệu), AdminTable (bảng dữ liệu).
+ */
 export function PageHeader({ title, extra }) {
     return (
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">

@@ -7,6 +7,11 @@ import AppPagination from '../../components/common/AppPagination'
 
 const PAGE_SIZE = 10
 
+/**
+ * NewsListPage Component
+ * Trang danh sách Tin tức / Sự kiện dành cho khách hàng.
+ * Hiển thị Banner nổi bật, thanh tìm kiếm và danh sách các bài viết đã xuất bản.
+ */
 export default function NewsListPage() {
     const dispatch = useDispatch()
     const { items, total, page, loading, error } = useSelector((s) => s.user.news)

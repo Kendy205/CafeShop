@@ -35,7 +35,10 @@ const saveStoredReviewedItem = (orderDetailId) => {
 import { Upload, Button } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 
-// ── Modal Viết Đánh Giá Món ──────────────────────────────────────────────────
+/**
+ * ReviewModal Component
+ * Modal bật lên để người dùng đánh giá (chấm sao và bình luận) cho từng món cụ thể trong đơn hàng.
+ */
 export function ReviewModal({ open, item, onClose, onSuccess }) {
     const [rating, setRating] = useState(5)
     const [hoverRating, setHoverRating] = useState(0)

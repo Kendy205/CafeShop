@@ -8,6 +8,11 @@ import {
 
 const { RangePicker } = DatePicker
 
+/**
+ * DashboardHeader Component
+ * Header của trang Admin Dashboard.
+ * Hiển thị tiêu đề, mô tả và bộ lọc khoảng thời gian (RangePicker), cùng nút làm mới dữ liệu.
+ */
 export default function DashboardHeader({ dates, setDates, loading, onRefresh }) {
     return (
         <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-6 md:p-8 text-white shadow-xl">

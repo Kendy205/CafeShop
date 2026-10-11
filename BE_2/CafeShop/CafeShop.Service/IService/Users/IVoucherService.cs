@@ -1,4 +1,5 @@
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,5 +23,6 @@ namespace CafeShop.Service.IService.Users
             decimal shippingFee
         );
 
+        Task<BestVoucherResponseDto?> GetBestVoucherAsync(int userId, BestVoucherRequestDto request);
     }
 }

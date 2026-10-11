@@ -8,6 +8,12 @@ import { message } from 'antd'
 import { AppToast, AppConfirm } from '../common/AppNotification'
 
 
+/**
+ * ProductCustomize Component
+ * Component quan trọng trong trang Chi tiết sản phẩm.
+ * Cho phép khách hàng chọn Size, thêm Topping, tăng giảm số lượng, nhập ghi chú và Thêm vào giỏ hàng.
+ * Xử lý phức tạp về tính toán tổng tiền và kiểm tra tồn kho (stock) real-time.
+ */
 export default function ProductCustomize({ detail, sizes, toppings, error, isAuthenticated, productId, summary }) {
     const dispatch = useDispatch()
     const navigate = useNavigate()

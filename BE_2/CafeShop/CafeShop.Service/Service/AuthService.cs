@@ -1,5 +1,6 @@
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Auth;
+using CafeShop.DTO.Auth.Requests;
+using CafeShop.DTO.Auth.Responses;
 
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;

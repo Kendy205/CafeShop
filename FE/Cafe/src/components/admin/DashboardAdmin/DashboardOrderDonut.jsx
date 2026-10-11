@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import { PieChartOutlined } from '@ant-design/icons'
 
+/**
+ * DashboardOrderDonut Component
+ * Biểu đồ tròn (Donut chart) hiển thị tỷ lệ trạng thái đơn hàng.
+ * Tự custom vẽ bằng CSS conic-gradient để tối ưu nhẹ nhàng không cần thư viện.
+ */
 export default function DashboardOrderDonut({ orderStats, totalOrdersCount, completedOrders, completionRate, getStatusTheme }) {
     // Tính toán góc cho pie chart (conic-gradient hiện đại với donut hole)
     const donutSegments = useMemo(() => {

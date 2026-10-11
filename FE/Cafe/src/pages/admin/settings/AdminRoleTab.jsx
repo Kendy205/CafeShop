@@ -8,6 +8,11 @@ import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
 
+/**
+ * AdminRoleTab Component
+ * Tab quản lý danh sách Vai trò (Roles) trong trang Cài đặt (AdminSettingsPage).
+ * Ngăn chặn việc xóa hoặc đổi tên vai trò hệ thống (Admin).
+ */
 export default function AdminRoleTab() {
     const dispatch = useDispatch()
     const { roles, loading } = useSelector((s) => s.admin.role)
@@ -45,6 +50,7 @@ export default function AdminRoleTab() {
                 const res = await dispatch(deleteRole(roleId))
                 if (deleteRole.fulfilled.match(res)) {
                     AppToast.success('Xóa vai trò thành công!')
+                    dispatch(fetchRoles())
                 } else {
                     AppToast.error(res.payload || 'Không thể xóa vai trò này!')
                 }

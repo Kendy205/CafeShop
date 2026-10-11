@@ -22,6 +22,11 @@ const InfoIcon = (
     </svg>
 )
 
+/**
+ * AppNotification (AppToast & AppConfirm)
+ * Các hàm tiện ích để hiển thị thông báo Toast góc màn hình và Modal xác nhận nhanh.
+ * Custom lại giao diện (icon, style) đè lên Ant Design để phù hợp với UI chung.
+ */
 export const AppToast = {
     success: (msg) => {
         message.success({

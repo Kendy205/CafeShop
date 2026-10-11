@@ -1,6 +1,7 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Role;
+using CafeShop.DTO.Role.Requests;
+using CafeShop.DTO.Role.Responses;
 using CafeShop.Model;
 using CafeShop.Service.IService.Admin;
 using CafeShop.Uitls;

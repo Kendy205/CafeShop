@@ -6,6 +6,11 @@ import { assignAdminRoles, fetchAdminUsers } from '../../../redux/actions/admin/
 import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
 
 
+/**
+ * AdminAssignRoleModal Component
+ * Modal để Admin cấp hoặc gỡ Vai trò (Roles) cho một người dùng bất kỳ.
+ * Hỗ trợ chọn nhiều Role cùng lúc qua thẻ Select.
+ */
 export default function AdminAssignRoleModal({ visible, onClose, assigningUser, roles }) {
     const [form] = Form.useForm()
     const dispatch = useDispatch()

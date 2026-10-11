@@ -23,6 +23,14 @@ export class AdminOrderService extends BaseServices {
      */
     updateStatus = (orderId, status, cancelReason = null) =>
         this.put(`${this.basePath}/${orderId}/status`, { newStatus: status, cancelReason })
+
+    /**
+     * Lấy danh sách đơn hàng hoàn thành của 1 user
+     * @param {number} userId 
+     * @param {{ pageNumber, pageSize }} params 
+     */
+    getUserCompletedOrders = (userId, params = {}) => 
+        this.get(`${this.basePath}/user/${userId}/completed`, { params, __skipGlobalLoading: true })
 }
 
 export const adminOrderService = new AdminOrderService()

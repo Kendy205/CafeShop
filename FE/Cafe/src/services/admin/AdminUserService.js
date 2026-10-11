@@ -5,7 +5,7 @@ export class AdminUserService extends BaseServices {
 
     /**
      * Lấy danh sách khách hàng
-     * @param {{ searchKeyword?: string, pageNumber?: number, pageSize?: number }} params 
+     * @param {{ keyword?: string, pageNumber?: number, pageSize?: number }} params 
      */
     getUsers = (params = {}) => this.get(this.basePath, { params, __skipGlobalLoading: true })
 

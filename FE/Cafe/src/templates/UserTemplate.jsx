@@ -25,10 +25,10 @@ function NavItem({ to, icon, label, className = '' }) {
     return (
         <LoadingLink
             to={to}
-            className={`inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600 ${className}`}
+            className={`inline-flex items-center gap-1.5 rounded-2xl px-2.5 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600 ${className}`}
         >
-            <span className="text-lg leading-none">{icon}</span>
-            <span className="hidden sm:inline font-medium">{label}</span>
+            <span className="text-base leading-none shrink-0">{icon}</span>
+            <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">{label}</span>
         </LoadingLink>
     )
 }
@@ -79,7 +79,7 @@ export default function UserTemplate() {
                         <span className="hidden xs:inline sm:inline">Cafe<span className="text-sky-500">Order</span></span>
                     </LoadingLink>
 
-                    <nav className="flex flex-wrap items-center gap-2 text-sm">
+                    <nav className="flex items-center gap-0.5 text-sm overflow-x-auto no-scrollbar">
                         <NavItem to="/" icon={<CoffeeOutlined />} label="Thực đơn" />
                         <NavItem to="/search" icon={<SearchOutlined />} label="Tìm kiếm" />
                         
@@ -88,9 +88,9 @@ export default function UserTemplate() {
                                 <NavItem to="/addresses" icon={<EnvironmentOutlined />} label="Địa chỉ" />
                                 <LoadingLink
                                     to="/orders"
-                                    className="relative inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600"
+                                    className="relative inline-flex items-center gap-1.5 rounded-2xl px-2.5 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600"
                                 >
-                                    <span className="relative inline-flex text-lg leading-none">
+                                    <span className="relative inline-flex text-base leading-none shrink-0">
                                         <OrderedListOutlined />
                                         {orderUpdateCount > 0 && (
                                             <span className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-bounce">
@@ -98,20 +98,20 @@ export default function UserTemplate() {
                                             </span>
                                         )}
                                     </span>
-                                    <span className="hidden sm:inline font-medium">Đơn hàng</span>
+                                    <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">Đơn hàng</span>
                                 </LoadingLink>
-                                <NavItem to="/vouchers"  icon={<TagOutlined />}         label="Voucher" />
+                                <NavItem to="/vouchers"  icon={<TagOutlined />} label="Voucher" />
                             </>
                         )}
 
-                        <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
+                        <div className="w-px h-5 bg-slate-200 mx-0.5 hidden lg:block"></div>
 
                         <LoadingLink
                             to="/cart"
                             className="relative inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-slate-600 transition-all duration-300 hover:bg-sky-50 hover:text-sky-600"
                             aria-label="Giỏ hàng"
                         >
-                            <span className="relative inline-flex text-xl leading-none">
+                            <span className="relative inline-flex text-xl leading-none shrink-0">
                                 <ShoppingCartOutlined />
                                 {cartCount > 0 && (
                                     <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
@@ -119,7 +119,7 @@ export default function UserTemplate() {
                                     </span>
                                 )}
                             </span>
-                            <span className="hidden sm:inline font-medium">Giỏ hàng</span>
+                            <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">Giỏ hàng</span>
                         </LoadingLink>
 
                         {isAdminRole(role) && (
@@ -144,7 +144,7 @@ export default function UserTemplate() {
                                             {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <UserOutlined />}
                                         </span>
                                     )}
-                                    <span className="hidden sm:inline font-semibold text-sm max-w-[130px] truncate">
+                                    <span className="hidden lg:inline font-semibold text-sm max-w-[100px] truncate">
                                         {user?.fullName || 'Hồ sơ'}
                                     </span>
                                 </LoadingLink>

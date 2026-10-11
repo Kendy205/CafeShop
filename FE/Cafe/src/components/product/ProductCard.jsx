@@ -1,6 +1,11 @@
 import LoadingLink from '../loading/LoadingLink'
 import { formatVnd } from '../../utils/helpers/format'
 
+/**
+ * ProductCard Component
+ * Thẻ hiển thị tóm tắt thông tin sản phẩm (ảnh, tên, giá, số lượng tồn kho).
+ * Dùng ở màn hình danh sách sản phẩm (ProductGrid). Có xử lý hiển thị giá thấp nhất nếu có nhiều size.
+ */
 export default function ProductCard({ product }) {
     const id = product.productId
     const isOutOfStock = Boolean(product.isOutOfStock || (product.totalStock !== undefined && product.totalStock <= 0))

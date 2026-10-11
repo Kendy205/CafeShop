@@ -36,7 +36,8 @@ const TAB_MAP = 'map'
 
 /**
  * CheckoutPage Component
- * Trang thanh toán & đặt hàng tích hợp Mapbox tính khoảng cách và phí vận chuyển tự động
+ * Trang thanh toán & đặt hàng tích hợp Mapbox tính khoảng cách và phí vận chuyển tự động.
+ * Quản lý logic chọn voucher, địa chỉ giao hàng và phương thức thanh toán.
  */
 export default function CheckoutPage() {
     const dispatch = useDispatch()
@@ -134,7 +135,8 @@ export default function CheckoutPage() {
         shippingFee,
         feeCalculating,
         shippingError,
-        setShippingError
+        setShippingError,
+        isShippingError
     } = useCheckoutMap({
         addressTab,
         selectedAddr,
@@ -168,7 +170,7 @@ export default function CheckoutPage() {
             ? Boolean(selectedAddressId) && !distanceCalculating
             : mapValid
 
-    const canSubmit = hasValidAddress && !shippingError && !feeCalculating && !distanceCalculating
+    const canSubmit = hasValidAddress && !shippingError && !isShippingError && !feeCalculating && !distanceCalculating
 
     // ── Submit Đơn Hàng ────────────────────────────────────────────────────
     const submit = async (e) => {
@@ -403,6 +405,7 @@ export default function CheckoutPage() {
                     submitting={submitting}
                     canSubmit={canSubmit}
                     shippingError={shippingError}
+                    isShippingError={isShippingError}
                     addressTab={addressTab}
                     mapValid={mapValid}
                 />

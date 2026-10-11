@@ -1,6 +1,11 @@
 import LoadingLink from '../loading/LoadingLink'
 import { calcLineTotal, formatVnd, itemDisplayName } from '../../utils/helpers/format'
 
+/**
+ * CartItem Component
+ * Component hiển thị một mục (sản phẩm) trong giỏ hàng.
+ * Cho phép tăng/giảm số lượng, xem chi tiết topping, size, và cảnh báo vượt quá tồn kho (out of stock).
+ */
 export default function CartItem({ item, submitting, onUpdateQty, onRemoveItem }) {
     const isExceeded = Boolean(
         item.isExceedStock ||

@@ -1,6 +1,11 @@
 import RegisterForm from '../../components/auth/RegisterForm'
 import LoadingLink from '../../components/loading/LoadingLink'
 
+/**
+ * RegisterPage Component
+ * Trang Đăng ký tài khoản cho khách hàng.
+ * Bọc ngoài RegisterForm component.
+ */
 export default function RegisterPage() {
     return (
         <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm">

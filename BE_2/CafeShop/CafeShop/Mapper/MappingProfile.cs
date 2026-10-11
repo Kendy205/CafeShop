@@ -2,21 +2,36 @@ using System;
 using System.Linq;
 using AutoMapper;
 using CafeShop.DTO.Address;
-using CafeShop.DTO.Auth;
-using CafeShop.DTO.Cart;
+using CafeShop.DTO.Auth.Requests;
+using CafeShop.DTO.Auth.Responses;
+using CafeShop.DTO.Cart.Requests;
+using CafeShop.DTO.Cart.Responses;
 using CafeShop.DTO.Feedback;
-using CafeShop.DTO.Order;
-using CafeShop.DTO.Product;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
 using CafeShop.DTO.Size;
 using CafeShop.DTO.Topping;
 using CafeShop.DTO.User;
-using CafeShop.DTO.Voucher;
-using CafeShop.DTO.Category;
-using CafeShop.DTO.Product;
+using CafeShop.DTO.Role.Requests;
+using CafeShop.DTO.Role.Responses;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
+using CafeShop.DTO.News.Requests;
+using CafeShop.DTO.News.Responses;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
 using CafeShop.DTO.User;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 
 namespace CafeShop.Mapper
@@ -62,8 +77,8 @@ namespace CafeShop.Mapper
             // ==========================================
             // 3. ROLE & PERMISSION
             // ==========================================
-            CreateMap<Permission, CafeShop.DTO.Role.PermissionDto>();
-            CreateMap<Role, CafeShop.DTO.Role.RoleDto>()
+            CreateMap<Permission, PermissionDto>();
+            CreateMap<Role, RoleDto>()
                 .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.RolePermissions != null ? src.RolePermissions.Where(rp => rp.Permission != null).Select(rp => rp.Permission).ToList() : new List<Permission>()));
 
             // 4. ORDER

@@ -70,6 +70,8 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
         ? (NEXT_STATUSES[detail.currentStatus?.toUpperCase()] ?? [])
         : []
 
+    const isSingleItem = (detail?.items?.length || 0) <= 1
+
     return (
         <>
             <div
@@ -142,47 +144,47 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-1 custom-scrollbar content-start" style={{ maxHeight: isExpanded ? 'calc(100vh - 400px)' : 'calc(100vh - 550px)', minHeight: '200px' }}>
+                                        <div className={`${isSingleItem ? 'flex flex-col gap-3.5' : 'grid grid-cols-1 md:grid-cols-2 gap-3.5 content-start'} overflow-y-auto pr-1 custom-scrollbar w-full`} style={{ maxHeight: isExpanded ? 'calc(100vh - 400px)' : 'calc(100vh - 550px)', minHeight: '160px' }}>
                                             {(detail.items || []).map((item, i) => (
-                                                <div key={i} className="flex items-start gap-4 rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group">
-                                                    <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200">
+                                                <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-4 rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group w-full">
+                                                    <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200 shadow-xs">
                                                         {item.imageUrl ? (
                                                             <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
                                                         ) : (
                                                             <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs">No img</div>
                                                         )}
                                                     </div>
-                                                    <div className="flex flex-1 flex-col justify-center">
-                                                        <div className="flex justify-between items-start gap-2">
-                                                            <p className="text-sm font-bold text-slate-800 line-clamp-2">{item.productName || 'Sản phẩm'}</p>
-                                                            <p className="text-sm font-black text-sky-700 shrink-0">{formatCurrency(item.totalItemPrice)}</p>
-                                                        </div>
-                                                        <div className="text-xs font-semibold text-slate-500 mt-1 space-y-0.5">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="bg-sky-100 text-sky-800 font-black px-2 py-0.5 rounded-md border border-sky-200">
-                                                                    x{item.quantity}
-                                                                </span>
-                                                                <span className="text-slate-400">({formatCurrency(item.unitPrice)})</span>
-                                                                {item.sizeName && <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100">Size: {item.sizeName}</span>}
-                                                            </div>
-                                                            {item.toppings?.length > 0 && (
-                                                                <div className="text-[11px] text-slate-500 mt-1.5 space-y-1">
-                                                                    {item.toppings.map((t, idx) => (
-                                                                        <div key={idx} className="flex justify-between items-center bg-slate-100/50 px-2 py-1.5 rounded-lg border border-slate-100/60">
-                                                                            <div className="flex items-center gap-2">
-                                                                                {t.imageUrl ? (
-                                                                                    <img src={t.imageUrl} alt={t.toppingName} className="h-6 w-6 rounded-md object-cover border border-slate-200" />
-                                                                                ) : (
-                                                                                    <div className="h-6 w-6 rounded-md bg-slate-200 border border-slate-300"></div>
-                                                                                )}
-                                                                                <span>+ {t.toppingName} <span className="font-bold text-slate-700">(x{t.quantity || 1} / ly)</span></span>
-                                                                            </div>
-                                                                            <span>{formatCurrency(t.unitPrice)}</span>
-                                                                        </div>
-                                                                    ))}
+                                                    <div className="flex flex-1 flex-col justify-center min-w-0">
+                                                        <div className="flex justify-between items-start gap-3">
+                                                            <div>
+                                                                <p className="text-sm font-bold text-slate-800">{item.productName || 'Sản phẩm'}</p>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <span className="bg-sky-100 text-sky-800 font-black px-2 py-0.5 rounded-md border border-sky-200 text-xs">
+                                                                        x{item.quantity}
+                                                                    </span>
+                                                                    <span className="text-slate-400 text-xs">({formatCurrency(item.unitPrice)})</span>
+                                                                    {item.sizeName && <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100 text-xs font-semibold">Size: {item.sizeName}</span>}
                                                                 </div>
-                                                            )}
+                                                            </div>
+                                                            <p className="text-base font-black text-sky-700 shrink-0">{formatCurrency(item.totalItemPrice)}</p>
                                                         </div>
+                                                        {item.toppings?.length > 0 && (
+                                                            <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
+                                                                {item.toppings.map((t, idx) => (
+                                                                    <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-2 rounded-xl border border-slate-100/80 text-xs">
+                                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                                            {t.imageUrl ? (
+                                                                                <img src={t.imageUrl} alt={t.toppingName} className="h-7 w-7 rounded-lg object-cover border border-slate-200 shrink-0" />
+                                                                            ) : (
+                                                                                <div className="h-7 w-7 rounded-lg bg-slate-200 border border-slate-300 shrink-0" />
+                                                                            )}
+                                                                            <span className="text-slate-600 font-medium truncate">+ {t.toppingName} <span className="font-bold text-slate-800">(x{t.quantity || 1} / ly)</span></span>
+                                                                        </div>
+                                                                        <span className="font-bold text-slate-600 shrink-0 ml-2">{formatCurrency(t.unitPrice)}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
@@ -282,18 +284,19 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                 {nextStatuses.length > 0 && (
                                     <div>
                                         <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">⚡ Cập nhật trạng thái</h3>
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-col sm:flex-row gap-3 w-full">
                                             {nextStatuses.map((s) => (
                                                 <button
                                                     key={s}
                                                     onClick={() => handleStatusButtonClick(s)}
                                                     disabled={updating}
-                                                    className={`rounded-3xl border px-4 py-2 text-xs font-bold transition-all cursor-pointer disabled:opacity-60 ${s === OrderStatus.CANCELLED
+                                                    className={`flex-1 flex justify-center items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-bold transition-all cursor-pointer disabled:opacity-60 ${s === OrderStatus.CANCELLED
                                                         ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                                                        : 'border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100'
+                                                        : 'border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100 shadow-sm'
                                                         }`}
                                                 >
-                                                    {updating ? '⏳' : '→'} {getStatusConfig(s).label}
+                                                    <span>{updating ? '⏳' : '→'}</span>
+                                                    <span className="truncate">{getStatusConfig(s).label}</span>
                                                 </button>
                                             ))}
                                         </div>

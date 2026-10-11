@@ -72,7 +72,14 @@ const adminRoleSlice = createSlice({
             })
             .addCase(createRole.fulfilled, (state, action) => {
                 state.submitting = false
-                state.roles.push(action.payload)
+                const newRole = action.payload
+                if (newRole) {
+                    const newId = newRole.roleId ?? newRole.id
+                    const exists = newId ? state.roles.some(r => (r.roleId ?? r.id) === newId) : false
+                    if (!exists) {
+                        state.roles.push(newRole)
+                    }
+                }
             })
             .addCase(createRole.rejected, (state, action) => {
                 state.submitting = false
@@ -85,9 +92,14 @@ const adminRoleSlice = createSlice({
             .addCase(updateRole.fulfilled, (state, action) => {
                 state.submitting = false
                 const updatedRole = action.payload
-                const index = state.roles.findIndex(r => r.roleId === updatedRole.roleId || r.id === updatedRole.id)
-                if (index !== -1) {
-                    state.roles[index] = updatedRole
+                if (updatedRole) {
+                    const targetId = updatedRole.roleId ?? updatedRole.id
+                    if (targetId !== undefined && targetId !== null) {
+                        const index = state.roles.findIndex(r => (r.roleId ?? r.id) === targetId)
+                        if (index !== -1) {
+                            state.roles[index] = updatedRole
+                        }
+                    }
                 }
             })
             .addCase(updateRole.rejected, (state, action) => {
@@ -101,7 +113,9 @@ const adminRoleSlice = createSlice({
             .addCase(deleteRole.fulfilled, (state, action) => {
                 state.submitting = false
                 const deletedId = action.payload
-                state.roles = state.roles.filter(r => r.roleId !== deletedId && r.id !== deletedId)
+                if (deletedId !== undefined && deletedId !== null) {
+                    state.roles = state.roles.filter(r => (r.roleId ?? r.id) !== deletedId)
+                }
             })
             .addCase(deleteRole.rejected, (state, action) => {
                 state.submitting = false

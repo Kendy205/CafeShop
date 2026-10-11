@@ -41,6 +41,11 @@ const RATING_OPTIONS = [
     { value: '3', label: 'Từ 3 sao trở lên ⭐' },
 ]
 
+/**
+ * HomePage Component
+ * Trang chủ của ứng dụng CafeShop.
+ * Hiển thị Banner nổi bật, Menu sản phẩm đầy đủ với các bộ lọc (giá, số sao, danh mục) và tìm kiếm tích hợp.
+ */
 export default function HomePage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -102,50 +107,60 @@ export default function HomePage() {
     return (
         <div className="space-y-12 pb-16">
             {/* ── 1. Hero Section Cao Cấp & Ấm Cúng ── */}
-            <section className="relative rounded-[2.5rem] bg-gradient-to-br from-[#1a1008] via-[#2d180c] to-[#180e07] text-sky-50 shadow-2xl">
-                {/* Hiệu ứng ánh sáng nền (Ambient Glows) */}
-                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
-                    <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl" />
-                    <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-orange-600/10 blur-3xl" />
+            <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#120a05] via-[#211208] to-[#0c0603] text-slate-100 shadow-2xl border border-amber-900/20">
+                {/* Hiệu ứng ánh sáng nền đa tầng (Ambient Glows) */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-amber-600/15 blur-[120px]" />
+                    <div className="absolute -bottom-32 -right-32 h-[500px] w-[500px] rounded-full bg-sky-500/15 blur-[120px]" />
+                    <div className="absolute top-1/2 left-1/3 -translate-y-1/2 h-80 w-80 rounded-full bg-orange-500/10 blur-[100px]" />
+                    <div 
+                        className="absolute inset-0 opacity-[0.03]"
+                        style={{
+                            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                            backgroundSize: '32px 32px'
+                        }}
+                    />
                 </div>
 
-                <div className="relative z-10 grid gap-8 lg:grid-cols-12 lg:items-center p-8 sm:p-10 lg:p-14">
+                <div className="relative z-10 grid gap-8 md:grid-cols-12 md:items-center p-6 sm:p-10 lg:p-14">
                     {/* Cột Trái: Tiêu đề & Form tìm kiếm */}
-                    <div className="lg:col-span-7 flex flex-col justify-center">
+                    <div className="md:col-span-7 flex flex-col justify-center">
                         {/* Eyebrow Tag */}
-                        <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/25 bg-sky-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-sky-300 backdrop-blur-md w-fit shadow-xs">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-300 backdrop-blur-md w-fit shadow-xs">
                             <span className="text-sm">☕</span>
                             <span>Cà Phê Rang Mộc &amp; Trà Thượng Hạng</span>
                         </div>
 
                         {/* Headline */}
-                        <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl text-white leading-[1.18]">
+                        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl text-white leading-[1.2]">
                             Thưởng thức vị cà phê{' '}
-                            <span className="bg-gradient-to-r from-sky-200 via-sky-300 to-sky-100 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent">
                                 đậm đà &amp; trọn vẹn
                             </span>{' '}
                             mỗi ngày
                         </h1>
 
-                        <p className="mt-4 text-sm sm:text-base text-sky-100/75 leading-relaxed max-w-xl">
+                        <p className="mt-3.5 text-sm sm:text-base text-slate-300/85 leading-relaxed max-w-xl">
                             Từ những hạt cà phê chín mọng đến tách đồ uống thơm nồng trên tay bạn.
                             Tùy chỉnh độ ngọt, mức đá và nhận hàng nóng hổi trong chốc lát!
                         </p>
 
                         {/* Thanh Tìm Kiếm Nổi (Floating Search Bar with Autocomplete & Suggestions) */}
-                        <div className="mt-7 max-w-xl">
-                            <ProductSearchBox
-                                variant="hero"
-                                placeholder="Tìm món: Cà phê sữa, bạc xỉu, trà đào..."
-                                onSearch={(q) => {
-                                    if (q) navigate(`/search?q=${encodeURIComponent(q)}`)
-                                }}
-                            />
+                        <div className="mt-6 max-w-xl relative z-30">
+                            <div className="p-1 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-xl">
+                                <ProductSearchBox
+                                    variant="hero"
+                                    placeholder="Tìm món: Cà phê sữa, bạc xỉu, trà đào..."
+                                    onSearch={(q) => {
+                                        if (q) navigate(`/search?q=${encodeURIComponent(q)}`)
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         {/* Quick Tags Gợi Ý */}
-                        <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs text-sky-200/80">
-                            <span className="font-semibold text-sky-300 mr-1 flex items-center gap-1">
+                        <div className="mt-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-300/90">
+                            <span className="font-semibold text-amber-300 mr-1 flex items-center gap-1">
                                 <span>🔥</span> Gợi ý:
                             </span>
                             {QUICK_TAGS.map((tag) => (
@@ -153,7 +168,7 @@ export default function HomePage() {
                                     key={tag}
                                     type="button"
                                     onClick={() => handleQuickTagClick(tag)}
-                                    className="rounded-3xl border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium text-sky-100/90 hover:bg-white/20 hover:text-white transition-all cursor-pointer backdrop-blur-xs"
+                                    className="rounded-full border border-white/15 bg-white/10 hover:bg-white/20 px-3 py-1 text-xs font-medium text-slate-200 hover:text-white transition-all cursor-pointer backdrop-blur-sm active:scale-95 shadow-xs"
                                 >
                                     {tag}
                                 </button>
@@ -161,48 +176,55 @@ export default function HomePage() {
                         </div>
 
                         {/* 3 Chỉ số cam kết nhanh (Key Highlights) */}
-                        <div className="mt-8 grid grid-cols-3 gap-3 border-t border-white/10 pt-6 max-w-xl">
+                        <div className="mt-7 grid grid-cols-3 gap-3 border-t border-white/10 pt-6 max-w-xl">
                             <div className="flex flex-col">
-                                <span className="text-xl sm:text-2xl font-black text-sky-300">100%</span>
-                                <span className="text-xs text-sky-100/70 mt-0.5">Hạt Cà Phê Mộc</span>
+                                <span className="text-xl sm:text-2xl font-black text-amber-300">100%</span>
+                                <span className="text-xs text-slate-300/75 mt-0.5">Hạt Cà Phê Mộc</span>
                             </div>
-                            <div className="flex flex-col border-l border-white/10 pl-3">
-                                <span className="text-xl sm:text-2xl font-black text-sky-300">25 Phút</span>
-                                <span className="text-xs text-sky-100/70 mt-0.5">Giao Hàng Siêu Tốc</span>
+                            <div className="flex flex-col border-l border-white/10 pl-3 sm:pl-4">
+                                <span className="text-xl sm:text-2xl font-black text-amber-300">25 Phút</span>
+                                <span className="text-xs text-slate-300/75 mt-0.5">Giao Hàng Siêu Tốc</span>
                             </div>
-                            <div className="flex flex-col border-l border-white/10 pl-3">
-                                <span className="text-xl sm:text-2xl font-black text-sky-300">4.9 ★</span>
-                                <span className="text-xs text-sky-100/70 mt-0.5">Hài Lòng Từ Khách</span>
+                            <div className="flex flex-col border-l border-white/10 pl-3 sm:pl-4">
+                                <span className="text-xl sm:text-2xl font-black text-amber-300">4.9 ★</span>
+                                <span className="text-xs text-slate-300/75 mt-0.5">Hài Lòng Từ Khách</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Cột Phải: Ảnh Nghệ Thuật & Badges */}
-                    <div className="lg:col-span-5 relative flex items-center justify-center">
-                        <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-sky-500/20 bg-gradient-to-b from-sky-500/10 to-transparent p-2 shadow-2xl">
-                            <div className="overflow-hidden rounded-2xl bg-slate-900/60 aspect-4/3 sm:aspect-square">
-                                <img
-                                    src={hero}
-                                    alt="Ly cà phê nghệ thuật"
-                                    className="h-full w-full object-cover object-center transition-transform duration-700 hover:scale-105"
-                                />
+                    <div className="md:col-span-5 relative flex items-center justify-center mt-4 md:mt-0">
+                        {/* Floating Aura Halo behind image */}
+                        <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-600/20 blur-2xl pointer-events-none" />
+
+                        <div className="relative w-full max-w-[320px] sm:max-w-[360px] lg:max-w-md">
+                            {/* Main Card Frame */}
+                            <div className="overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-b from-white/10 via-black/30 to-black/60 p-3 shadow-2xl backdrop-blur-xl">
+                                <div className="overflow-hidden rounded-2xl bg-slate-950/80 aspect-square relative group">
+                                    <img
+                                        src={hero}
+                                        alt="Ly cà phê nghệ thuật"
+                                        className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+                                </div>
                             </div>
 
                             {/* Floating Badge 1: Món đặc trưng */}
-                            <div className="absolute -bottom-2 -left-2 sm:bottom-4 sm:left-4 flex items-center gap-3 rounded-2xl border border-white/20 bg-slate-900/80 p-3 shadow-xl backdrop-blur-md">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-sky-500/20 text-xl text-sky-300">
+                            <div className="absolute -bottom-3 -left-3 sm:bottom-2 sm:-left-4 flex items-center gap-3 rounded-2xl border border-white/20 bg-slate-950/85 p-3 shadow-2xl backdrop-blur-xl animate-in fade-in duration-500">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-xl text-white shadow-md shadow-amber-500/30">
                                     ☕
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-white">Signature Blend</p>
-                                    <p className="text-[11px] text-sky-200/70">Đậm đà chuẩn gu Việt</p>
+                                    <p className="text-[11px] text-amber-200/80">Đậm đà chuẩn gu Việt</p>
                                 </div>
                             </div>
 
                             {/* Floating Badge 2: Ưu đãi ship */}
-                            <div className="absolute -top-2 -right-2 sm:top-4 sm:right-4 rounded-2xl border border-white/20 bg-sky-900/80 px-3.5 py-2 shadow-xl backdrop-blur-md text-right">
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-200">
-                                    <span>🎉</span> Freeship đơn gần
+                            <div className="absolute -top-3 -right-3 sm:top-2 sm:-right-4 rounded-2xl border border-white/20 bg-sky-950/85 px-3.5 py-2 shadow-2xl backdrop-blur-xl animate-in fade-in duration-500">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-200">
+                                    <span className="text-sm">🎉</span> Freeship đơn gần
                                 </span>
                             </div>
                         </div>

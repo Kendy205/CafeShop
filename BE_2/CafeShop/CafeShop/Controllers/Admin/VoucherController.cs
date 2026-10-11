@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
 using Microsoft.AspNetCore.Authorization;

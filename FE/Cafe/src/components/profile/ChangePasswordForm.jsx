@@ -6,6 +6,11 @@ import { resetPasswordStatus } from '../../redux/slices/user/userSlice'
 import { AppToast, AppConfirm } from '../common/AppNotification'
 
 
+/**
+ * ChangePasswordForm Component
+ * Form cho phép người dùng đổi mật khẩu trong trang Profile.
+ * Kiểm tra xác nhận mật khẩu và gọi API changePassword.
+ */
 export default function ChangePasswordForm() {
     const dispatch = useDispatch()
     const { changingPassword } = useSelector((s) => s.user.profile)

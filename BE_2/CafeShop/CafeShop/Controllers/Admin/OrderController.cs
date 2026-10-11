@@ -1,10 +1,15 @@
-using CafeShop.DTO.Category;
-using CafeShop.DTO.Product;
+using CafeShop.DTO.Category.Requests;
+using CafeShop.DTO.Category.Responses;
+using CafeShop.DTO.Product.Requests;
+using CafeShop.DTO.Product.Responses;
 using CafeShop.DTO.User;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard;
-using CafeShop.DTO.Order;
+using CafeShop.DTO.Dashboard.Requests;
+using CafeShop.DTO.Dashboard.Responses;
+using CafeShop.DTO.Order.Requests;
+using CafeShop.DTO.Order.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -42,12 +47,35 @@ namespace CafeShop.Controllers.Admin
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] string? status = null)
+            [FromQuery] string? status = null,
+              [FromQuery] string? keyword = null,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null
+           )
         {
             try
             {
-                var result = await _orderService.GetAllOrdersAsync(pageNumber, pageSize, status);
+                var result = await _orderService.GetAllOrdersAsync(pageNumber, pageSize, status, startDate, endDate, keyword);
                 return Ok(ApiResponse<PagedResult<OrderResponseDto>>.Succeeded(result, 200, "Lấy danh sách đơn hàng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
+            }
+        }
+
+        [HttpGet("user/{userId:int}/completed")]
+        public async Task<IActionResult> GetUserCompletedOrders(
+            int userId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
+        {
+            try
+            {
+                var result = await _orderService.GetUserCompletedOrdersAsync(userId, pageNumber, pageSize, startDate, endDate);
+                return Ok(ApiResponse<PagedResult<OrderResponseDto>>.Succeeded(result, 200, "Lấy danh sách đơn hàng hoàn thành của khách hàng thành công"));
             }
             catch (Exception ex)
             {

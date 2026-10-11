@@ -1,5 +1,10 @@
 import React from 'react'
 
+/**
+ * AppButton Component
+ * Nút bấm (Button) dùng chung trên toàn hệ thống CafeShop.
+ * Quản lý các biến thể màu sắc (primary, danger, outline...) và kích thước để giao diện nhất quán.
+ */
 export default function AppButton({ 
     children, 
     variant = 'primary', 

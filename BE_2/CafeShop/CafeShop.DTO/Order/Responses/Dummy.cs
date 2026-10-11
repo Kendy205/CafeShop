@@ -1,0 +1,1 @@
+namespace CafeShop.DTO.Order.Responses { internal class Dummy { } }

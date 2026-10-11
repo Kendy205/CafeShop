@@ -1,4 +1,5 @@
-using CafeShop.DTO.Role;
+using CafeShop.DTO.Role.Requests;
+using CafeShop.DTO.Role.Responses;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

@@ -4,6 +4,11 @@ import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import GeneralSettingsTab from './GeneralSettingsTab'
 import AdminRoleTab from './AdminRoleTab'
 
+/**
+ * AdminSettingsPage Component
+ * Trang Cài đặt chung của hệ thống CafeShop.
+ * Tổ chức thành các Tabs: Cấu hình cửa hàng (GeneralSettingsTab) và Phân quyền (AdminRoleTab).
+ */
 export default function AdminSettingsPage() {
     const items = [
         {

@@ -150,5 +150,64 @@ namespace CafeShop.Repositories.Repository
 
             return stats.Select(s => (s.Status, s.Count)).ToList();
         }
+
+        public async Task<(IEnumerable<Order> Orders, int TotalCount)> GetAdminOrdersWithPagingAsync(
+            string? status,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? keyword,
+            int pageNumber,
+            int pageSize,
+            string? includeProperties = "User,Address")
+        {
+            IQueryable<Order> query = dbSet.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(includeProperties))
+            {
+                foreach (var includeProp in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProp.Trim());
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(o => o.CurrentStatus == status);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(o => o.OrderDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(o => o.OrderDate <= endDate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var trimmedKeyword = keyword.Trim();
+                bool isNumeric = int.TryParse(trimmedKeyword, out int numericKeyword);
+
+                query = query.Where(o =>
+                    (isNumeric && o.OrderId == numericKeyword) ||
+                    (o.RecipientName != null && o.RecipientName.Contains(trimmedKeyword)) ||
+                    (o.Phone != null && o.Phone.Contains(trimmedKeyword)) ||
+                    (o.User != null && o.User.FullName != null && o.User.FullName.Contains(trimmedKeyword)) ||
+                    (o.User != null && o.User.PhoneNumber != null && o.User.PhoneNumber.Contains(trimmedKeyword))
+                );
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (orders, totalCount);
+        }
     }
 }

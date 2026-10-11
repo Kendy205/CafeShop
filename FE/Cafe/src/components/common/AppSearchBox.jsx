@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useDebounce } from '../../hooks/useDebounce'
 
+/**
+ * AppSearchBox Component
+ * Ô tìm kiếm tái sử dụng ở nhiều nơi (quản lý, sản phẩm...).
+ * Có tích hợp sẵn useDebounce để chống gọi API liên tục khi người dùng đang gõ phím.
+ */
 export default function AppSearchBox({
     initialValue = '',
     placeholder = 'Tìm kiếm...',

@@ -22,6 +22,11 @@ import {
     replyToFeedback 
 } from '../../../redux/actions/admin/adminFeedbackAction'
 
+/**
+ * AdminFeedbackPage Component
+ * Trang quản lý đánh giá (Feedback) của khách hàng.
+ * Cho phép Admin xem, ẩn/hiện và trả lời đánh giá của người dùng.
+ */
 export default function AdminFeedbackPage() {
     const dispatch = useDispatch()
     const { feedbacks, total, page, pageSize, loading, actionLoading } = useSelector(s => s.admin.feedback)

@@ -1,0 +1,1 @@
+namespace CafeShop.DTO.Dashboard.Requests { internal class Dummy { } }

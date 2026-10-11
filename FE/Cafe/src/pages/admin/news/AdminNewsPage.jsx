@@ -46,6 +46,11 @@ const newsSchema = Yup.object().shape({
     scheduledPublishAt: Yup.string().nullable(),
 })
 
+/**
+ * AdminNewsPage Component
+ * Trang quản lý Tin tức / Bài viết (News/Blog) trong Admin.
+ * Hỗ trợ tạo bài viết với nội dung rich text, trạng thái xuất bản, và hẹn giờ đăng.
+ */
 const PAGE_SIZE = 10
 
 export default function AdminNewsPage() {

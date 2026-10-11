@@ -1,6 +1,7 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Voucher;
+using CafeShop.DTO.Voucher.Requests;
+using CafeShop.DTO.Voucher.Responses;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.IService.Users;
@@ -324,6 +325,107 @@ namespace CafeShop.Services.Services
 
             return (voucher.VoucherId, discount, voucher.ApplyType);
         }
-    }
 
+        public async Task<BestVoucherResponseDto?> GetBestVoucherAsync(int userId, BestVoucherRequestDto request)
+        {
+            // 1. Calculate order total
+            decimal orderTotal = 0;
+            if (request.IsBuyNow)
+            {
+                if (request.Items == null || !request.Items.Any()) return null;
+
+                foreach (var item in request.Items)
+                {
+                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == item.ProductId);
+                    if (product == null || !product.IsAvailable) continue;
+
+                    decimal unitPrice = product.BasePrice;
+                    if (item.SizeId.HasValue && item.SizeId.Value > 0)
+                    {
+                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
+                            ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value
+                        );
+                        if (productSize != null && productSize.Price.HasValue)
+                        {
+                            unitPrice = productSize.Price.Value;
+                        }
+                    }
+
+                    if (item.Toppings != null && item.Toppings.Any())
+                    {
+                        foreach (var top in item.Toppings)
+                        {
+                            var toppingInfo = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == top.ToppingId);
+                            if (toppingInfo != null && toppingInfo.IsAvailable)
+                            {
+                                unitPrice += (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
+                            }
+                        }
+                    }
+
+                    orderTotal += unitPrice * (item.Quantity > 0 ? item.Quantity : 1);
+                }
+            }
+            else
+            {
+                var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active", "CartItems");
+                if (cart == null || !cart.CartItems.Any()) return null;
+                orderTotal = cart.CartItems.Sum(x => x.UnitPrice * x.Quantity);
+            }
+
+            // 2. Tính phí ship
+            decimal shippingFee = await _shippingService.CalculateFeeAsync(request.DistanceKm, orderTotal);
+
+            // 3. Get available vouchers
+            var availableVouchersDto = await GetAvailableVouchersAsync(userId);
+            if (!availableVouchersDto.Any()) return null;
+
+            // 4. Find the best one
+            BestVoucherResponseDto? bestVoucher = null;
+            decimal maxDiscount = 0;
+
+            foreach (var dto in availableVouchersDto)
+            {
+                var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId);
+                if (voucher == null) continue;
+
+                UserVoucher? userVoucher = null;
+                if (VoucherTypeTarget.IsUser(voucher.TargetType))
+                {
+                    userVoucher = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(uv => uv.UserId == userId && uv.VoucherId == voucher.VoucherId);
+                }
+
+                try
+                {
+                    decimal discount = ValidateAndCalculateDiscount(voucher, userId, orderTotal, shippingFee, userVoucher);
+                    if (discount > maxDiscount)
+                    {
+                        maxDiscount = discount;
+                        decimal finalShippingFee = shippingFee;
+                        decimal finalOrderAmount = orderTotal;
+
+                        if (voucher.ApplyType == VoucherApplyType.SHIPPING)
+                            finalShippingFee = Math.Max(0, shippingFee - discount);
+                        else
+                            finalOrderAmount = Math.Max(0, orderTotal - discount);
+
+                        bestVoucher = new BestVoucherResponseDto
+                        {
+                            Voucher = dto,
+                            DiscountAmount = discount,
+                            FinalOrderAmount = finalOrderAmount,
+                            FinalShippingFee = finalShippingFee,
+                            FinalTotal = finalOrderAmount + finalShippingFee
+                        };
+                    }
+                }
+                catch (ArgumentException)
+                {
+                    // Ignore vouchers that fail validation
+                }
+            }
+
+            return bestVoucher;
+        }
+    }
 }

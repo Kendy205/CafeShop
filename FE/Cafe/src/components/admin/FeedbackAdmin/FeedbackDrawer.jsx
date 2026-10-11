@@ -6,6 +6,11 @@ import { fetchAllFeedbacks, replyToFeedback } from '../../../redux/actions/admin
 import { CheckCircleOutlined, MessageOutlined, EditOutlined } from '@ant-design/icons'
 import AdminTable from '../common/AdminTable'
 
+/**
+ * FeedbackDrawer Component
+ * Drawer (ngăn kéo) hiển thị trong Admin để quản lý đánh giá của một sản phẩm.
+ * Liệt kê danh sách feedback, hỗ trợ phân trang và cho phép Admin gửi phản hồi (reply).
+ */
 export default function FeedbackDrawer({ productId, open, onClose }) {
     const dispatch = useDispatch()
     const { feedbacks, total, page, pageSize, loading, actionLoading } = useSelector(s => s.admin.feedback)

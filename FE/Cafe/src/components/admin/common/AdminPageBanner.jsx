@@ -1,5 +1,10 @@
 import { ThunderboltOutlined } from '@ant-design/icons'
 
+/**
+ * AdminPageBanner Component
+ * Banner lớn hiển thị ở đầu các trang quản trị (Admin Dashboard, Quản lý sản phẩm, Đơn hàng...).
+ * Thiết kế hiện đại với background gradient, hiệu ứng ánh sáng (glowing aura) và hỗ trợ hiển thị action button.
+ */
 export default function AdminPageBanner({
     badge = 'Hệ Thống Quản Trị CafeShop',
     title,

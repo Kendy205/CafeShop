@@ -10,6 +10,11 @@ import CartItem from '../../components/cart/CartItem'
 import { AppToast, AppConfirm } from '../../components/common/AppNotification'
 
 
+/**
+ * CartPage Component
+ * Trang xem Giỏ hàng của người dùng.
+ * Liệt kê danh sách sản phẩm, báo lỗi nếu vượt tồn kho, và tính tổng tiền giỏ hàng.
+ */
 export default function CartPage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()

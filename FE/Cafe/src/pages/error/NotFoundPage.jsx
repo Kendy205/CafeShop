@@ -1,5 +1,10 @@
 import { Link } from 'react-router-dom'
 
+/**
+ * NotFoundPage Component
+ * Trang hiển thị lỗi 404 khi người dùng truy cập vào một đường dẫn (route) không tồn tại.
+ * Cung cấp nút điều hướng để quay lại trang chủ.
+ */
 const NotFoundPage = () => {
     return (
         <div className="flex flex-col justify-center items-center py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 font-sans min-h-[70vh]">

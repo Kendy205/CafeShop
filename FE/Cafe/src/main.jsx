@@ -1,3 +1,9 @@
+/**
+ * Entry Point (main.jsx)
+ * Điểm khởi chạy của ứng dụng React. 
+ * Khởi tạo Redux Store injection cho Axios interceptors, bọc ErrorBoundary để bắt lỗi giao diện, 
+ * và gắn kết React tree vào DOM.
+ */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

@@ -1,6 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { hideApiError } from '../../redux/slices/uiSlice'
 
+/**
+ * ApiErrorModal Component
+ * Modal bật lên tự động khi có lỗi từ API (chặn bởi Axios Interceptor).
+ * Hiển thị lỗi hệ thống hoặc thất bại một cách thân thiện thay vì break UI.
+ */
 export default function ApiErrorModal() {
     const dispatch = useDispatch()
     const { show, message, statusCode } = useSelector((state) => state.app.ui.apiError)

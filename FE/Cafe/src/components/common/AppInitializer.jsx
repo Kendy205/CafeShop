@@ -2,6 +2,11 @@ import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { fetchStoreProfile } from '../../redux/slices/storeProfileSlice'
 
+/**
+ * AppInitializer Component
+ * Component chạy một lần duy nhất lúc khởi động app.
+ * Dùng để fetch trước (preload) các dữ liệu public dùng chung (như cấu hình cửa hàng, menu ban đầu).
+ */
 export default function AppInitializer() {
     const dispatch = useDispatch()
 

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
-using CafeShop.DTO.News;
+using CafeShop.DTO.News.Requests;
+using CafeShop.DTO.News.Responses;
 using CafeShop.Service.Helpers;
 
 namespace CafeShop.Service.IService

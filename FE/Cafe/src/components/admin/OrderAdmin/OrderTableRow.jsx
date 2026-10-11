@@ -16,6 +16,11 @@ function formatDate(str) {
     })
 }
 
+/**
+ * OrderTableRow Component
+ * Component render từng dòng (row) trong bảng quản lý đơn hàng của Admin.
+ * Tối ưu performance với React.memo, xử lý hiển thị trạng thái và hành động nhanh (hủy đơn, duyệt đơn).
+ */
 const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }) => {
     const sc = getStatusConfig(order.currentStatus)
     const nextStatuses = NEXT_STATUSES[order.currentStatus?.toUpperCase()] ?? []
@@ -35,37 +40,39 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
                 onClick={() => onSelectOrder(order.orderId)}
                 className="hover:bg-sky-50/60 cursor-pointer transition-colors group"
             >
-                <td className="px-5 py-4 font-bold text-slate-800">
+                <td className="px-4 py-3 sm:py-3.5 font-bold text-slate-800">
                     <span className="group-hover:text-sky-600 transition-colors font-black">
                         #{order.orderId}
                     </span>
                 </td>
-                <td className="px-5 py-4">
-                    <p className="font-semibold text-slate-800 group-hover:text-sky-900 transition-colors">
-                        {order.userName || order.UserName || order.customerName || '-'}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                        {order.userPhone || order.UserPhone || order.customerPhone || '-'}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-1" title={order.shippingAddress}>
-                        {order.shippingAddress || '-'}
-                    </p>
+                <td className="px-4 py-3 sm:py-3.5">
+                    <div className="max-w-[170px] sm:max-w-[220px]">
+                        <p className="font-semibold text-slate-800 group-hover:text-sky-900 transition-colors truncate">
+                            {order.userName || order.UserName || order.customerName || '-'}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                            {order.userPhone || order.UserPhone || order.customerPhone || '-'}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-1" title={order.shippingAddress}>
+                            {order.shippingAddress || '-'}
+                        </p>
+                    </div>
                 </td>
-                <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
+                <td className="px-4 py-3 sm:py-3.5 text-xs text-slate-500 whitespace-nowrap">
                     {formatDate(order.orderDate)}
                 </td>
-                <td className="px-5 py-4 text-right font-black text-sky-900 whitespace-nowrap">
+                <td className="px-4 py-3 sm:py-3.5 text-right font-black text-sky-900 whitespace-nowrap">
                     {formatCurrency(order.totalAmount)}
                 </td>
-                <td className="px-5 py-4 text-center">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold shadow-2xs ${sc.color}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${sc.dot || 'bg-slate-400'}`} />
-                        {sc.label}
+                <td className="px-4 py-3 sm:py-3.5 text-center whitespace-nowrap min-w-[140px]">
+                    <span className={`inline-flex h-8 min-w-[124px] items-center justify-center gap-1.5 rounded-2xl border px-3 text-xs font-bold shadow-2xs whitespace-nowrap ${sc.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${sc.dot || 'bg-slate-400'} shrink-0`} />
+                        <span>{sc.label}</span>
                     </span>
                 </td>
 
                 {/* Nút tiến trình nhanh (chuyển sang trạng thái kế tiếp) */}
-                <td className="px-5 py-4 text-center">
+                <td className="px-4 py-3 sm:py-3.5 text-center whitespace-nowrap min-w-[140px]">
                     {nextProgressStatus ? (
                         <AdminTooltip
                             title={`Bấm để chuyển sang: ${getStatusConfig(nextProgressStatus).label}`}
@@ -77,23 +84,23 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
                                     onUpdateStatus(order.orderId, nextProgressStatus)
                                 }}
                                 disabled={isUpdating}
-                                className="inline-flex h-8 items-center gap-1.5 rounded-2xl bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700 px-3 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 border border-slate-200 hover:border-sky-300"
+                                className="inline-flex h-8 min-w-[124px] items-center justify-center gap-1.5 rounded-2xl bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700 px-3 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 border border-slate-200 hover:border-sky-300 whitespace-nowrap"
                             >
                                 {isUpdating ? (
                                     <span className="animate-spin text-sky-500">⏳</span>
                                 ) : (
-                                    <span className="text-sky-500 text-lg leading-none mt-[-2px]">»</span>
+                                    <span className="text-sky-500 text-base leading-none font-black">»</span>
                                 )}
                                 <span className="text-sky-700">{getStatusConfig(nextProgressStatus).label}</span>
                             </button>
                         </AdminTooltip>
                     ) : (
-                        <span className="text-slate-300 font-medium">-</span>
+                        <span className="inline-flex h-8 min-w-[124px] items-center justify-center text-slate-300 font-medium">-</span>
                     )}
                 </td>
 
-                {/* Hành động: Xem chi tiết + Hủy đơn */}
-                <td className="px-5 py-4 text-center">
+                {/* Hành động: Xem chi tiết + Hủy đơn (Sticky right) */}
+                <td className="px-4 py-3 sm:py-3.5 text-center whitespace-nowrap sticky right-0 bg-white group-hover:bg-sky-50/60 shadow-[-6px_0_10px_rgba(0,0,0,0.04)] transition-colors z-10">
                     <div className="flex items-center justify-center gap-2">
                         <AdminTooltip title="Xem chi tiết đơn hàng">
                             <button
