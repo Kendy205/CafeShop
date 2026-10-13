@@ -1,6 +1,7 @@
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Auth.Requests;
 using CafeShop.DTO.Auth.Responses;
+using CafeShop.Uitls;
 
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
@@ -49,7 +50,7 @@ namespace CafeShop.Services.Services
                 PasswordHash = passwordHash,
                 FullName = dto.FullName,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.VietnamNow
             };
 
             // TẠO LUÔN GIỎ HÀNG TRỐNG CHO KHÁCH HÀNG MỚI
@@ -101,7 +102,7 @@ namespace CafeShop.Services.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTimeHelper.VietnamNow.AddDays(7);
 
             _unitOfWork.User.Update(user);
             await _unitOfWork.SaveAsync();
@@ -115,29 +116,33 @@ namespace CafeShop.Services.Services
             return response;
         }
 
-        public async Task<AuthResponseDto> RefreshTokenAsync(AuthResponseDto dto)
+        public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto dto)
         {
-            var principal = GetPrincipalFromExpiredToken(dto.AccessToken);
-            if (principal == null)
+            if (dto == null || string.IsNullOrWhiteSpace(dto.RefreshToken))
             {
-                throw new UnauthorizedAccessException("Access Token không hợp lệ!");
+                throw new UnauthorizedAccessException("Refresh Token không hợp lệ!");
             }
 
-            // Tìm user dựa trên Username được lưu trong Claims và include Roles
-            var username = principal.FindFirst(ClaimTypes.Name)?.Value;
+            // Tìm user dựa trên RefreshToken
             var user = await _unitOfWork.User.GetFirstOrDefaultAsync(
-                u => u.Username == username,
+                u => u.RefreshToken == dto.RefreshToken,
                 includeProperties: "UserRoles,UserRoles.Role,UserRoles.Role.RolePermissions,UserRoles.Role.RolePermissions.Permission");
 
-            if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            if (user == null || user.RefreshTokenExpiryTime <= DateTimeHelper.VietnamNow)
             {
                 throw new UnauthorizedAccessException("Refresh Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
+            }
+
+            if (!user.IsActive)
+            {
+                throw new UnauthorizedAccessException("Tài khoản của bạn đã bị khóa!");
             }
 
             var newAccessToken = GenerateAccessToken(user);
             var newRefreshToken = GenerateRefreshToken();
 
             user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTimeHelper.VietnamNow.AddDays(7);
             _unitOfWork.User.Update(user);
             await _unitOfWork.SaveAsync();
 
@@ -210,7 +215,7 @@ namespace CafeShop.Services.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(3),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -220,29 +225,5 @@ namespace CafeShop.Services.Services
             return tokenHandler.WriteToken(token);
         }
 
-        private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
-        {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = _config["Jwt:Issuer"],
-                ValidAudience = _config["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"])),
-                ValidateLifetime = false
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-
-            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Token không hợp lệ");
-            }
-
-            return principal;
-        }
     }
 }

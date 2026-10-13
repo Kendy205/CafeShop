@@ -30,6 +30,8 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<DashboardSummaryDto> GetSummaryMetricsAsync(DateTime? startDate, DateTime? endDate)
         {
+            (startDate, endDate) = NormalizeDateRange(startDate, endDate);
+
             var totalRevenue = await _unitOfWork.Order.GetTotalRevenueAsync(startDate, endDate);
             var totalProductsSold = await _unitOfWork.Order.GetTotalProductsSoldAsync(startDate, endDate);
             
@@ -75,6 +77,8 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<List<TopProductDto>> GetTopProductsAsync(int top, DateTime? startDate, DateTime? endDate)
         {
+            (startDate, endDate) = NormalizeDateRange(startDate, endDate);
+
             var topSellingProducts = await _unitOfWork.Order.GetTopSellingProductsForAdminAsync(top, startDate, endDate);
 
             var topProducts = topSellingProducts.Select(tp => 
@@ -128,6 +132,8 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<List<TopCustomerDto>> GetTopCustomersAsync(int top, DateTime? startDate, DateTime? endDate)
         {
+            (startDate, endDate) = NormalizeDateRange(startDate, endDate);
+
             var topCustomers = await _unitOfWork.Order.GetTopCustomersForAdminAsync(top, startDate, endDate);
 
             var result = topCustomers.Select(tc => new TopCustomerDto
@@ -145,6 +151,8 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<List<RevenueChartDto>> GetRevenueChartDataAsync(DateTime? startDate, DateTime? endDate)
         {
+            (startDate, endDate) = NormalizeDateRange(startDate, endDate);
+
             var chartData = await _unitOfWork.Order.GetRevenueChartDataAsync(startDate, endDate);
             
             return chartData.Select(c => new RevenueChartDto
@@ -156,6 +164,8 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<List<OrderStatusStatDto>> GetOrderStatusStatsAsync(DateTime? startDate, DateTime? endDate)
         {
+            (startDate, endDate) = NormalizeDateRange(startDate, endDate);
+
             var stats = await _unitOfWork.Order.GetOrderStatusStatsAsync(startDate, endDate);
 
             return stats.Select(s => new OrderStatusStatDto
@@ -163,6 +173,20 @@ namespace CafeShop.Service.Service.Admin
                 Status = s.Status,
                 Count = s.Count
             }).ToList();
+        }
+
+        private static (DateTime? Start, DateTime? End) NormalizeDateRange(DateTime? startDate, DateTime? endDate)
+        {
+            DateTime? start = startDate;
+            DateTime? end = endDate;
+
+            if (end.HasValue && end.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                // Mở rộng thời gian đến hết ngày 23:59:59.9999999
+                end = end.Value.Date.AddDays(1).AddTicks(-1);
+            }
+
+            return (start, end);
         }
     }
 }

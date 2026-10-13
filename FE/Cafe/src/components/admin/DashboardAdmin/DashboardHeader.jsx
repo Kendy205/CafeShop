@@ -1,17 +1,53 @@
 import { DatePicker } from 'antd'
 import { Link } from 'react-router-dom'
+import dayjs from 'dayjs'
 import {
     ShoppingCartOutlined,
     ThunderboltOutlined,
     SyncOutlined,
+    CalendarOutlined,
 } from '@ant-design/icons'
 
 const { RangePicker } = DatePicker
 
+// Hàm so sánh 2 khoảng thời gian theo ngày
+const isSameDayRange = (currentDates, start, end) => {
+    if (!currentDates || !currentDates[0] || !currentDates[1] || !start || !end) return false
+    return currentDates[0].isSame(start, 'day') && currentDates[1].isSame(end, 'day')
+}
+
+// Cấu hình các nút lọc nhanh
+const QUICK_FILTERS = [
+    {
+        id: 'today',
+        label: 'Hôm nay',
+        getRange: () => [dayjs(), dayjs()],
+    },
+    {
+        id: '7days',
+        label: '7 ngày',
+        getRange: () => [dayjs().subtract(7, 'days'), dayjs()],
+    },
+    {
+        id: '30days',
+        label: '30 ngày',
+        getRange: () => [dayjs().subtract(30, 'days'), dayjs()],
+    },
+]
+
+// Presets hiển thị trong popup của RangePicker
+const RANGE_PRESETS = [
+    { label: 'Hôm nay', value: [dayjs(), dayjs()] },
+    { label: '7 ngày qua', value: [dayjs().subtract(7, 'days'), dayjs()] },
+    { label: '30 ngày qua', value: [dayjs().subtract(30, 'days'), dayjs()] },
+    { label: 'Tuần này', value: [dayjs().startOf('week'), dayjs().endOf('week')] },
+    { label: 'Tháng này', value: [dayjs().startOf('month'), dayjs().endOf('month')] },
+]
+
 /**
  * DashboardHeader Component
  * Header của trang Admin Dashboard.
- * Hiển thị tiêu đề, mô tả và bộ lọc khoảng thời gian (RangePicker), cùng nút làm mới dữ liệu.
+ * Hiển thị tiêu đề, mô tả và bộ lọc khoảng thời gian (Quick presets & RangePicker), cùng nút làm mới dữ liệu.
  */
 export default function DashboardHeader({ dates, setDates, loading, onRefresh }) {
     return (
@@ -45,14 +81,47 @@ export default function DashboardHeader({ dates, setDates, loading, onRefresh })
 
                 {/* Filter & Action Buttons */}
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="bg-white/10 backdrop-blur-md p-1 rounded-2xl border border-white/15">
-                        <RangePicker 
-                            value={dates}
-                            onChange={val => setDates(val)}
-                            className="border-0 bg-transparent text-white font-medium"
-                            allowClear={false}
-                            format="DD/MM/YYYY"
-                        />
+                    {/* Cụm bộ lọc thời gian: Nút chọn nhanh + RangePicker */}
+                    <div className="flex flex-wrap items-center gap-1.5 bg-white/10 backdrop-blur-md p-1.5 rounded-2xl border border-white/15 shadow-inner">
+                        {/* Các nút chọn nhanh: Hôm nay, 7 ngày, 30 ngày */}
+                        <div className="flex items-center gap-1">
+                            {QUICK_FILTERS.map((item) => {
+                                const range = item.getRange()
+                                const isActive = isSameDayRange(dates, range[0], range[1])
+                                return (
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => setDates(range)}
+                                        className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                                            isActive
+                                                ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30'
+                                                : 'text-slate-300 hover:text-white hover:bg-white/10'
+                                        }`}
+                                    >
+                                        {item.label}
+                                    </button>
+                                )
+                            })}
+                        </div>
+
+                        <div className="hidden sm:block h-5 w-px bg-white/20 mx-0.5" />
+
+                        {/* Bộ chọn khoảng ngày tùy chỉnh */}
+                        <div className="relative">
+                            <RangePicker 
+                                value={dates}
+                                onChange={val => {
+                                    if (val && val[0] && val[1]) {
+                                        setDates(val)
+                                    }
+                                }}
+                                className="border-0 bg-transparent text-white font-medium hover:bg-white/5 transition-colors rounded-xl [&_input]:text-white [&_input::placeholder]:text-slate-400 [&_.ant-picker-separator]:text-slate-300 [&_.ant-picker-suffix]:text-sky-300"
+                                allowClear={false}
+                                format="DD/MM/YYYY"
+                                presets={RANGE_PRESETS}
+                            />
+                        </div>
                     </div>
                     <button
                         onClick={onRefresh}

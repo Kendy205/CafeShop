@@ -56,7 +56,7 @@ namespace CafeShop.Service.Service.Users
                 OrderDetailId = request.OrderDetailId,
                 Rating = request.Rating,
                 Comment = request.Comment,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeHelper.VietnamNow,
                 IsVisible = true
             };
 
@@ -105,7 +105,7 @@ namespace CafeShop.Service.Service.Users
                     FeedbackId = feedbackId,
                     ImageUrl = result.SecureUrl.ToString(),
                     ImagePublicId = result.PublicId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.VietnamNow
                 };
                 await _unitOfWork.FeedbackImage.AddAsync(feedbackImage);
             }
@@ -154,7 +154,7 @@ namespace CafeShop.Service.Service.Users
 
             feedback.Rating = request.Rating;
             feedback.Comment = request.Comment;
-            feedback.UpdatedAt = DateTime.UtcNow;
+            feedback.UpdatedAt = DateTimeHelper.VietnamNow;
 
             _unitOfWork.Feedback.Update(feedback);
             await _unitOfWork.SaveAsync();

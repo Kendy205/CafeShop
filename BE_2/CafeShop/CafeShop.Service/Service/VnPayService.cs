@@ -14,6 +14,13 @@ using System.Threading.Tasks;
 
 namespace CafeShop.Service.Service
 {
+    /// <summary>
+    /// Service xử lý toàn bộ logic tích hợp cổng thanh toán VNPay:
+    /// - Sinh URL thanh toán có chữ ký HMAC-SHA512
+    /// - Tạo URL thanh toán lại cho đơn hàng chưa thanh toán
+    /// - Tiếp nhận và xử lý Return Callback (chuyển hướng trình duyệt)
+    /// - Tiếp nhận và xử lý Webhook IPN (Server-to-Server an toàn với Database Transaction)
+    /// </summary>
     public class VnPayService : IVnPayService
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -36,10 +43,16 @@ namespace CafeShop.Service.Service
             _logger = logger;
         }
 
+        /// <summary>
+        /// Tạo URL thanh toán VNPay trực tiếp từ đối tượng Order:
+        /// - Đóng gói các tham số theo chuẩn VNPay (vnp_Version, vnp_Command, vnp_TmnCode, vnp_Amount,...)
+        /// - Số tiền thanh toán: Lấy từ order.TotalAmount (đã trừ voucher) nhân 100
+        /// - Mã giao dịch vnp_TxnRef: Gắn kèm timestamp {OrderId}_{yyyyMMddHHmmss} để đảm bảo tính duy nhất trong ngày
+        /// </summary>
         public string CreatePaymentUrl(Order order, string ipAddress)
         {
             var vnpay = new VnPayLibrary();
-            var payDate = DateTime.UtcNow.AddHours(7); // Giờ Việt Nam
+            var payDate = DateTimeHelper.VietnamNow; // Giờ chuẩn Việt Nam (GMT+7)
 
             // Gắn timestamp vào TxnRef để mỗi lần thử thanh toán đều là duy nhất đối với cổng VNPay
             string txnRef = $"{order.OrderId}_{payDate:yyyyMMddHHmmss}";
@@ -61,6 +74,12 @@ namespace CafeShop.Service.Service
             return vnpay.CreateRequestUrl(_settings.BaseUrl, _settings.HashSecret);
         }
 
+        /// <summary>
+        /// Tạo URL thanh toán VNPay cho đơn hàng cũ chưa thanh toán:
+        /// - Kiểm tra đơn hàng có tồn tại không
+        /// - Kiểm tra quyền sở hữu đơn hàng của user (bảo mật)
+        /// - Chặn thanh toán nếu đơn hàng đã thanh toán rồi hoặc đã bị hủy
+        /// </summary>
         public async Task<VnPayPaymentUrlResponseDto> CreatePaymentUrlAsync(int orderId, int userId, string ipAddress)
         {
             var order = await _unitOfWork.Order.GetFirstOrDefaultAsync(o => o.OrderId == orderId);
@@ -94,6 +113,12 @@ namespace CafeShop.Service.Service
             };
         }
 
+        /// <summary>
+        /// Xử lý Return Callback khi VNPay redirect trình duyệt khách hàng về:
+        /// 1. Kiểm tra chữ ký bảo mật vnp_SecureHash
+        /// 2. Tách OrderId từ vnp_TxnRef
+        /// 3. Dịch mã kết quả giao dịch vnp_ResponseCode thành thông báo tiếng Việt
+        /// </summary>
         public async Task<VnPayCallbackResultDto> ProcessReturnCallbackAsync(IQueryCollection query)
         {
             var vnpay = new VnPayLibrary();
@@ -139,6 +164,17 @@ namespace CafeShop.Service.Service
             });
         }
 
+        /// <summary>
+        /// Xử lý Webhook IPN (Instant Payment Notification - Server to Server):
+        /// - Kênh chuẩn xác và an toàn nhất để cập nhật database khi có giao dịch
+        /// - 1. Kiểm tra chữ ký số (Checksum) bằng HMAC-SHA512
+        /// - 2. Kiểm tra sự tồn tại của đơn hàng
+        /// - 3. Kiểm tra số tiền thực nhận có khớp với TotalAmount trong Database không
+        /// - 4. Kiểm tra trạng thái đơn (chống lặp Idempotency)
+        /// - 5. Dùng Database Transaction cập nhật Order.PaymentStatus và lưu bản ghi Payments
+        /// - 6. Bắn thông báo Realtime SignalR cho người dùng
+        /// - 7. Trả mã phản hồi đúng chuẩn VNPay: { RspCode: "00", Message: "Confirm Success" }
+        /// </summary>
         public async Task<VnPayIpnResponseDto> ProcessIpnCallbackAsync(IQueryCollection query)
         {
             try
@@ -152,13 +188,14 @@ namespace CafeShop.Service.Service
                     }
                 }
 
+                // 1. Kiểm tra chữ ký điện tử HMAC-SHA512
                 string vnp_SecureHash = query["vnp_SecureHash"]!;
                 bool isValidSignature = vnpay.ValidateSignature(vnp_SecureHash, _settings.HashSecret);
 
                 if (!isValidSignature)
                 {
                     _logger.LogWarning("VNPay IPN: Invalid signature detected.");
-                    return VnPayIpnResponseDto.InvalidSignature();
+                    return VnPayIpnResponseDto.InvalidSignature(); // Trả mã 97: Invalid Checksum
                 }
 
                 string vnp_TxnRef = vnpay.GetResponseData("vnp_TxnRef");
@@ -169,24 +206,28 @@ namespace CafeShop.Service.Service
                 long vnp_Amount = long.TryParse(vnpay.GetResponseData("vnp_Amount"), out var amt) ? amt : 0;
                 decimal amount = vnp_Amount / 100m;
 
+                // 2. Kiểm tra đơn hàng có tồn tại không
                 var order = await _unitOfWork.Order.GetFirstOrDefaultAsync(o => o.OrderId == orderId);
                 if (order == null)
                 {
                     _logger.LogWarning("VNPay IPN: Order {OrderId} not found.", orderId);
-                    return VnPayIpnResponseDto.OrderNotFound();
+                    return VnPayIpnResponseDto.OrderNotFound(); // Trả mã 01: Order not found
                 }
 
+                // 3. Kiểm tra tính toàn vẹn số tiền
                 if (order.TotalAmount != amount)
                 {
                     _logger.LogWarning("VNPay IPN: Order {OrderId} invalid amount. Expected: {Expected}, Actual: {Actual}", orderId, order.TotalAmount, amount);
-                    return VnPayIpnResponseDto.InvalidAmount();
+                    return VnPayIpnResponseDto.InvalidAmount(); // Trả mã 04: Invalid amount
                 }
 
+                // 4. Chống lặp (Idempotency): Nếu đơn hàng đã được xác nhận thanh toán rồi
                 if (string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase))
                 {
-                    return VnPayIpnResponseDto.OrderAlreadyConfirmed();
+                    return VnPayIpnResponseDto.OrderAlreadyConfirmed(); // Trả mã 02: Order already confirmed
                 }
 
+                // 5. Thực hiện cập nhật Database bằng Transaction
                 using var transaction = await _unitOfWork.BeginTransactionAsync();
                 try
                 {
@@ -205,8 +246,8 @@ namespace CafeShop.Service.Service
                             TransactionCode = vnp_TransactionNo,
                             Amount = amount,
                             PaymentStatus = PaymentStatusConstants.PaymentSuccess,
-                            PaidAt = DateTime.UtcNow,
-                            CreatedAt = DateTime.UtcNow
+                            PaidAt = DateTimeHelper.VietnamNow,
+                            CreatedAt = DateTimeHelper.VietnamNow
                         };
 
                         await _unitOfWork.Payment.AddAsync(payment);
@@ -225,7 +266,7 @@ namespace CafeShop.Service.Service
                             Amount = amount,
                             PaymentStatus = PaymentStatusConstants.PaymentFailed,
                             ErrorMessage = GetVnPayErrorMessage(vnp_ResponseCode),
-                            CreatedAt = DateTime.UtcNow
+                            CreatedAt = DateTimeHelper.VietnamNow
                         };
 
                         await _unitOfWork.Payment.AddAsync(payment);
@@ -235,6 +276,7 @@ namespace CafeShop.Service.Service
                     await _unitOfWork.SaveAsync();
                     await transaction.CommitAsync();
 
+                    // Bắn thông báo Realtime nếu thành công
                     if (isSuccess)
                     {
                         try
@@ -244,7 +286,7 @@ namespace CafeShop.Service.Service
                         catch { /* Ignore notification error */ }
                     }
 
-                    return VnPayIpnResponseDto.Success();
+                    return VnPayIpnResponseDto.Success(); // Trả mã 00: Confirm Success
                 }
                 catch (Exception ex)
                 {
@@ -260,6 +302,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Tách lấy OrderId từ mã vnp_TxnRef dạng {OrderId}_{Timestamp}.
+        /// </summary>
         private static int ParseOrderIdFromTxnRef(string txnRef)
         {
             if (string.IsNullOrEmpty(txnRef)) return 0;
@@ -267,6 +312,9 @@ namespace CafeShop.Service.Service
             return int.TryParse(parts[0], out int id) ? id : 0;
         }
 
+        /// <summary>
+        /// Tra cứu thông điệp lỗi tương ứng với mã vnp_ResponseCode từ cổng VNPay.
+        /// </summary>
         private static string GetVnPayErrorMessage(string responseCode)
         {
             return responseCode switch

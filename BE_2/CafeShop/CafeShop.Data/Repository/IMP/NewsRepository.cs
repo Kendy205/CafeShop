@@ -23,7 +23,7 @@ namespace CafeShop.Repositories.Repository
 
             if (onlyPublished)
             {
-                query = query.Where(n => n.Status == "Published" && n.PublishedAt != null && n.PublishedAt <= System.DateTime.UtcNow);
+                query = query.Where(n => n.Status == "Published" && n.PublishedAt != null && n.PublishedAt <= CafeShop.Uitls.DateTimeHelper.VietnamNow);
             }
             else if (!string.IsNullOrEmpty(status))
             {

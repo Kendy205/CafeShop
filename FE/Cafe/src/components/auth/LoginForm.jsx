@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { login } from '../../redux/actions/authAction'
 import { clearAuthError } from '../../redux/slices/authSlice'
-import { isAdminRole } from '../../utils/auth/authRole'
+import { isAdminRole, isStaffRole } from '../../utils/auth/authRole'
 import { useEffect, useState } from 'react'
 import LoadingLink from '../loading/LoadingLink'
 
@@ -44,6 +44,8 @@ export default function LoginForm({ onSwitchRegister, onSuccess, isModal = false
 
                     if (isAdminRole(userRole)) {
                         navigate('/admin', { replace: true })
+                    } else if (isStaffRole(userRole)) {
+                        navigate('/staff/orders', { replace: true })
                     } else {
                         // Lấy trang định đến từ sessionStorage (ProtectedRoute lưu) hoặc location.state
                         const redirectTo =

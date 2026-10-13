@@ -9,7 +9,7 @@ namespace CafeShop.Data.Repository.Extensions
     {
         public static IQueryable<News> Published(this IQueryable<News> query)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTimeHelper.VietnamNow;
             return query.Where(n => !n.IsDeleted && 
                                     n.Status == NewsStatus.Published && 
                                     n.PublishedAt <= now);

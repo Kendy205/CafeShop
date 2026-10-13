@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -23,7 +24,7 @@ namespace CafeShop.Model
         [StringLength(500)]
         public string? FullAddress { get; set; }
 
-        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+        public DateTime OrderDate { get; set; } = DateTimeHelper.VietnamNow;
         public decimal SubTotal { get; set; }
         public decimal TotalAmount { get; set; }
         public string? PaymentMethod { get; set; } // Giữ lại cho tương thích ngược tạm thời

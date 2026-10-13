@@ -13,6 +13,6 @@ namespace CafeShop.Service.IService
     {
         Task<AuthResponseDto> LoginAsync(LoginRequestDto request);
         Task<string> RegisterAsync(RegisterRequestDto request);
-        Task<AuthResponseDto> RefreshTokenAsync(AuthResponseDto request);
+        Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request);
     }
 }

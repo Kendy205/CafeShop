@@ -5,11 +5,11 @@ export const REFRESH_TOKEN = 'refreshToken'
 export const USER_ROLE = 'userRole'
 export const USER_INFO = 'userInfo'
 
-/** Role theo API (login trả `"Customer"`; admin quản lý voucher) */
-export const ROLE_CUSTOMER = 'CUSTOMER'
+/** Role theo backend SystemRole */
 export const ROLE_USER = 'USER'
+export const ROLE_STAFF = 'STAFF'
 export const ROLE_ADMIN = 'ADMIN'
-export const ROLE_ADMINISTRATOR = 'ADMINISTRATOR'
 
-export const ADMIN_ROLES = [ROLE_ADMIN, ROLE_ADMINISTRATOR]
-export const CUSTOMER_ROLES = [ROLE_CUSTOMER, ROLE_USER, ROLE_ADMIN, ROLE_ADMINISTRATOR]
+export const ADMIN_ROLES = [ROLE_ADMIN]
+export const STAFF_ROLES = [ROLE_STAFF, ROLE_ADMIN]
+export const CUSTOMER_ROLES = [ROLE_USER, ROLE_STAFF, ROLE_ADMIN]

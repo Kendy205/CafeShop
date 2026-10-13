@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Address;
 using CafeShop.Model;
 using CafeShop.Services.IServices;
+using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +52,7 @@ namespace CafeShop.Services.Services
         {
             var address = _mapper.Map<Address>(request);
             address.UserId = userId;
-            address.CreatedAt = DateTime.UtcNow;
+            address.CreatedAt = DateTimeHelper.VietnamNow;
             address.IsDeleted = false;
 
             var existingAddresses = await _unitOfWork.Address.GetAllAsync(a => a.UserId == userId && !a.IsDeleted);

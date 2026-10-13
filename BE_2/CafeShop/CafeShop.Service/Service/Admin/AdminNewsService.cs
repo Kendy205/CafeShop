@@ -112,8 +112,8 @@ namespace CafeShop.Service.Service.Admin
                 UserId = authorId,
                 Status = string.IsNullOrEmpty(request.Status) ? NewsStatus.Published : request.Status,
                 ScheduledPublishAt = request.ScheduledPublishAt,
-                PublishedAt = string.IsNullOrEmpty(request.Status) || request.Status == NewsStatus.Published ? DateTime.UtcNow : null,
-                CreatedAt = DateTime.UtcNow,
+                PublishedAt = string.IsNullOrEmpty(request.Status) || request.Status == NewsStatus.Published ? DateTimeHelper.VietnamNow : null,
+                CreatedAt = DateTimeHelper.VietnamNow,
                 IsDeleted = false
             };
 
@@ -152,7 +152,7 @@ namespace CafeShop.Service.Service.Admin
             {
                 if (news.Status != request.Status && request.Status == NewsStatus.Published)
                 {
-                    news.PublishedAt = DateTime.UtcNow;
+                    news.PublishedAt = DateTimeHelper.VietnamNow;
                 }
                 news.Status = request.Status;
             }
@@ -162,7 +162,7 @@ namespace CafeShop.Service.Service.Admin
                 news.ScheduledPublishAt = request.ScheduledPublishAt;
             }
 
-            news.UpdatedAt = DateTime.UtcNow;
+            news.UpdatedAt = DateTimeHelper.VietnamNow;
 
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
@@ -178,7 +178,7 @@ namespace CafeShop.Service.Service.Admin
             if (news == null) throw new Exception("Không tìm thấy bài viết");
 
             news.IsDeleted = true;
-            news.UpdatedAt = DateTime.UtcNow;
+            news.UpdatedAt = DateTimeHelper.VietnamNow;
             
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();

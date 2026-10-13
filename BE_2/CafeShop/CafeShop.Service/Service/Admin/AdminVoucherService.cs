@@ -129,7 +129,7 @@ namespace CafeShop.Service.Service.Admin
                         VoucherId = dto.VoucherId,
                         UsageLimitPerUser = dto.UsageLimitPerUser > 0 ? dto.UsageLimitPerUser : 1,
                         UsedCount = 0,
-                        AssignedDate = DateTime.UtcNow
+                        AssignedDate = DateTimeHelper.VietnamNow
                     });
                 }
             }

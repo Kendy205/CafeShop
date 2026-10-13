@@ -234,7 +234,7 @@ export default function ProductFormModal({
 
                                 <div className="sm:col-span-1">
                                     <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-slate-700">
-                                        Tổng Tồn Kho (Để trống sẽ tự động tính từ các Size)
+                                        Tổng Tồn Kho
                                     </label>
                                     <Field
                                         type="number"
@@ -280,8 +280,9 @@ export default function ProductFormModal({
                             </div>
 
                             <div className="rounded-2xl border border-slate-200 bg-slate-50/30 p-5 shadow-sm">
-                                <h3 className="mb-4 text-sm font-black uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-3">
-                                    Cấu Hình Kích Cỡ & Giá <span className="text-red-500">*</span>
+                                <h3 className="mb-4 text-sm font-black uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-3 flex items-center justify-between">
+                                    <span>Cấu Hình Kích Cỡ & Giá</span>
+                                    <span className="text-xs font-semibold normal-case text-slate-400">(Tùy chọn)</span>
                                 </h3>
 
                                 {masterSizes.length === 0 ? (

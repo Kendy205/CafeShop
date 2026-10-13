@@ -24,7 +24,7 @@ namespace CafeShop.Service.Service.Users
         // 1. Lấy danh sách voucher trong ví cá nhân
         public async Task<List<VoucherDto>> GetMyVouchersAsync(int userId)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTimeHelper.VietnamNow;
             var userVouchers = await _unitOfWork.UserVoucher.GetUserVouchersWithDetailsAsync(userId);
 
             return userVouchers.Select(uv => new VoucherDto
@@ -59,7 +59,7 @@ namespace CafeShop.Service.Service.Users
         // 2. Khách chủ động lưu mã Public vào ví của mình
         public async Task ClaimPublicVoucherAsync(int userId, string voucherCode)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTimeHelper.VietnamNow;
 
             var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.Code == voucherCode);
             if (voucher == null || !voucher.IsActive)
@@ -88,7 +88,7 @@ namespace CafeShop.Service.Service.Users
                 VoucherId = voucher.VoucherId,
                 UsageLimitPerUser = 1,
                 UsedCount = 0,
-                AssignedDate = DateTime.UtcNow
+                AssignedDate = DateTimeHelper.VietnamNow
             });
 
             await _unitOfWork.SaveAsync();

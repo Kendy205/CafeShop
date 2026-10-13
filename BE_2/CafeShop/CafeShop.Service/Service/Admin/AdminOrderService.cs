@@ -1,6 +1,5 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Order.Requests;
 using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
@@ -35,6 +34,11 @@ namespace CafeShop.Service.Service.Admin
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
+            if (endDate.HasValue && endDate.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+            }
+
             var (orders, totalCount) = await _unitOfWork.Order.GetAdminOrdersWithPagingAsync(
                 status: status,
                 startDate: startDate,
@@ -59,6 +63,11 @@ namespace CafeShop.Service.Service.Admin
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
+
+            if (endDate.HasValue && endDate.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+            }
 
             System.Linq.Expressions.Expression<Func<Order, bool>> filter = x =>
                 x.UserId == userId && x.CurrentStatus == OrderStatus.Completed &&
@@ -111,7 +120,7 @@ namespace CafeShop.Service.Service.Admin
                 if (order == null)
                     throw new ArgumentException("Không tìm thấy đơn hàng!");
 
-                var currentStatus = order.CurrentStatus;
+                var currentStatus = order.CurrentStatus ?? OrderStatus.Pending;
 
                 if (currentStatus == OrderStatus.Cancelled || currentStatus == OrderStatus.Completed)
                     throw new ArgumentException("Không thể thay đổi trạng thái của đơn hàng đã Hủy hoặc Hoàn thành!");
@@ -124,25 +133,61 @@ namespace CafeShop.Service.Service.Admin
                     throw new ArgumentException($"Sai quy trình! Không thể chuyển trực tiếp từ '{currentStatus}' sang '{newStatus}'.");
                 }
 
+                // Không cho phép xác nhận đơn thanh toán online khi khách chưa hoàn tất thanh toán
+                if (!string.Equals(order.PaymentMethod, PaymentMethodConstants.COD, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase)
+                    && newStatus == OrderStatus.Confirmed)
+                {
+                    throw new InvalidOperationException("Đơn hàng thanh toán trực tuyến chưa hoàn tất thanh toán, không thể xác nhận đơn!");
+                }
+
                 if (newStatus == OrderStatus.Cancelled && string.IsNullOrWhiteSpace(cancelReason))
                 {
                     throw new ArgumentException("Bắt buộc phải cung cấp lý do (CancelReason) khi Hủy đơn hàng!");
                 }
 
-                // Nếu admin chuyển trạng thái sang Hủy/Từ chối thì phải refund
+                // Xử lý khi HỦY ĐƠN: Hoàn tồn kho, voucher, ghi chú và cập nhật hoàn tiền (nếu đã thanh toán)
                 if (newStatus == OrderStatus.Cancelled)
                 {
                     await RestoreStockAsync(order.OrderDetails);
                     await RestoreVoucherUsageAsync(order.UserId, order.VoucherId);
+
+                    if (string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase))
+                    {
+                        order.PaymentStatus = PaymentStatusConstants.Refunded;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(cancelReason))
+                    {
+                        order.Note = string.IsNullOrWhiteSpace(order.Note)
+                            ? $"[Lý do hủy: {cancelReason}]"
+                            : $"{order.Note} | [Lý do hủy: {cancelReason}]";
+                    }
+                }
+
+                // Nếu hoàn thành đơn hàng COD: tự động cập nhật trạng thái đã thanh toán và tạo bản ghi Payment
+                if (newStatus == OrderStatus.Completed)
+                {
+                    if (string.Equals(order.PaymentMethod, PaymentMethodConstants.COD, StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase))
+                    {
+                        order.PaymentStatus = PaymentStatusConstants.Paid;
+
+                        var codPayment = new Payment
+                        {
+                            OrderId = order.OrderId,
+                            PaymentMethod = PaymentMethodConstants.COD,
+                            PaymentProvider = PaymentMethodConstants.COD,
+                            Amount = order.TotalAmount,
+                            PaymentStatus = PaymentStatusConstants.PaymentSuccess,
+                            PaidAt = DateTimeHelper.VietnamNow,
+                            CreatedAt = DateTimeHelper.VietnamNow
+                        };
+                        await _unitOfWork.Payment.AddAsync(codPayment);
+                    }
                 }
 
                 order.CurrentStatus = newStatus;
-                if (newStatus == OrderStatus.Cancelled)
-                {
-                    // Lưu lý do hủy vào order.Note tạm thời hoặc cần thêm CancelReason vào DB sau (tuỳ nhu cầu sau này)
-                    // Tạm thời sẽ ghi vào HistoryService.
-                }
-
                 _unitOfWork.Order.Update(order);
                 
                 string historyNote = newStatus == OrderStatus.Cancelled 

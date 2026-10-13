@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Table, Input, Card, Tag, Switch, message, Avatar, Space } from 'antd'
+import { Avatar, Switch, Tag } from 'antd'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
-import { SearchOutlined, UserOutlined, PlusOutlined, EditOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
+import { UserOutlined, PlusOutlined, EditOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { fetchAdminUsers, toggleAdminUserStatus } from '../../../redux/actions/admin/adminUserAction'
 import { fetchRoles } from '../../../redux/actions/admin/adminRoleAction'
 import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
@@ -10,18 +10,18 @@ import AdminTable from '../../../components/admin/common/AdminTable'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import AdminUserModal from './AdminUserModal'
 import AdminAssignRoleModal from './AdminAssignRoleModal'
-import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
-
+import { AppToast } from '../../../components/common/AppNotification'
 
 /**
  * AdminUsersPage Component
- * Trang quản lý Người dùng / Nhân viên (User Management) của Admin.
- * Hiển thị danh sách tài khoản, Khóa/Mở tài khoản, và nút Phân quyền (Assign Role).
+ * Trang quản lý Người dùng / Nhân viên / Khách hàng (User Management) của Admin.
+ * Hiển thị danh sách tài khoản, Khóa/Mở tài khoản, Sửa thông tin & Phân quyền.
  */
 export default function AdminUsersPage() {
     const dispatch = useDispatch()
     const { items, total, page, pageSize, loading, submitting } = useSelector((s) => s.admin.user)
     const { roles } = useSelector((s) => s.admin.role)
+    const currentUser = useSelector((s) => s.auth?.user)
 
     const [searchKeyword, setSearchKeyword] = useState('')
     const [userModalVisible, setUserModalVisible] = useState(false)
@@ -46,7 +46,8 @@ export default function AdminUsersPage() {
     const handleToggleStatus = async (userId) => {
         const res = await dispatch(toggleAdminUserStatus(userId))
         if (toggleAdminUserStatus.fulfilled.match(res)) {
-            AppToast.success('Đã cập nhật trạng thái khách hàng')
+            const msg = res.payload?.data?.message || 'Đã cập nhật trạng thái tài khoản!'
+            AppToast.success(msg)
         }
     }
 
@@ -65,22 +66,30 @@ export default function AdminUsersPage() {
         setRoleModalVisible(true)
     }
 
+    const currentUserId = currentUser?.userId || currentUser?.id
+
     const columns = [
         {
-            title: 'Khách hàng',
+            title: 'Người dùng',
             key: 'customer',
             render: (_, record) => (
                 <div className="flex items-center gap-3">
                     <Avatar
                         size="large"
-                        icon={<UserOutlined />}
-                        className="bg-sky-100 text-sky-700 font-bold"
+                        src={record.avatarUrl}
+                        icon={!record.avatarUrl && <UserOutlined />}
+                        className="bg-sky-100 text-sky-700 font-bold shrink-0 border border-sky-200"
                     >
-                        {record.fullName ? record.fullName.charAt(0).toUpperCase() : 'U'}
+                        {!record.avatarUrl && (record.fullName ? record.fullName.charAt(0).toUpperCase() : 'U')}
                     </Avatar>
-                    <div className="flex flex-col">
-                        <span className="font-bold text-slate-800 text-sm">{record.fullName || 'Chưa cập nhật'}</span>
-                        <span className="text-xs text-slate-500">@{record.username}</span>
+                    <div className="flex flex-col min-w-0">
+                        <span className="font-bold text-slate-800 text-sm truncate">
+                            {record.fullName || 'Chưa cập nhật'}
+                        </span>
+                        <span className="text-xs text-slate-500 truncate">@{record.username}</span>
+                        {record.email && (
+                            <span className="text-[11px] text-slate-400 truncate">{record.email}</span>
+                        )}
                     </div>
                 </div>
             )
@@ -95,13 +104,13 @@ export default function AdminUsersPage() {
             title: 'Vai trò',
             dataIndex: 'roles',
             key: 'roles',
-            render: (roles) => {
-                if (!roles || roles.length === 0) {
+            render: (userRoles) => {
+                if (!userRoles || userRoles.length === 0) {
                     return <Tag color="blue" className="rounded-full font-semibold border-none px-3">User</Tag>
                 }
                 return (
                     <div className="flex flex-wrap gap-1">
-                        {roles.map(role => (
+                        {userRoles.map(role => (
                             <Tag 
                                 key={role} 
                                 color={role === 'Admin' || role === 'Administrator' ? 'volcano' : 'purple'} 
@@ -115,7 +124,7 @@ export default function AdminUsersPage() {
             }
         },
         {
-            title: 'Ngày tham gia',
+            title: 'Ngày tạo',
             dataIndex: 'createdAt',
             key: 'createdAt',
             render: (date) => (
@@ -128,16 +137,35 @@ export default function AdminUsersPage() {
             title: 'Trạng thái',
             key: 'isActive',
             align: 'center',
-            render: (_, record) => (
-                <AdminTooltip title={record.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
-                    <Switch
-                        checked={record.isActive}
-                        onChange={() => handleToggleStatus(record.userId || record.id)}
-                        disabled={submitting}
-                        className={record.isActive ? 'bg-emerald-500' : 'bg-slate-300'}
-                    />
-                </AdminTooltip>
-            )
+            render: (_, record) => {
+                const recordId = record.userId || record.id
+                const isSelf = Boolean(currentUserId && recordId === currentUserId)
+                const isAdminOther = !isSelf && (record.roles || []).some(
+                    (r) => String(r).toUpperCase() === 'ADMIN' || String(r).toUpperCase() === 'ADMINISTRATOR'
+                )
+
+                let tooltipText = record.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'
+                let isDisabled = submitting
+
+                if (isSelf) {
+                    tooltipText = 'Bạn không thể tự khóa tài khoản của chính mình!'
+                    isDisabled = true
+                } else if (isAdminOther) {
+                    tooltipText = 'Không thể khóa tài khoản quản trị viên!'
+                    isDisabled = true
+                }
+
+                return (
+                    <AdminTooltip title={tooltipText}>
+                        <Switch
+                            checked={record.isActive}
+                            onChange={() => handleToggleStatus(recordId)}
+                            disabled={isDisabled}
+                            className={record.isActive ? 'bg-emerald-500' : 'bg-slate-300'}
+                        />
+                    </AdminTooltip>
+                )
+            }
         },
         {
             title: 'Thao tác',
@@ -146,10 +174,10 @@ export default function AdminUsersPage() {
             width: 180,
             render: (_, record) => (
                 <div className="flex items-center justify-center gap-2">
-                    <AdminTooltip title="Sửa thông tin">
+                    <AdminTooltip title="Sửa thông tin tài khoản">
                         <button
                             onClick={() => handleOpenEdit(record)}
-                            className="admin-action-btn admin-action-btn-edit"
+                            className="admin-action-btn admin-action-btn-edit cursor-pointer"
                         >
                             <EditOutlined />
                             <span>Sửa</span>
@@ -158,7 +186,7 @@ export default function AdminUsersPage() {
                     <AdminTooltip title="Cấp quyền truy cập hệ thống">
                         <button
                             onClick={() => handleOpenAssignRole(record)}
-                            className="admin-action-btn admin-action-btn-assign"
+                            className="admin-action-btn admin-action-btn-assign cursor-pointer"
                         >
                             <SafetyCertificateOutlined className="text-purple-600" />
                             <span>Cấp quyền</span>
@@ -172,13 +200,13 @@ export default function AdminUsersPage() {
     return (
         <div className="space-y-6">
             <AdminPageBanner
-                badge="Cơ Sở Dữ Liệu Khách Hàng"
-                title="Quản Lý Khách Hàng"
-                description="Theo dõi danh sách tài khoản người dùng, thông tin liên hệ, ngày tham gia và kiểm soát trạng thái hoạt động."
+                badge="Cơ Sở Dữ Liệu Tài Khoản"
+                title="Quản Lý Người Dùng"
+                description="Theo dõi danh sách tài khoản khách hàng và nhân viên, thông tin liên hệ, phân quyền vai trò và kiểm soát trạng thái hoạt động."
                 icon={<UserOutlined className="text-indigo-400 text-xl" />}
                 stats={
                     <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 text-xs">
-                        <span className="text-slate-300 font-medium">Tổng khách hàng:</span>
+                        <span className="text-slate-300 font-medium">Tổng tài khoản:</span>
                         <strong className="text-white text-sm font-black">{total}</strong>
                     </div>
                 }
@@ -199,10 +227,10 @@ export default function AdminUsersPage() {
                     </div>
                     <button
                         onClick={handleOpenCreate}
-                        className="flex items-center gap-2 rounded-2xl bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/20 hover:bg-sky-700 transition-all active:scale-95"
+                        className="flex items-center gap-2 rounded-2xl bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/20 hover:bg-sky-700 transition-all active:scale-95 cursor-pointer"
                     >
                         <PlusOutlined />
-                        Thêm Khách Hàng
+                        Thêm Người Dùng
                     </button>
                 </div>
             </div>
@@ -223,6 +251,7 @@ export default function AdminUsersPage() {
                 onClose={() => setUserModalVisible(false)} 
                 editingUser={editingUser} 
                 roles={roles} 
+                onSuccess={() => loadData(page, searchKeyword)}
             />
 
             <AdminAssignRoleModal 
@@ -230,6 +259,7 @@ export default function AdminUsersPage() {
                 onClose={() => setRoleModalVisible(false)} 
                 assigningUser={assigningUser} 
                 roles={roles} 
+                onSuccess={() => loadData(page, searchKeyword)}
             />
         </div>
     )

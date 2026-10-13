@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import signalRService, { playNotificationSound } from '../../services/signalrService'
-import { isAdminRole } from '../../utils/auth/authRole'
+import { isAdminRole, isStaffRole } from '../../utils/auth/authRole'
 
 function parsePayload(raw) {
     if (!raw) return {}
@@ -81,7 +81,13 @@ export default function RealtimeNotificationHandler() {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                onClick: () => navigate('/admin/orders'),
+                onClick: () => {
+                    if (isStaffRole(role)) {
+                        navigate('/staff/orders')
+                    } else {
+                        navigate('/admin/orders')
+                    }
+                },
             })
 
             // Bắn event toàn hệ thống để các trang Admin tự làm mới dữ liệu và chuông

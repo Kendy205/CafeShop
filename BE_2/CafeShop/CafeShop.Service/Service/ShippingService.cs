@@ -1,5 +1,6 @@
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.Service.IService;
+using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,15 +27,15 @@ namespace CafeShop.Service.Service
             if (config == null)
                 throw new Exception("Hệ thống chưa thiết lập cấu hình phí giao hàng.");
 
-            // Kiểm tra Freeship
+            // 2. Chặn lỗi logic (Bán kính quá xa - điều kiện tiên quyết về khả năng phục vụ)
+            if (distanceKm > config.MaxDistanceKm)
+                throw new ArgumentException($"Quán chỉ hỗ trợ giao hàng trong bán kính {config.MaxDistanceKm}km. Mong bạn thông cảm!");
+
+            // 3. Kiểm tra Freeship (chỉ áp dụng khi nằm trong bán kính phục vụ hợp lệ)
             if (config.IsFreeShippingEnabled && orderTotal.HasValue && orderTotal.Value >= config.FreeShippingThreshold)
             {
                 return 0;
             }
-
-            // 2. Chặn lỗi logic (Bán kính quá xa)
-            if (distanceKm > config.MaxDistanceKm)
-                throw new ArgumentException($"Quán chỉ hỗ trợ giao hàng trong bán kính {config.MaxDistanceKm}km. Mong bạn thông cảm!");
 
             // 3. Tính phí cơ bản
             decimal finalFee = config.BaseFee;
@@ -46,8 +47,7 @@ namespace CafeShop.Service.Service
             }
 
             // 4. Áp dụng thuật toán tính giờ
-            TimeZoneInfo vnZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            DateTime currentTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnZone);
+            DateTime currentTime = DateTimeHelper.VietnamNow;
 
             // Phụ phí đêm
             if (currentTime.Hour >= config.NightHourStart || currentTime.Hour < config.NightHourEnd)

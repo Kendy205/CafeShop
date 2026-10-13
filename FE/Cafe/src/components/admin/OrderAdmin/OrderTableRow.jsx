@@ -1,6 +1,12 @@
 import React, { memo, useState } from 'react'
 import AdminTooltip from './../common/AdminTooltip'
-import { getStatusConfig, NEXT_STATUSES, OrderStatus } from '../../../utils/constants/OrderConstants'
+import {
+    getStatusConfig,
+    NEXT_STATUSES,
+    OrderStatus,
+    getPaymentStatusConfig,
+    PAYMENT_LABEL,
+} from '../../../utils/constants/OrderConstants'
 import CancelReasonModal from './CancelReasonModal'
 
 function formatCurrency(val) {
@@ -34,6 +40,9 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
         onUpdateStatus(order.orderId, OrderStatus.CANCELLED, reason)
     }
 
+    const paymentConfig = getPaymentStatusConfig(order.paymentStatus)
+    const paymentMethodLabel = PAYMENT_LABEL[order.paymentMethod?.toUpperCase()] || order.paymentMethod || 'COD'
+
     return (
         <>
             <tr
@@ -56,6 +65,13 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
                         <p className="text-xs text-slate-400 mt-0.5 line-clamp-1" title={order.shippingAddress}>
                             {order.shippingAddress || '-'}
                         </p>
+                        {order.distanceKm != null && (
+                            <div className="mt-1">
+                                <span className="inline-flex items-center text-[10px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
+                                    📍 {order.distanceKm} km
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </td>
                 <td className="px-4 py-3 sm:py-3.5 text-xs text-slate-500 whitespace-nowrap">
@@ -63,6 +79,19 @@ const OrderTableRow = memo(({ order, onSelectOrder, onUpdateStatus, isUpdating }
                 </td>
                 <td className="px-4 py-3 sm:py-3.5 text-right font-black text-sky-900 whitespace-nowrap">
                     {formatCurrency(order.totalAmount)}
+                </td>
+                <td className="px-4 py-3 sm:py-3.5 text-center whitespace-nowrap min-w-[130px]">
+                    <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs font-bold text-slate-700 bg-slate-100/90 px-2 py-0.5 rounded-lg border border-slate-200/60">
+                            {paymentMethodLabel}
+                        </span>
+                        {order.paymentStatus && (
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${paymentConfig.color}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${paymentConfig.dot || 'bg-slate-400'}`} />
+                                <span>{paymentConfig.label}</span>
+                            </span>
+                        )}
+                    </div>
                 </td>
                 <td className="px-4 py-3 sm:py-3.5 text-center whitespace-nowrap min-w-[140px]">
                     <span className={`inline-flex h-8 min-w-[124px] items-center justify-center gap-1.5 rounded-2xl border px-3 text-xs font-bold shadow-2xs whitespace-nowrap ${sc.color}`}>

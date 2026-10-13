@@ -18,7 +18,7 @@ import LoadingLink from '../components/loading/LoadingLink'
 import { logout, openAuthModal } from '../redux/slices/authSlice'
 import { getCart } from '../redux/actions/user/cartAction'
 import { getProfile } from '../redux/actions/user/userAction'
-import { isAdminRole } from '../utils/auth/authRole'
+import { isAdminRole, isStaffRole } from '../utils/auth/authRole'
 import { THEME, getButtonClass } from '../utils/constants/Theme'
 
 function NavItem({ to, icon, label, className = '' }) {
@@ -82,7 +82,7 @@ export default function UserTemplate() {
                     <nav className="flex items-center gap-0.5 text-sm overflow-x-auto no-scrollbar">
                         <NavItem to="/" icon={<CoffeeOutlined />} label="Thực đơn" />
                         <NavItem to="/search" icon={<SearchOutlined />} label="Tìm kiếm" />
-                        
+
                         {isAuthenticated && (
                             <>
                                 <NavItem to="/addresses" icon={<EnvironmentOutlined />} label="Địa chỉ" />
@@ -100,7 +100,7 @@ export default function UserTemplate() {
                                     </span>
                                     <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">Đơn hàng</span>
                                 </LoadingLink>
-                                <NavItem to="/vouchers"  icon={<TagOutlined />} label="Voucher" />
+                                <NavItem to="/vouchers" icon={<TagOutlined />} label="Voucher" />
                             </>
                         )}
 
@@ -121,6 +121,10 @@ export default function UserTemplate() {
                             </span>
                             <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">Giỏ hàng</span>
                         </LoadingLink>
+
+                        {(isAdminRole(role) || isStaffRole(role)) && (
+                            <NavItem to="/staff/orders" icon={<CoffeeOutlined />} label="Quầy Staff" />
+                        )}
 
                         {isAdminRole(role) && (
                             <NavItem to="/admin" icon={<SettingOutlined />} label="Admin" />
@@ -193,7 +197,7 @@ export default function UserTemplate() {
             <footer className="mt-auto border-t border-slate-200 bg-white/80 backdrop-blur-sm py-8 text-center text-sm font-medium text-slate-500">
                 <div className="flex items-center justify-center gap-2">
                     <CoffeeOutlined className="text-sky-500 text-lg" />
-                    <span>Cafe Ordering System © {new Date().getFullYear()} - Designed with <span className="text-sky-500">Apple Style</span></span>
+                    <span>Cafe Shop System © {new Date().getFullYear()} - Designed with <span className="text-sky-500">Apple Style</span> By <span className="text-sky-500">ThanhTùng</span></span>
                 </div>
             </footer>
         </div>

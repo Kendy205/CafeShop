@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -25,7 +26,7 @@ namespace CafeShop.Model
         public bool IsRealtimeNotificationEnabled { get; set; } = true;
         public bool IsMaintenanceMode { get; set; } = false;
         
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
+        public DateTime UpdatedAt { get; set; } = DateTimeHelper.VietnamNow;
     }
 }

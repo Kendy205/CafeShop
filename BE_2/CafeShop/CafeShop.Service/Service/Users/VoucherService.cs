@@ -64,7 +64,7 @@ namespace CafeShop.Services.Services
         //}
         public async Task<List<VoucherDto>> GetAvailableVouchersAsync(int userId)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTimeHelper.VietnamNow;
 
             // 1. Mã Public (các trường cá nhân tự mang giá trị null)
             var publicVouchers = (await _unitOfWork.Voucher.GetAllAsync(v =>
@@ -222,7 +222,7 @@ namespace CafeShop.Services.Services
                 throw new ArgumentException("Mã giảm giá hiện đang bị tạm khóa!");
 
             // 2. Kiểm tra thời hạn hiệu lực
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTimeHelper.VietnamNow;
             if (now < voucher.StartDate || now > voucher.EndDate)
                 throw new ArgumentException("Mã giảm giá chưa đến đợt áp dụng hoặc đã hết hạn!");
 

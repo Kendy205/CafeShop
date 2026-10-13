@@ -128,7 +128,7 @@ namespace CafeShop.Services.Services
                     FullAddress = finalAddress?.FullAddress,
                     DistanceKm = request.DistanceKm,
                     ShippingFee = shippingFee,
-                    OrderDate = DateTime.UtcNow,
+                    OrderDate = DateTimeHelper.VietnamNow,
                     CurrentStatus = OrderStatus.Pending,
                     PaymentMethod = !string.IsNullOrWhiteSpace(request.PaymentMethod) ? request.PaymentMethod.ToUpper() : PaymentMethodConstants.COD,
                     PaymentStatus = PaymentStatusConstants.Unpaid,
@@ -160,7 +160,7 @@ namespace CafeShop.Services.Services
                 {
                     var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == userId);
                     string customerName = user?.FullName ?? "Khách hàng";
-                    await _signalRService.NotifyNewOrderToAdminsAsync(order.OrderId, customerName);
+                   await _signalRService.NotifyNewOrderToAdminsAsync(order.OrderId, customerName);
                 }
                 catch { /* Ignore notification error */ }
 

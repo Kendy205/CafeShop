@@ -2,6 +2,7 @@ import axios from 'axios'
 import { DOMAIN, REFRESH_TOKEN, TOKEN } from '../utils/constants/System'
 import { resolveRoleFromAuth } from '../utils/auth/authRole'
 import { AppToast } from '../components/common/AppNotification'
+import { unwrapApi, pickAccessToken, pickRefreshToken } from '../utils/helpers/api'
 
 export const http = axios.create({
     baseURL: DOMAIN,
@@ -50,6 +51,15 @@ function dispatchHydrateTokens(payload) {
     }
 }
 
+function setAuthHeader(headers, token) {
+    if (!headers) return
+    if (typeof headers.set === 'function') {
+        headers.set('Authorization', `Bearer ${token}`)
+    } else {
+        headers.Authorization = `Bearer ${token}`
+    }
+}
+
 // ── Request Interceptor (Hoàn toàn đồng bộ, không block luồng bằng await) ────
 http.interceptors.request.use((config) => {
     if (!config.__skipGlobalLoading) {
@@ -60,7 +70,7 @@ http.interceptors.request.use((config) => {
     if (!isPublicAuthPath(config.url)) {
         const token = localStorage.getItem(TOKEN)
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`
+            setAuthHeader(config.headers, token)
         }
     }
     return config
@@ -121,7 +131,7 @@ http.interceptors.response.use(
                 failedQueue.push({ resolve, reject })
             })
                 .then((token) => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`
+                    setAuthHeader(originalRequest.headers, token)
                     originalRequest.__skipGlobalLoading = true
                     originalRequest.__globalLoadingCountered = false
                     originalRequest._retry = true
@@ -138,7 +148,7 @@ http.interceptors.response.use(
         const accessToken = localStorage.getItem(TOKEN)
         const refreshToken = localStorage.getItem(REFRESH_TOKEN)
 
-        if (!accessToken || !refreshToken) {
+        if (!refreshToken) {
             dispatchLogout()
             if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(error)
@@ -148,19 +158,22 @@ http.interceptors.response.use(
         isRefreshing = true
 
         try {
-            const { data: body } = await axios.post(
-                `${DOMAIN}/api/auth/refresh-token`,
-                { accessToken, refreshToken },
+            const res = await axios.post(
+                `${DOMAIN}/api/Auth/refresh-token`,
+                {
+                    refreshToken,
+                    ...(accessToken ? { accessToken } : {}),
+                },
                 { headers: { 'Content-Type': 'application/json' } }
             )
 
-            const payload = body?.data ?? body
-            const newAccess = payload?.token ?? payload?.accessToken
-            if (body?.success === false || !newAccess) {
-                throw new Error(body?.message || 'Làm mới phiên đăng nhập thất bại')
+            const payload = unwrapApi(res)
+            const newAccess = pickAccessToken(payload)
+            if (!newAccess) {
+                throw new Error('Không nhận được access token mới từ máy chủ')
             }
 
-            const newRefresh = payload?.refreshToken ?? refreshToken
+            const newRefresh = pickRefreshToken(payload) ?? refreshToken
             const newRole = resolveRoleFromAuth(payload, newAccess)
 
             dispatchHydrateTokens({
@@ -172,7 +185,7 @@ http.interceptors.response.use(
             processQueue(null, newAccess)
             isRefreshing = false
 
-            originalRequest.headers.Authorization = `Bearer ${newAccess}`
+            setAuthHeader(originalRequest.headers, newAccess)
             originalRequest.__skipGlobalLoading = true
             originalRequest.__globalLoadingCountered = false
             originalRequest._retry = true
@@ -184,6 +197,11 @@ http.interceptors.response.use(
             processQueue(refreshErr, null)
             isRefreshing = false
             dispatchLogout()
+            const msg =
+                refreshErr?.response?.data?.message ||
+                refreshErr?.response?.data?.Message ||
+                'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+            AppToast.warning(msg)
             if (shouldStopLoading) dispatchStopLoading()
             return Promise.reject(refreshErr)
         }
@@ -203,3 +221,4 @@ export class BaseServices {
 }
 
 export const baseServices = new BaseServices()
+

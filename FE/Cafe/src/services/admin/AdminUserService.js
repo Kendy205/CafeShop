@@ -20,9 +20,14 @@ export class AdminUserService extends BaseServices {
     createUser = (data) => this.post(this.basePath, data)
 
     /**
-     * Cập nhật thông tin tài khoản
+     * Cập nhật thông tin tài khoản (hỗ trợ multipart/form-data)
      */
-    updateUserInfo = (id, data) => this.put(`${this.basePath}/${id}`, data)
+    updateUserInfo = (id, data) => {
+        const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
+        return this.put(`${this.basePath}/${id}`, data, {
+            ...(isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {})
+        })
+    }
 
     /**
      * Cập nhật quyền (Gán roles)

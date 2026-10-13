@@ -6,7 +6,13 @@ import {
     updateAdminOrderStatus,
 } from '../../../redux/actions/admin/adminOrderAction'
 import { clearAdminOrderDetail } from '../../../redux/slices/admin/adminOrderSlice'
-import { getStatusConfig, NEXT_STATUSES, OrderStatus } from '../../../utils/constants/OrderConstants'
+import {
+    getStatusConfig,
+    NEXT_STATUSES,
+    OrderStatus,
+    getPaymentStatusConfig,
+    PAYMENT_LABEL,
+} from '../../../utils/constants/OrderConstants'
 import CancelReasonModal from './CancelReasonModal'
 import { AppToast, AppConfirm } from '../../common/AppNotification'
 
@@ -71,6 +77,7 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
         : []
 
     const isSingleItem = (detail?.items?.length || 0) <= 1
+    const paymentConfig = detail?.paymentStatus ? getPaymentStatusConfig(detail.paymentStatus) : null
 
     return (
         <>
@@ -86,11 +93,20 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                     <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-3xl border-b border-slate-100 bg-white/95 px-6 py-4 backdrop-blur-md">
                         <div>
                             <h2 className="text-lg font-black text-slate-800">Chi tiết đơn #{orderId}</h2>
-                            {detail?.currentStatus && (
-                                <span className={`mt-1 inline-block rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${getStatusConfig(detail.currentStatus).color}`}>
-                                    {getStatusConfig(detail.currentStatus).label}
-                                </span>
-                            )}
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                {detail?.currentStatus && (
+                                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${getStatusConfig(detail.currentStatus).color}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusConfig(detail.currentStatus).dot || 'bg-slate-400'}`} />
+                                        <span>{getStatusConfig(detail.currentStatus).label}</span>
+                                    </span>
+                                )}
+                                {paymentConfig && (
+                                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${paymentConfig.color}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${paymentConfig.dot || 'bg-slate-400'}`} />
+                                        <span>{paymentConfig.label}</span>
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -144,51 +160,59 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                             </div>
                                         </div>
 
-                                        <div className={`${isSingleItem ? 'flex flex-col gap-3.5' : 'grid grid-cols-1 md:grid-cols-2 gap-3.5 content-start'} overflow-y-auto pr-1 custom-scrollbar w-full`} style={{ maxHeight: isExpanded ? 'calc(100vh - 400px)' : 'calc(100vh - 550px)', minHeight: '160px' }}>
-                                            {(detail.items || []).map((item, i) => (
-                                                <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-4 rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group w-full">
-                                                    <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200 shadow-xs">
-                                                        {item.imageUrl ? (
-                                                            <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
-                                                        ) : (
-                                                            <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs">No img</div>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex flex-1 flex-col justify-center min-w-0">
-                                                        <div className="flex justify-between items-start gap-3">
-                                                            <div>
-                                                                <p className="text-sm font-bold text-slate-800">{item.productName || 'Sản phẩm'}</p>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="bg-sky-100 text-sky-800 font-black px-2 py-0.5 rounded-md border border-sky-200 text-xs">
-                                                                        x{item.quantity}
-                                                                    </span>
-                                                                    <span className="text-slate-400 text-xs">({formatCurrency(item.unitPrice)})</span>
-                                                                    {item.sizeName && <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100 text-xs font-semibold">Size: {item.sizeName}</span>}
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-base font-black text-sky-700 shrink-0">{formatCurrency(item.totalItemPrice)}</p>
+                                        {!detail.items || detail.items.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-10 text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                                                <span className="text-3xl mb-1.5">📦</span>
+                                                <p className="text-sm font-bold text-slate-600">Chưa có món nào trong đơn hàng</p>
+                                                <p className="text-xs text-slate-400 mt-0.5">Đơn hàng này chưa có dữ liệu chi tiết danh sách món</p>
+                                            </div>
+                                        ) : (
+                                            <div className={`${isSingleItem ? 'flex flex-col gap-3.5' : 'grid grid-cols-1 md:grid-cols-2 gap-3.5 content-start'} overflow-y-auto pr-1 custom-scrollbar w-full`} style={{ maxHeight: isExpanded ? 'calc(100vh - 400px)' : 'calc(100vh - 550px)', minHeight: '160px' }}>
+                                                {detail.items.map((item, i) => (
+                                                    <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-4 rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group w-full">
+                                                        <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200 shadow-xs">
+                                                            {item.imageUrl ? (
+                                                                <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
+                                                            ) : (
+                                                                <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs">No img</div>
+                                                            )}
                                                         </div>
-                                                        {item.toppings?.length > 0 && (
-                                                            <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
-                                                                {item.toppings.map((t, idx) => (
-                                                                    <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-2 rounded-xl border border-slate-100/80 text-xs">
-                                                                        <div className="flex items-center gap-2.5 min-w-0">
-                                                                            {t.imageUrl ? (
-                                                                                <img src={t.imageUrl} alt={t.toppingName} className="h-7 w-7 rounded-lg object-cover border border-slate-200 shrink-0" />
-                                                                            ) : (
-                                                                                <div className="h-7 w-7 rounded-lg bg-slate-200 border border-slate-300 shrink-0" />
-                                                                            )}
-                                                                            <span className="text-slate-600 font-medium truncate">+ {t.toppingName} <span className="font-bold text-slate-800">(x{t.quantity || 1} / ly)</span></span>
-                                                                        </div>
-                                                                        <span className="font-bold text-slate-600 shrink-0 ml-2">{formatCurrency(t.unitPrice)}</span>
+                                                        <div className="flex flex-1 flex-col justify-center min-w-0">
+                                                            <div className="flex justify-between items-start gap-3">
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-slate-800">{item.productName || 'Sản phẩm'}</p>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <span className="bg-sky-100 text-sky-800 font-black px-2 py-0.5 rounded-md border border-sky-200 text-xs">
+                                                                            x{item.quantity}
+                                                                        </span>
+                                                                        <span className="text-slate-400 text-xs">({formatCurrency(item.unitPrice)})</span>
+                                                                        {item.sizeName && <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100 text-xs font-semibold">Size: {item.sizeName}</span>}
                                                                     </div>
-                                                                ))}
+                                                                </div>
+                                                                <p className="text-base font-black text-sky-700 shrink-0">{formatCurrency(item.totalItemPrice)}</p>
                                                             </div>
-                                                        )}
+                                                            {item.toppings?.length > 0 && (
+                                                                <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
+                                                                    {item.toppings.map((t, idx) => (
+                                                                        <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-2 rounded-xl border border-slate-100/80 text-xs">
+                                                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                                                {t.imageUrl ? (
+                                                                                    <img src={t.imageUrl} alt={t.toppingName} className="h-7 w-7 rounded-lg object-cover border border-slate-200 shrink-0" />
+                                                                                ) : (
+                                                                                    <div className="h-7 w-7 rounded-lg bg-slate-200 border border-slate-300 shrink-0" />
+                                                                                )}
+                                                                                <span className="text-slate-600 font-medium truncate">+ {t.toppingName} <span className="font-bold text-slate-800">(x{t.quantity || 1} / ly)</span></span>
+                                                                            </div>
+                                                                            <span className="font-bold text-slate-600 shrink-0 ml-2">{formatCurrency(t.unitPrice)}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Phần dưới: 2 cột */}
@@ -202,6 +226,12 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Thông tin giao hàng</h3>
                                             </div>
                                             <div className="space-y-3">
+                                                {detail.userId && (
+                                                    <div className="flex justify-between items-start">
+                                                        <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Mã KH:</span>
+                                                        <p className="text-sm font-semibold text-slate-700 text-right">#{detail.userId}</p>
+                                                    </div>
+                                                )}
                                                 <div className="flex justify-between items-start">
                                                     <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Người nhận:</span>
                                                     <div className="text-right">
@@ -216,7 +246,7 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                 {detail.distanceKm != null && (
                                                     <div className="flex justify-between items-start">
                                                         <span className="text-xs font-bold text-slate-500 w-24 shrink-0">Khoảng cách:</span>
-                                                        <p className="text-sm font-medium text-slate-700 text-right">{detail.distanceKm} km</p>
+                                                        <p className="text-sm font-semibold text-sky-700 text-right">📍 {detail.distanceKm} km</p>
                                                     </div>
                                                 )}
                                                 <div className="flex justify-between items-start">
@@ -241,10 +271,29 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Thanh toán</h3>
                                             </div>
                                             <div className="space-y-3">
-                                                <div className="flex justify-between items-start">
+                                                <div className="flex justify-between items-center">
                                                     <span className="text-xs font-bold text-slate-500">Phương thức:</span>
-                                                    <span className="text-sm font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg">{detail.paymentMethod || 'COD'}</span>
+                                                    <span className="text-sm font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/60">
+                                                        {PAYMENT_LABEL[detail.paymentMethod?.toUpperCase()] || detail.paymentMethod || 'COD'}
+                                                    </span>
                                                 </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold text-slate-500">Trạng thái TT:</span>
+                                                    {paymentConfig ? (
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-bold ${paymentConfig.color}`}>
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${paymentConfig.dot || 'bg-slate-400'}`} />
+                                                            <span>{paymentConfig.label}</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400">—</span>
+                                                    )}
+                                                </div>
+                                                {detail.voucherId && (
+                                                    <div className="flex justify-between text-sm text-slate-700">
+                                                        <span className="text-xs font-bold text-slate-500">Mã voucher:</span>
+                                                        <span className="font-bold text-sky-700">#{detail.voucherId}</span>
+                                                    </div>
+                                                )}
                                                 {detail.subTotal != null && (
                                                     <div className="flex justify-between text-sm text-slate-700">
                                                         <span className="text-xs font-bold text-slate-500">Tạm tính món:</span>

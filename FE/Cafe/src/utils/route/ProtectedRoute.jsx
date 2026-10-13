@@ -7,18 +7,32 @@ import { openAuthModal } from '../../redux/slices/authSlice'
 export default function ProtectedRoute({ allowedRoles }) {
     const location = useLocation()
     const dispatch = useDispatch()
-    const { isAuthenticated, role } = useSelector((s) => s.app.auth)
+    const { isAuthenticated, role, authModalOpen } = useSelector((s) => s.app.auth)
+
+    const isStaffOrAdminRoute =
+        location.pathname.startsWith('/admin') || location.pathname.startsWith('/staff')
 
     useEffect(() => {
         if (!isAuthenticated) {
             // Lưu trang định đến để redirect sau khi đăng nhập
             sessionStorage.setItem('authRedirectAfter', location.pathname)
-            dispatch(openAuthModal('login'))
+            if (!isStaffOrAdminRoute) {
+                dispatch(openAuthModal('login'))
+            }
         }
-    }, [isAuthenticated, dispatch, location.pathname])
+    }, [isAuthenticated, dispatch, location.pathname, isStaffOrAdminRoute])
 
+    // 1. Đối với Admin/Staff: chuyển hướng thẳng sang trang /login
+    if (!isAuthenticated && isStaffOrAdminRoute) {
+        return <Navigate to="/login" state={{ from: location }} replace />
+    }
+
+    // 2. Đối với Client: nếu modal bị đóng (người dùng bấm X hoặc ESC) thì quay về trang chủ
     if (!isAuthenticated) {
-        return null // Không render gì — popup sẽ hiện ra
+        if (!authModalOpen) {
+            return <Navigate to="/" replace />
+        }
+        return null
     }
 
     if (allowedRoles && allowedRoles.length > 0) {

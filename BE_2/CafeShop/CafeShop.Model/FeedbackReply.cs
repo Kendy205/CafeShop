@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -18,7 +19,7 @@ namespace CafeShop.Model
         [Required]
         public string ReplyContent { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
         public DateTime? UpdatedAt { get; set; }
 
         [ForeignKey("FeedbackId")]
