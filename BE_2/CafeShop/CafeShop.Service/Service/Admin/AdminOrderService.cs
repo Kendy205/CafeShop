@@ -191,8 +191,8 @@ namespace CafeShop.Service.Service.Admin
                 _unitOfWork.Order.Update(order);
                 
                 string historyNote = newStatus == OrderStatus.Cancelled 
-                                     ? $"Admin Hủy Đơn. Lý do: {cancelReason}" 
-                                     : $"Admin chuyển trạng thái sang {newStatus}";
+                                     ? $"Cửa hàng Hủy Đơn. Lý do: {cancelReason}" 
+                                     : $"Cửa hàng chuyển trạng thái sang {newStatus}";
                 await _historyService.AddHistoryAsync(order.OrderId, newStatus, adminId, historyNote);
 
                 await _unitOfWork.SaveAsync();

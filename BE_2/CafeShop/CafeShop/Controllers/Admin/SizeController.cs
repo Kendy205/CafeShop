@@ -1,6 +1,8 @@
 using CafeShop.DTO.Size;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
+using CafeShop.Filters;
+using CafeShop.Uitls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,7 +15,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+    [Authorize(Roles = $"{SystemRole.Admin},{SystemRole.Staff}")]
     public class SizeController : ControllerBase
     {
         private readonly IAdminSizeService _sizeService;
@@ -24,6 +26,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet]
+        [HasPermission(SystemPermissions.ProductView)]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -38,6 +41,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpPost]
+        [Authorize(Roles = SystemRole.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateUpdateSizeDto request)
         {
             try
@@ -55,6 +59,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = SystemRole.Admin)]
         public async Task<IActionResult> Update(int id, [FromBody] CreateUpdateSizeDto request)
         {
             try
@@ -76,6 +81,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = SystemRole.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
             try

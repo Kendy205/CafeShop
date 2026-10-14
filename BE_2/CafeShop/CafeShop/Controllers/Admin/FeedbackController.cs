@@ -1,5 +1,6 @@
 using CafeShop.DTO.Feedback.Requests;
 using CafeShop.DTO.Feedback.Responses;
+using CafeShop.Filters;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
 using CafeShop.Uitls;
@@ -13,7 +14,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    [Authorize(Roles = SystemRole.Admin)]
+    [Authorize(Roles = $"{SystemRole.Admin},{SystemRole.Staff}")]
     public class FeedbackController : ControllerBase
     {
         private readonly IAdminFeedbackService _feedbackService;
@@ -24,6 +25,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet]
+        [HasPermission(SystemPermissions.FeedbackModerate)]
         public async Task<IActionResult> GetFeedbacksForManagement([FromQuery] AdminFeedbackFilterDto filter)
         {
             try
@@ -38,6 +40,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet("{id:int}")]
+        [HasPermission(SystemPermissions.FeedbackModerate)]
         public async Task<IActionResult> GetFeedbackDetail(int id)
         {
             try
@@ -55,6 +58,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpPut("{id:int}/toggle-visibility")]
+        [HasPermission(SystemPermissions.FeedbackModerate)]
         public async Task<IActionResult> ToggleVisibility(int id)
         {
             try
@@ -69,6 +73,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = SystemRole.Admin)]
         public async Task<IActionResult> DeleteFeedback(int id)
         {
             try
@@ -84,6 +89,7 @@ namespace CafeShop.Controllers.Admin
 
         [HttpPost("{id:int}/reply")]
         [HttpPut("{id:int}/reply")]
+        [HasPermission(SystemPermissions.FeedbackModerate)]
         public async Task<IActionResult> ReplyToFeedback(int id, [FromBody] AdminReplyRequestDto request)
         {
             try
@@ -99,6 +105,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpDelete("{id:int}/reply")]
+        [HasPermission(SystemPermissions.FeedbackModerate)]
         public async Task<IActionResult> DeleteReply(int id)
         {
             try

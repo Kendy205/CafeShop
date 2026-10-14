@@ -11,6 +11,8 @@ using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
+using CafeShop.Filters;
+using CafeShop.Uitls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +22,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)] 
+    [Authorize(Roles = $"{SystemRole.Admin},{SystemRole.Staff}")] 
     public class CategoryController : ControllerBase
     {
         private readonly IAdminCategoryService _categoryService;
@@ -31,6 +33,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet]
+        [HasPermission(SystemPermissions.ProductView)]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -52,6 +55,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet("{id:int}")]
+        [HasPermission(SystemPermissions.ProductView)]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -76,6 +80,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpPost]
+        [HasPermission(SystemPermissions.ProductCreate)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
         {
             try
@@ -94,6 +99,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpPut("{id:int}")]
+        [HasPermission(SystemPermissions.ProductEdit)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
         {
             try
@@ -114,6 +120,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpDelete("{id:int}")]
+        [HasPermission(SystemPermissions.ProductDelete)]
         public async Task<IActionResult> Delete(int id)
         {
             try
