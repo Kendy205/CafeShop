@@ -46,8 +46,8 @@ namespace CafeShop.Service.Service.Admin
             {
                 await _redisCache.RemoveAsync($"cafeshop:products:id:{productId.Value}");
             }
-            // Invalidate the default page cache as a best effort
-            await _redisCache.RemoveAsync("cafeshop:products:all:kw:none:cat:0:minP:0:maxP:0:sort:none:minR:0:page:1:size:10");
+            // Tự động vô hiệu hóa toàn bộ cache danh sách, bộ lọc và gợi ý liên quan bằng versioning O(1)
+            await _redisCache.BumpVersionAsync("products:ver");
         }
 
         public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, bool? isAvailable = null, bool? outOfStock = null, string? sortBy = null, int pageNumber = 1, int pageSize = 10)

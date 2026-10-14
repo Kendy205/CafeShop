@@ -29,6 +29,22 @@ export class VoucherService extends BaseServices {
         )
 
     /**
+     * POST /api/Voucher/best-for-checkout
+     * Quét và lấy voucher tối ưu nhất cho đơn hàng (không tiêu thụ lượt dùng)
+     * @param {{ isBuyNow: boolean, distanceKm: number, items: Array|null }} params
+     */
+    getBestForCheckout = ({ isBuyNow, distanceKm, items }) =>
+        this.post(
+            '/api/Voucher/best-for-checkout',
+            {
+                isBuyNow: Boolean(isBuyNow),
+                distanceKm: Number(distanceKm ?? 0),
+                items: isBuyNow ? (items ?? []) : null,
+            },
+            { __skipGlobalLoading: true }
+        )
+
+    /**
      * GET /api/UserVoucher/my-vouchers
      * Xem ví voucher cá nhân (bao gồm số lần còn lại, trạng thái usable)
      */

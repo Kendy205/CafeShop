@@ -30,5 +30,6 @@ namespace CafeShop.Repositories.IRepository
         Task<IEnumerable<Product>> GetTopSellingProductsAsync(int count);
         Task<IEnumerable<Product>> GetNewestProductsAsync(int count);
         Task<IEnumerable<Product>> GetAutocompleteProductsAsync(string keyword, int count);
+        Task<IEnumerable<Product>> GetRelatedProductsAsync(int productId, int categoryId, int count);
     }
 }

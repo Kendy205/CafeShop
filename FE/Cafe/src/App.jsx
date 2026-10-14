@@ -76,8 +76,6 @@ function App() {
                         <Route path="/orders" element={<OrderHistoryPage />} />
                         <Route path="/vouchers" element={<MyVouchersPage />} />
                     </Route>
-                    {/* 404 Catch-all Route for Client */}
-                    <Route path="*" element={<NotFoundPage />} />
                 </Route>
 
                 <Route element={<ProtectedRoute allowedRoles={ADMIN_ROLES} />}>
@@ -103,6 +101,10 @@ function App() {
                         <Route path="feedbacks" element={<StaffFeedbackPage />} />
                     </Route>
                 </Route>
+
+                {/* 404 Standalone Route - Không có Header */}
+                <Route path="/404" element={<NotFoundPage />} />
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
             <AuthModal />
         </Provider>

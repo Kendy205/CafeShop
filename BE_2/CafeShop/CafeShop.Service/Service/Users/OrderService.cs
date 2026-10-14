@@ -55,6 +55,17 @@ namespace CafeShop.Services.Services
         // ================= XỬ LÝ ĐẶT HÀNG (GỘP CHUNG MUA NGAY & TỪ GIỎ HÀNG) =================
         public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request, string? ipAddress = null)
         {
+            // 0. KIỂM TRA TRẠNG THÁI CỬA HÀNG (GIỜ MỞ CỬA & TÌNH TRẠNG NHẬN ĐƠN)
+            var storeProfile = await _unitOfWork.StoreProfile.GetFirstOrDefaultAsync(x => true);
+            if (storeProfile != null)
+            {
+                var (canAccept, reason) = storeProfile.CheckCanAcceptOrders();
+                if (!canAccept)
+                {
+                    throw new ArgumentException(reason ?? "Cửa hàng hiện đang tạm ngưng nhận đơn hàng!");
+                }
+            }
+
             // Bắt đầu xếp hàng vào cổng đồng bộ (Chỉ cho phép 1 luồng xử lý kho lúc này)
             await _stockSemaphore.WaitAsync();
             try

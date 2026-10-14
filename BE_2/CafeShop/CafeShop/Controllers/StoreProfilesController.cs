@@ -1,6 +1,7 @@
 using CafeShop.DTO.StoreProfile;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
+using CafeShop.Uitls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -34,7 +35,7 @@ namespace CafeShop.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = SystemRole.Admin)]
         public async Task<IActionResult> UpdateStoreProfile([FromBody] UpdateStoreProfileDto dto)
         {
             if (!ModelState.IsValid)

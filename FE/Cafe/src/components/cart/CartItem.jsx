@@ -67,8 +67,13 @@ export default function CartItem({ item, submitting, onUpdateQty, onRemoveItem }
                                 )}
 
                                 <span className="text-slate-500">
-                                    Đơn giá: <strong className="text-slate-700">{formatVnd(item.unitPrice)}</strong>
+                                    Đơn giá: <strong className="text-slate-700">{formatVnd(item.unitPrice)}/ly</strong>
                                 </span>
+                                {item.toppings?.length > 0 && (
+                                    <span className="rounded-md bg-sky-50 px-1.5 py-0.5 text-[11px] font-medium text-sky-800 border border-sky-100">
+                                        (đã gồm topping)
+                                    </span>
+                                )}
 
                                 {/* Tồn kho của món / size */}
                                 {stock !== null && (
@@ -114,30 +119,48 @@ export default function CartItem({ item, submitting, onUpdateQty, onRemoveItem }
                     {/* Danh sách topping đã chọn của món */}
                     {item.toppings?.length > 0 && (
                         <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-2.5 text-xs">
-                            <p className="font-semibold text-slate-700 mb-1.5">Topping thêm:</p>
-                            <ul className="space-y-1">
-                                {item.toppings.map((t, idx) => (
-                                    <li
-                                        key={`${item.cartItemId}-t-${idx}`}
-                                        className="flex items-center justify-between text-slate-600"
-                                    >
-                                        <div className="flex items-center gap-1.5">
-                                            <span>•</span>
-                                            <span className="font-medium text-slate-800">{t.name}</span>
-                                            <span className="text-sky-800 font-bold">
-                                                ×{t.quantity} {t.unit || 'phần'}
-                                            </span>
-                                            {t.stockQuantity !== undefined && t.stockQuantity !== null && (
-                                                <span className="text-[10px] text-slate-400">
-                                                    (kho: {t.stockQuantity})
+                            <div className="flex items-center justify-between mb-1.5">
+                                <p className="font-semibold text-slate-700">Topping thêm (cho mỗi ly):</p>
+                                <span className="text-[11px] text-slate-400">Đã cộng vào đơn giá ly</span>
+                            </div>
+                            <ul className="space-y-1.5">
+                                {item.toppings.map((t, idx) => {
+                                    const qty = Number(t.quantity) || 1
+                                    const totalPrice = Number(t.price ?? t.unitPrice ?? 0)
+                                    const unitPrice = qty > 1 ? Math.round(totalPrice / qty) : totalPrice
+
+                                    return (
+                                        <li
+                                            key={`${item.cartItemId}-t-${idx}`}
+                                            className="flex items-center justify-between text-slate-600 bg-white/70 px-2.5 py-1.5 rounded-xl border border-slate-200/60"
+                                        >
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                {t.imageUrl ? (
+                                                    <img src={t.imageUrl} alt={t.name} className="h-5 w-5 rounded-full object-cover shrink-0 border border-slate-200" />
+                                                ) : (
+                                                    <span className="text-sky-700 font-bold">+</span>
+                                                )}
+                                                <span className="font-medium text-slate-800 truncate">{t.name}</span>
+                                                <span className="text-sky-800 font-bold shrink-0">
+                                                    ×{qty} {t.unit || 'phần'}
                                                 </span>
-                                            )}
-                                        </div>
-                                        <span className="font-semibold text-sky-900">
-                                            +{formatVnd(Number(t.price || 0) * (t.quantity || 1))}
-                                        </span>
-                                    </li>
-                                ))}
+                                                {qty > 1 && (
+                                                    <span className="text-[11px] text-slate-400 shrink-0">
+                                                        ({formatVnd(unitPrice)}/phần)
+                                                    </span>
+                                                )}
+                                                {t.stockQuantity !== undefined && t.stockQuantity !== null && (
+                                                    <span className="text-[10px] text-slate-400 shrink-0">
+                                                        (kho: {t.stockQuantity})
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="font-bold text-sky-900 shrink-0 ml-2">
+                                                +{formatVnd(totalPrice)} / ly
+                                            </span>
+                                        </li>
+                                    )
+                                })}
                             </ul>
                         </div>
                     )}
@@ -187,10 +210,15 @@ export default function CartItem({ item, submitting, onUpdateQty, onRemoveItem }
                         </div>
 
                         <div className="text-right">
-                            <span className="text-[11px] text-slate-400 block">Thành tiền món</span>
-                            <span className="text-base font-extrabold text-sky-900">
+                            <span className="text-[11px] font-semibold text-slate-400 block uppercase tracking-wider">Thành tiền món</span>
+                            <span className="text-base font-extrabold text-sky-900 block leading-tight">
                                 {formatVnd(item.totalItemPrice ?? calcLineTotal(item))}
                             </span>
+                            {item.quantity > 1 && (
+                                <span className="text-[11px] text-slate-400 block mt-0.5 font-medium">
+                                    {item.quantity} ly × {formatVnd(item.unitPrice)}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

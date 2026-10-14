@@ -844,6 +844,9 @@ namespace CafeShop.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeSpan>("CloseTime")
+                        .HasColumnType("time(6)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -871,6 +874,9 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<double>("Longitude")
                         .HasColumnType("double");
+
+                    b.Property<TimeSpan>("OpenTime")
+                        .HasColumnType("time(6)");
 
                     b.Property<string>("StoreName")
                         .IsRequired()

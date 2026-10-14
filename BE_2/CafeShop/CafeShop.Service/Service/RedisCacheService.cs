@@ -4,24 +4,31 @@ using System.Threading.Tasks;
 using CafeShop.Service.IService;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace CafeShop.Service.Service
 {
     public class RedisCacheService : IRedisCacheService
     {
         private readonly IDistributedCache _cache;
-        private readonly StackExchange.Redis.IConnectionMultiplexer _multiplexer;
+        private readonly IConnectionMultiplexer _multiplexer;
         private readonly ILogger<RedisCacheService> _logger;
 
-        public RedisCacheService(IDistributedCache cache, StackExchange.Redis.IConnectionMultiplexer multiplexer, ILogger<RedisCacheService> logger)
+        public RedisCacheService(IDistributedCache cache, IConnectionMultiplexer multiplexer, ILogger<RedisCacheService> logger)
         {
             _cache = cache;
             _multiplexer = multiplexer;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Tạo key có prefix "CafeShop_" để tránh xung đột key khi chạy chung Redis instance
+        /// </summary>
         private string Prefixed(string key) => $"CafeShop_{key}";
 
+        /// <summary>
+        /// Đọc dữ liệu từ Redis và deserialize thành đối tượng kiểu T (trả về null nếu Cache Miss hoặc lỗi)
+        /// </summary>
         public async Task<T?> GetAsync<T>(string key)
         {
             try
@@ -42,11 +49,14 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Lưu đối tượng vào Redis dưới dạng JSON kèm thời gian sống (áp dụng Jitter +/- 10% tránh sập Cache Avalanche)
+        /// </summary>
         public async Task SetAsync<T>(string key, T value, TimeSpan expiration)
         {
             try
             {
-                // Jitter +/- 10%
+                // Jitter +/- 10% ngẫu nhiên thời gian hết hạn để các key không hết hạn cùng lúc
                 var random = new Random();
                 var jitterMultiplier = 0.9 + (random.NextDouble() * 0.2);
                 var jitteredExpiration = TimeSpan.FromMilliseconds(expiration.TotalMilliseconds * jitterMultiplier);
@@ -66,6 +76,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Xóa chính xác một key khỏi Redis
+        /// </summary>
         public async Task RemoveAsync(string key)
         {
             try
@@ -79,6 +92,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Xóa hàng loạt tất cả các key bắt đầu bằng một tiền tố (dùng khi cập nhật dữ liệu muốn clear cả nhóm)
+        /// </summary>
         public async Task RemoveByPrefixAsync(string prefixKey)
         {
             try
@@ -107,6 +123,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Lấy số phiên bản (version) hiện tại của nhóm cache để kiểm tra tính hợp lệ
+        /// </summary>
         public async Task<long> GetVersionAsync(string key)
         {
             try
@@ -124,6 +143,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Tăng version nhóm cache lên 1 (làm vô hiệu hóa tức thì toàn bộ cache cũ mà không cần lặp xóa từng key)
+        /// </summary>
         public async Task BumpVersionAsync(string key)
         {
             try
@@ -138,6 +160,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Tăng biến đếm nguyên tử lên 1 (atomic counter - dùng đếm view, rate limit)
+        /// </summary>
         public async Task<long> IncrementAsync(string key)
         {
             try
@@ -152,6 +177,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Đọc giá trị biến đếm và xóa ngay lập tức (atomic read & delete - dùng đồng bộ view count về DB định kỳ)
+        /// </summary>
         public async Task<long> GetAndResetAsync(string key)
         {
             try
@@ -169,6 +197,9 @@ namespace CafeShop.Service.Service
             }
         }
 
+        /// <summary>
+        /// Khóa phân tán (Distributed Lock - SETNX) chống Race Condition trong môi trường nhiều request/server
+        /// </summary>
         public async Task<bool> TryLockAsync(string key, TimeSpan ttl)
         {
             try

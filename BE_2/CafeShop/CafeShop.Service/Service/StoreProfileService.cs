@@ -34,6 +34,8 @@ namespace CafeShop.Service.Service
                     IsAcceptingOrders = true,
                     IsRealtimeNotificationEnabled = true,
                     IsMaintenanceMode = false,
+                    OpenTime = new TimeSpan(7, 0, 0),
+                    CloseTime = new TimeSpan(22, 0, 0),
                     CreatedAt = DateTimeHelper.VietnamNow,
                     UpdatedAt = DateTimeHelper.VietnamNow
                 };
@@ -42,7 +44,9 @@ namespace CafeShop.Service.Service
                 await _unitOfWork.SaveAsync();
             }
 
-            return _mapper.Map<StoreProfileDto>(profile);
+            var result = _mapper.Map<StoreProfileDto>(profile);
+            result.IsOpenNow = profile.CheckCanAcceptOrders().CanAccept;
+            return result;
         }
 
         public async Task<StoreProfileDto> UpdateStoreProfileAsync(UpdateStoreProfileDto dto)
@@ -63,7 +67,9 @@ namespace CafeShop.Service.Service
 
             await _unitOfWork.SaveAsync();
 
-            return _mapper.Map<StoreProfileDto>(profile);
+            var result = _mapper.Map<StoreProfileDto>(profile);
+            result.IsOpenNow = profile.CheckCanAcceptOrders().CanAccept;
+            return result;
         }
     }
 }

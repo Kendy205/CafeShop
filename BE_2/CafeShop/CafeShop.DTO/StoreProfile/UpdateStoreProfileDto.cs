@@ -20,5 +20,8 @@ namespace CafeShop.DTO.StoreProfile
         public bool IsAcceptingOrders { get; set; }
         public bool IsRealtimeNotificationEnabled { get; set; }
         public bool IsMaintenanceMode { get; set; }
+
+        public TimeSpan OpenTime { get; set; }
+        public TimeSpan CloseTime { get; set; }
     }
 }

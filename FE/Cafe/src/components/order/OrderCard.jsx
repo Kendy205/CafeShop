@@ -446,40 +446,59 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                         )}
                                     </div>
 
-                                    <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                                         <span>Số lượng: <strong className="text-slate-700">×{item.quantity}</strong></span>
                                         <span>•</span>
-                                        <span>Đơn giá: {formatVnd(item.unitPrice)}</span>
+                                        <span>Đơn giá: <strong className="text-slate-700">{formatVnd(item.unitPrice)}/ly</strong></span>
+                                        {itemToppings.length > 0 && (
+                                            <span className="text-[11px] text-slate-400 italic">
+                                                (đã gồm topping)
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Danh sách topping của món */}
                                     {itemToppings.length > 0 && (
-                                        <div className="mt-1.5 space-y-1 rounded-3xl bg-slate-50 p-2 text-xs">
-                                            {itemToppings.map((t, ti) => (
-                                                <div
-                                                    key={ti}
-                                                    className="flex items-center justify-between text-slate-600"
-                                                >
-                                                    <div className="flex items-center gap-1.5">
-                                                        {t.imageUrl ? (
-                                                            <img
-                                                                src={t.imageUrl}
-                                                                alt={t.toppingName || t.name}
-                                                                className="h-4 w-4 rounded-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <span className="text-[10px] text-sky-700">+</span>
-                                                        )}
-                                                        <span>{t.toppingName || t.name}</span>
-                                                        <span className="font-bold text-sky-800">
-                                                            ×{t.quantity} {t.unit || 'phần'}
+                                        <div className="mt-1.5 space-y-1 rounded-2xl bg-slate-50 p-2 text-xs border border-slate-100">
+                                            <div className="flex items-center justify-between text-[11px] text-slate-400 pb-0.5">
+                                                <span>Topping thêm (cho mỗi ly):</span>
+                                            </div>
+                                            {itemToppings.map((t, ti) => {
+                                                const qty = Number(t.quantity) || 1
+                                                const totalPrice = Number(t.unitPrice ?? t.price ?? 0)
+                                                const unitPrice = qty > 1 ? Math.round(totalPrice / qty) : totalPrice
+
+                                                return (
+                                                    <div
+                                                        key={ti}
+                                                        className="flex items-center justify-between text-slate-600 bg-white/60 px-2 py-1 rounded-lg border border-slate-200/50"
+                                                    >
+                                                        <div className="flex items-center gap-1.5 min-w-0">
+                                                            {t.imageUrl ? (
+                                                                <img
+                                                                    src={t.imageUrl}
+                                                                    alt={t.toppingName || t.name}
+                                                                    className="h-4 w-4 rounded-full object-cover shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <span className="text-[10px] text-sky-700 font-bold">+</span>
+                                                            )}
+                                                            <span className="truncate">{t.toppingName || t.name}</span>
+                                                            <span className="font-bold text-sky-800 shrink-0">
+                                                                ×{qty} {t.unit || 'phần'}
+                                                            </span>
+                                                            {qty > 1 && (
+                                                                <span className="text-[10px] text-slate-400 shrink-0">
+                                                                    ({formatVnd(unitPrice)}/phần)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="font-semibold text-slate-700 shrink-0 ml-2">
+                                                            +{formatVnd(totalPrice)} / ly
                                                         </span>
                                                     </div>
-                                                    <span className="font-medium text-slate-700">
-                                                        {formatVnd((t.unitPrice ?? t.price ?? 0) * (t.quantity || 1))}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     )}
 
@@ -519,9 +538,15 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
 
                                 {/* Tổng tiền dòng (Line Total: lấy trực tiếp totalItemPrice) */}
                                 <div className="text-right shrink-0">
-                                    <span className="text-sm font-extrabold text-sky-900">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Thành tiền</span>
+                                    <span className="text-sm font-extrabold text-sky-900 block leading-tight">
                                         {formatVnd(item.totalItemPrice ?? (item.unitPrice * item.quantity))}
                                     </span>
+                                    {item.quantity > 1 && (
+                                        <span className="text-[11px] text-slate-400 block mt-0.5 font-medium">
+                                            {item.quantity} ly × {formatVnd(item.unitPrice)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         )

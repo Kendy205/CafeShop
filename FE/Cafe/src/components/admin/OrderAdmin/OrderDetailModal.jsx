@@ -179,22 +179,41 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                         </div>
                                                         <div className="flex flex-1 flex-col justify-center min-w-0">
                                                             <div className="flex justify-between items-start gap-3">
-                                                                <div>
-                                                                    <p className="text-sm font-bold text-slate-800">{item.productName || 'Sản phẩm'}</p>
-                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="text-sm font-bold text-slate-800 truncate" title={item.productName}>{item.productName || 'Sản phẩm'}</p>
+                                                                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
                                                                         <span className="bg-sky-100 text-sky-800 font-black px-2 py-0.5 rounded-md border border-sky-200 text-xs">
                                                                             x{item.quantity}
                                                                         </span>
-                                                                        <span className="text-slate-400 text-xs">({formatCurrency(item.unitPrice)})</span>
-                                                                        {item.sizeName && <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100 text-xs font-semibold">Size: {item.sizeName}</span>}
+                                                                        {item.sizeName && (
+                                                                            <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100 text-xs font-semibold">
+                                                                                Size: {item.sizeName}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className="text-slate-500 text-xs">
+                                                                            Đơn giá: <strong className="text-slate-700">{formatCurrency(item.unitPrice)}/ly</strong>
+                                                                        </span>
+                                                                        {item.toppings?.length > 0 && (
+                                                                            <span className="text-[11px] text-slate-400 italic">
+                                                                                (đã gồm topping)
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                                <p className="text-base font-black text-sky-700 shrink-0">{formatCurrency(item.totalItemPrice)}</p>
+                                                                <div className="text-right shrink-0">
+                                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Thành tiền</span>
+                                                                    <p className="text-base font-black text-sky-700 leading-tight">{formatCurrency(item.totalItemPrice)}</p>
+                                                                    {item.quantity > 1 && (
+                                                                        <span className="text-[11px] font-medium text-slate-400 block mt-0.5">
+                                                                            {item.quantity} ly × {formatCurrency(item.unitPrice)}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                             {item.toppings?.length > 0 && (
                                                                 <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
                                                                     {item.toppings.map((t, idx) => (
-                                                                        <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-2 rounded-xl border border-slate-100/80 text-xs">
+                                                                        <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-1.5 rounded-xl border border-slate-100/80 text-xs">
                                                                             <div className="flex items-center gap-2.5 min-w-0">
                                                                                 {t.imageUrl ? (
                                                                                     <img src={t.imageUrl} alt={t.toppingName} className="h-7 w-7 rounded-lg object-cover border border-slate-200 shrink-0" />
@@ -203,7 +222,9 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                                                 )}
                                                                                 <span className="text-slate-600 font-medium truncate">+ {t.toppingName} <span className="font-bold text-slate-800">(x{t.quantity || 1} / ly)</span></span>
                                                                             </div>
-                                                                            <span className="font-bold text-slate-600 shrink-0 ml-2">{formatCurrency(t.unitPrice)}</span>
+                                                                            <span className="font-semibold text-slate-600 text-[11px] shrink-0 ml-2 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs">
+                                                                                +{formatCurrency(t.unitPrice)} / ly
+                                                                            </span>
                                                                         </div>
                                                                     ))}
                                                                 </div>

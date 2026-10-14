@@ -16,20 +16,20 @@ export function calcLineTotal(item) {
     if (item.totalPrice != null && item.totalPrice !== '') return Number(item.totalPrice)
 
     const qty = Number(item.quantity) || 1
-    const toppingSumPerLy = (item.toppings || []).reduce((sum, t) => {
-        const price = Number(t.price ?? t.unitPrice ?? 0)
-        const count = Number(t.quantity ?? 1)
-        return sum + price * count
-    }, 0)
 
-    // Nếu item có sizePrice hoặc basePrice (giá size/ly chưa gồm topping)
-    if (item.sizePrice != null || item.basePrice != null) {
-        const base = Number(item.sizePrice ?? item.basePrice ?? 0)
-        return (base + toppingSumPerLy) * qty
+    // Nếu item có unitPrice từ backend (đã gồm toàn bộ topping của ly)
+    if (item.unitPrice != null && item.unitPrice !== '') {
+        return Number(item.unitPrice) * qty
     }
 
-    const unit = Number(item.unitPrice ?? 0)
-    return (unit + toppingSumPerLy) * qty
+    // Nếu chỉ có basePrice hoặc sizePrice (chưa gồm topping)
+    const toppingSumPerLy = (item.toppings || []).reduce((sum, t) => {
+        const price = Number(t.price ?? t.unitPrice ?? 0)
+        return sum + price
+    }, 0)
+
+    const base = Number(item.sizePrice ?? item.basePrice ?? 0)
+    return (base + toppingSumPerLy) * qty
 }
 
 export function toppingLabel(t) {

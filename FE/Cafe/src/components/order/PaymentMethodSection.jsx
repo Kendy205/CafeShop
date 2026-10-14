@@ -110,12 +110,17 @@ export default function PaymentMethodSection({
                                 : 'border border-red-200 bg-red-50 text-red-700'
                         }`}
                     >
-                        <div className="flex items-center gap-1.5">
-                            <span>{voucherResult.isValid ? '✅' : '❌'}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <span>{voucherResult.isValid ? (voucherResult.isAutoApplied ? '✨' : '✅') : '❌'}</span>
                             <span>{voucherResult.message}</span>
+                            {voucherResult.isAutoApplied && (
+                                <span className="rounded-md bg-emerald-200/60 px-1.5 py-0.5 text-[10px] font-bold text-emerald-900 border border-emerald-300">
+                                    Tối ưu nhất
+                                </span>
+                            )}
                         </div>
                         {voucherResult.isValid && voucherResult.discountAmount > 0 && (
-                            <span className="font-bold text-green-700">
+                            <span className="font-bold text-green-700 shrink-0 ml-2">
                                 −{formatVnd(voucherResult.discountAmount)}
                             </span>
                         )}
