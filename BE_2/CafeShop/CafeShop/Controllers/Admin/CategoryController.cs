@@ -1,22 +1,11 @@
 using CafeShop.DTO.Category.Requests;
 using CafeShop.DTO.Category.Responses;
-using CafeShop.DTO.Product.Requests;
-using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.User;
-using CafeShop.DTO.Order.Requests;
-using CafeShop.DTO.Order.Responses;
-using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard.Requests;
-using CafeShop.DTO.Dashboard.Responses;
-using CafeShop.Model;
-using CafeShop.Service.Helpers;
-using CafeShop.Services.IServices;
 using CafeShop.Filters;
+using CafeShop.Service.Helpers;
+using CafeShop.Service.IService.Admin;
 using CafeShop.Uitls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using CafeShop.Service.IService.Admin;
 
 namespace CafeShop.Controllers.Admin
 {
@@ -39,14 +28,7 @@ namespace CafeShop.Controllers.Admin
             try
             {
                 var categories = await _categoryService.GetAllAsync();
-                var result = categories.Select(c => new CategoryDto
-                {
-                    CategoryId = c.CategoryId,
-                    Name = c.Name ?? string.Empty,
-                    Description = c.Description
-                }).ToList();
-
-                return Ok(ApiResponse<List<CategoryDto>>.Succeeded(result, 200, "Lấy danh sách danh mục thành công"));
+                return Ok(ApiResponse<List<CategoryDto>>.Succeeded(categories, 200, "Lấy danh sách danh mục thành công"));
             }
             catch (Exception ex)
             {
@@ -64,14 +46,7 @@ namespace CafeShop.Controllers.Admin
                 if (category == null)
                     return NotFound(ApiResponse<object>.Failed("Không tìm thấy danh mục", 404));
 
-                var result = new CategoryDto
-                {
-                    CategoryId = category.CategoryId,
-                    Name = category.Name ?? string.Empty,
-                    Description = category.Description
-                };
-
-                return Ok(ApiResponse<CategoryDto>.Succeeded(result, 200, "Lấy danh mục thành công"));
+                return Ok(ApiResponse<CategoryDto>.Succeeded(category, 200, "Lấy danh mục thành công"));
             }
             catch (Exception ex)
             {

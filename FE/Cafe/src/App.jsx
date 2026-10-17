@@ -92,7 +92,7 @@ function App() {
                     </Route>
                 </Route>
 
-                {/* Phân hệ Staff (Quầy / Bếp) - Dành cho STAFF và ADMIN */}
+                {/* Phân hệ Staff (Quầy ) - Dành cho STAFF và ADMIN */}
                 <Route element={<ProtectedRoute allowedRoles={STAFF_ROLES} />}>
                     <Route path="/staff" element={<StaffTemplate />}>
                         <Route index element={<Navigate to="orders" replace />} />
@@ -105,6 +105,7 @@ function App() {
                 {/* 404 Standalone Route - Không có Header */}
                 <Route path="/404" element={<NotFoundPage />} />
                 <Route path="*" element={<NotFoundPage />} />
+
             </Routes>
             <AuthModal />
         </Provider>

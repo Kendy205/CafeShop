@@ -4,7 +4,6 @@ using CafeShop.DTO.User;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.IService;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CafeShop.Service.Service
@@ -20,40 +19,8 @@ namespace CafeShop.Service.Service
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _photoService = photoService;
-
         }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
-        {
-            return await _unitOfWork.User.GetAllAsync();
-        }
-
-        public async Task<User> GetByIdAsync(int id)
-        {
-            return await _unitOfWork.User.GetFirstOrDefaultAsync(p=>p.UserId==id);
-        }
-
-        public async Task AddAsync(User entity)
-        {
-            await _unitOfWork.User.AddAsync(entity);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task UpdateAsync(User entity)
-        {
-            _unitOfWork.User.Update(entity);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _unitOfWork.User.GetFirstOrDefaultAsync(p=>p.UserId==id);
-            if (entity != null)
-            {
-                _unitOfWork.User.Remove(entity);
-                await _unitOfWork.SaveAsync();
-            }
-        }
         public async Task<UserProfileDto> GetProfileAsync(int userId)
         {
             var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == userId);

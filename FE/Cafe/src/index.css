@@ -73,6 +73,200 @@
   .app-confirm-modal .ant-modal-content {
     @apply rounded-[28px] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-300/30 p-6;
   }
+
+  /* Apple Style Minimalist Pagination (Apple System Blue #0071E3) */
+  .custom-admin-pagination {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 4px 6px !important;
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.04) !important;
+    border-radius: 9999px !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-item {
+    min-width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    border-radius: 9999px !important;
+    border: none !important;
+    background-color: transparent !important;
+    margin-inline-end: 0 !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    user-select: none !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-item a {
+    color: #1D1D1F !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: color 0.2s ease !important;
+  }
+
+  /* Hover state for inactive items */
+  .custom-admin-pagination .ant-pagination-item:not(.ant-pagination-item-active):hover {
+    background-color: rgba(0, 113, 227, 0.09) !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-item:not(.ant-pagination-item-active):hover a {
+    color: #0071E3 !important;
+  }
+
+  /* Active Apple Blue Item */
+  .custom-admin-pagination .ant-pagination-item-active {
+    background-color: #0071E3 !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.36) !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-item-active a {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+  }
+
+  /* Prev / Next buttons */
+  .custom-admin-pagination .ant-pagination-prev,
+  .custom-admin-pagination .ant-pagination-next {
+    min-width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    border-radius: 9999px !important;
+    margin-inline-end: 0 !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-prev button,
+  .custom-admin-pagination .ant-pagination-next button,
+  .custom-admin-pagination .ant-pagination-prev .ant-pagination-item-link,
+  .custom-admin-pagination .ant-pagination-next .ant-pagination-item-link {
+    border-radius: 9999px !important;
+    border: none !important;
+    background-color: transparent !important;
+    color: #1D1D1F !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-prev:not(.ant-pagination-disabled):hover button,
+  .custom-admin-pagination .ant-pagination-next:not(.ant-pagination-disabled):hover button,
+  .custom-admin-pagination .ant-pagination-prev:not(.ant-pagination-disabled):hover .ant-pagination-item-link,
+  .custom-admin-pagination .ant-pagination-next:not(.ant-pagination-disabled):hover .ant-pagination-item-link {
+    background-color: rgba(0, 113, 227, 0.09) !important;
+    color: #0071E3 !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-disabled button,
+  .custom-admin-pagination .ant-pagination-disabled .ant-pagination-item-link {
+    opacity: 0.25 !important;
+    color: #86868B !important;
+    cursor: not-allowed !important;
+  }
+
+  /* Jump Prev / Jump Next (...) */
+  .custom-admin-pagination .ant-pagination-jump-prev,
+  .custom-admin-pagination .ant-pagination-jump-next {
+    min-width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    border-radius: 9999px !important;
+    margin-inline-end: 0 !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-jump-prev .ant-pagination-item-ellipsis,
+  .custom-admin-pagination .ant-pagination-jump-next .ant-pagination-item-ellipsis {
+    color: #86868B !important;
+    line-height: 32px !important;
+  }
+
+  .custom-admin-pagination .ant-pagination-jump-prev:hover .ant-pagination-item-link-icon,
+  .custom-admin-pagination .ant-pagination-jump-next:hover .ant-pagination-item-link-icon {
+    color: #0071E3 !important;
+  }
+
+  /* Apple Style Filter Select */
+  html body .ant-select.apple-select .ant-select-selector,
+  .apple-select .ant-select-selector {
+    border-radius: 16px !important;
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    height: 38px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1D1D1F !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  html body .ant-select.apple-select:hover .ant-select-selector,
+  .apple-select:hover .ant-select-selector {
+    background-color: rgba(0, 0, 0, 0.07) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+  }
+  html body .ant-select.apple-select.ant-select-focused .ant-select-selector,
+  html body .ant-select.apple-select.ant-select-open .ant-select-selector,
+  .apple-select.ant-select-focused .ant-select-selector,
+  .apple-select.ant-select-open .ant-select-selector {
+    background-color: #ffffff !important;
+    border-color: rgba(0, 113, 227, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12) !important;
+  }
+  html body .ant-select.apple-select .ant-select-selection-placeholder {
+    color: #86868B !important;
+    font-weight: 500 !important;
+  }
+  html body .ant-select.apple-select .ant-select-selection-item {
+    font-weight: 600 !important;
+    color: #1D1D1F !important;
+  }
+  html body .ant-select.apple-select .ant-select-arrow {
+    color: #86868B !important;
+    transition: transform 0.2s ease !important;
+  }
+  html body .ant-select.apple-select.ant-select-open .ant-select-arrow {
+    transform: rotate(180deg) !important;
+  }
+  html body .ant-select.apple-select .ant-select-clear {
+    background: transparent !important;
+    color: #86868B !important;
+  }
+
+  /* Apple Style Dropdown Popup */
+  .apple-select-dropdown {
+    @apply !rounded-[18px] !p-1.5 !border !border-black/[0.06] !bg-white/95 !backdrop-blur-md;
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04) !important;
+  }
+  .apple-select-dropdown .ant-select-item {
+    @apply !rounded-[12px] !text-xs sm:!text-sm !font-medium !text-[#1D1D1F] !px-3 !py-2 transition-colors;
+  }
+  .apple-select-dropdown .ant-select-item:hover {
+    @apply !bg-black/[0.04];
+  }
+  .apple-select-dropdown .ant-select-item-option-selected {
+    @apply !bg-black/[0.06] !font-bold !text-[#0071E3];
+  }
+
+  /* Apple Style Input */
+  .apple-input {
+    @apply rounded-[16px] border border-black/[0.06] bg-black/[0.04] h-[38px] px-3.5 text-xs sm:text-sm font-semibold text-[#1D1D1F] placeholder:text-[#86868B] placeholder:font-normal outline-none transition-all hover:bg-black/[0.06] focus:bg-white focus:border-[#0071E3]/50 focus:ring-2 focus:ring-[#0071E3]/15 shadow-2xs;
+  }
+
+  /* Apple Style Filter Chip */
+  .apple-filter-chip {
+    @apply inline-flex items-center gap-1.5 h-[38px] px-3.5 rounded-[16px] text-xs font-bold border transition-all cursor-pointer select-none shadow-2xs;
+  }
+  .apple-filter-chip-inactive {
+    @apply border-black/[0.06] bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.07] hover:border-black/[0.1];
+  }
+  .apple-filter-chip-active-rose {
+    @apply border-rose-500/20 bg-rose-50 text-rose-600 ring-2 ring-rose-500/20 shadow-xs;
+  }
 }
 
 @layer utilities {
@@ -83,6 +277,26 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Scrollbar thanh mảnh hiện đại tránh rơi vào thanh cuộn đen của OS */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7);
+  }
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
   }
   
   /* Shadow siêu mịn kiểu Apple */

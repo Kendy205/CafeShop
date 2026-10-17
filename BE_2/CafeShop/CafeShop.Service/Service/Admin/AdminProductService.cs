@@ -7,16 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Product.Requests;
 using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.Category.Requests;
-using CafeShop.DTO.Category.Responses;
-using CafeShop.DTO.Product.Requests;
-using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.User;
-using CafeShop.DTO.Order.Requests;
-using CafeShop.DTO.Order.Responses;
-using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard.Requests;
-using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
@@ -82,6 +72,7 @@ namespace CafeShop.Service.Service.Admin
 
         public async Task<ProductResponseDto> CreateProductAsync(CreateUpdateProductDto request)
         {
+            // 1. Parse JSON cấu hình Sizes và Toppings trước để fail-fast nếu cú pháp JSON sai
             var sizes = new List<CreateProductSizeDto>();
             if (!string.IsNullOrEmpty(request.ProductSizesJson))
             {
@@ -91,77 +82,89 @@ namespace CafeShop.Service.Service.Admin
                 }
                 catch (JsonException ex)
                 {
-                    throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
+                    throw new ArgumentException($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
                 }
             }
 
-            var product = new Product
-            {
-                Name = request.Name,
-                BasePrice = request.BasePrice,
-                CategoryId = request.CategoryId,
-                Description = request.Description,
-                IsAvailable = request.IsAvailable,
-                StockQuantity = sizes.Any() ? sizes.Sum(s => s.StockQuantity) : request.StockQuantity
-            };
-
-            if (request.ImageFile != null && request.ImageFile.Length > 0)
-            {
-                var uploadResult = await _photoService.AddPhotoAsync(request.ImageFile);
-                if (uploadResult.Error != null)
-                    throw new Exception($"Lỗi tải ảnh lên hệ thống: {uploadResult.Error.Message}");
-                    
-                product.ImageUrl = uploadResult.SecureUrl.AbsoluteUri;
-                product.ImagePublicId = uploadResult.PublicId;
-            }
-
-            await _unitOfWork.Product.AddAsync(product);
-            await _unitOfWork.SaveAsync();
-
-            if (sizes.Any())
-            {
-                foreach (var s in sizes)
-                {
-                    var ps = new ProductSize
-                    {
-                        ProductId = product.ProductId,
-                        SizeId = s.SizeId,
-                        Price = s.Price,
-                        StockQuantity = s.StockQuantity
-                    };
-                    await _unitOfWork.ProductSize.AddAsync(ps);
-                }
-                await _unitOfWork.SaveAsync();
-            }
-
+            var toppingIds = new List<int>();
             if (!string.IsNullOrEmpty(request.ProductToppingsJson))
             {
                 try
                 {
-                    var toppingIds = JsonSerializer.Deserialize<List<int>>(request.ProductToppingsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (toppingIds != null)
-                    {
-                        foreach (var tId in toppingIds)
-                        {
-                            var pt = new ProductTopping
-                            {
-                                ProductId = product.ProductId,
-                                ToppingId = tId
-                            };
-                            await _unitOfWork.ProductTopping.AddAsync(pt);
-                        }
-                        await _unitOfWork.SaveAsync();
-                    }
+                    toppingIds = JsonSerializer.Deserialize<List<int>>(request.ProductToppingsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<int>();
                 }
                 catch (JsonException ex)
                 {
-                    throw new Exception($"Lỗi parse chuỗi ProductToppingsJson: {ex.Message}");
+                    throw new ArgumentException($"Lỗi parse chuỗi ProductToppingsJson: {ex.Message}");
                 }
             }
 
-            var updatedProduct = await GetByIdAsync(product.ProductId);
-            await InvalidateProductCacheAsync();
-            return updatedProduct!;
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var product = new Product
+                {
+                    Name = request.Name,
+                    BasePrice = request.BasePrice,
+                    CategoryId = request.CategoryId,
+                    Description = request.Description,
+                    IsAvailable = request.IsAvailable,
+                    StockQuantity = sizes.Any() ? sizes.Sum(s => s.StockQuantity) : request.StockQuantity
+                };
+
+                if (request.ImageFile != null && request.ImageFile.Length > 0)
+                {
+                    var uploadResult = await _photoService.AddPhotoAsync(request.ImageFile);
+                    if (uploadResult.Error != null)
+                        throw new Exception($"Lỗi tải ảnh lên hệ thống: {uploadResult.Error.Message}");
+                        
+                    product.ImageUrl = uploadResult.SecureUrl.AbsoluteUri;
+                    product.ImagePublicId = uploadResult.PublicId;
+                }
+
+                await _unitOfWork.Product.AddAsync(product);
+                await _unitOfWork.SaveAsync();
+
+                if (sizes.Any())
+                {
+                    foreach (var s in sizes)
+                    {
+                        var ps = new ProductSize
+                        {
+                            ProductId = product.ProductId,
+                            SizeId = s.SizeId,
+                            Price = s.Price,
+                            StockQuantity = s.StockQuantity
+                        };
+                        await _unitOfWork.ProductSize.AddAsync(ps);
+                    }
+                }
+
+                if (toppingIds.Any())
+                {
+                    foreach (var tId in toppingIds)
+                    {
+                        var pt = new ProductTopping
+                        {
+                            ProductId = product.ProductId,
+                            ToppingId = tId
+                        };
+                        await _unitOfWork.ProductTopping.AddAsync(pt);
+                    }
+                }
+
+                await _unitOfWork.SaveAsync();
+                await transaction.CommitAsync();
+
+                var updatedProduct = await GetByIdAsync(product.ProductId);
+                await InvalidateProductCacheAsync();
+                return updatedProduct!;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<ProductResponseDto> UpdateProductAsync(int id, CreateUpdateProductDto request)
@@ -169,6 +172,7 @@ namespace CafeShop.Service.Service.Admin
             var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == id && !p.IsDeleted);
             if (product == null) throw new ArgumentException("Không tìm thấy sản phẩm!");
 
+            // 1. Parse JSON upfront
             var sizes = new List<CreateProductSizeDto>();
             if (!string.IsNullOrEmpty(request.ProductSizesJson))
             {
@@ -178,89 +182,102 @@ namespace CafeShop.Service.Service.Admin
                 }
                 catch (JsonException ex)
                 {
-                    throw new Exception($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
+                    throw new ArgumentException($"Lỗi parse chuỗi ProductSizesJson: {ex.Message}");
                 }
             }
 
-            product.Name = request.Name;
-            product.BasePrice = request.BasePrice;
-            product.CategoryId = request.CategoryId;
-            product.Description = request.Description;
-            product.IsAvailable = request.IsAvailable;
-            product.StockQuantity = sizes.Any() ? sizes.Sum(s => s.StockQuantity) : request.StockQuantity;
-
-            if (request.ImageFile != null && request.ImageFile.Length > 0)
-            {
-                var uploadResult = await _photoService.AddPhotoAsync(request.ImageFile);
-                if (uploadResult.Error != null)
-                    throw new Exception($"Lỗi tải ảnh lên hệ thống: {uploadResult.Error.Message}");
-                    
-                if (!string.IsNullOrEmpty(product.ImagePublicId))
-                {
-                    await _photoService.DeletePhotoAsync(product.ImagePublicId);
-                }
-
-                product.ImageUrl = uploadResult.SecureUrl.AbsoluteUri;
-                product.ImagePublicId = uploadResult.PublicId;
-            }
-
-            _unitOfWork.Product.Update(product);
-
-            if (sizes.Any())
-            {
-                var existingSizes = await _unitOfWork.ProductSize.GetAllAsync(ps => ps.ProductId == id);
-                        foreach (var es in existingSizes)
-                        {
-                            _unitOfWork.ProductSize.Remove(es);
-                        }
-                        
-                foreach (var s in sizes)
-                {
-                            var ps = new ProductSize
-                            {
-                                ProductId = product.ProductId,
-                                SizeId = s.SizeId,
-                                Price = s.Price,
-                                StockQuantity = s.StockQuantity
-                            };
-                            await _unitOfWork.ProductSize.AddAsync(ps);
-                }
-            }
-
+            List<int>? toppingIds = null;
             if (!string.IsNullOrEmpty(request.ProductToppingsJson))
             {
                 try
                 {
-                    var toppingIds = JsonSerializer.Deserialize<List<int>>(request.ProductToppingsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (toppingIds != null)
-                    {
-                        var existingToppings = await _unitOfWork.ProductTopping.GetAllAsync(pt => pt.ProductId == id);
-                        foreach (var et in existingToppings)
-                        {
-                            _unitOfWork.ProductTopping.Remove(et);
-                        }
-
-                        foreach (var tId in toppingIds)
-                        {
-                            var pt = new ProductTopping
-                            {
-                                ProductId = product.ProductId,
-                                ToppingId = tId
-                            };
-                            await _unitOfWork.ProductTopping.AddAsync(pt);
-                        }
-                    }
+                    toppingIds = JsonSerializer.Deserialize<List<int>>(request.ProductToppingsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 }
                 catch (JsonException ex)
                 {
-                    throw new Exception($"Lỗi parse chuỗi ProductToppingsJson: {ex.Message}");
+                    throw new ArgumentException($"Lỗi parse chuỗi ProductToppingsJson: {ex.Message}");
                 }
             }
 
-            await _unitOfWork.SaveAsync();
-            await InvalidateProductCacheAsync(product.ProductId);
-            var updatedProduct = await GetByIdAsync(product.ProductId);
-            return updatedProduct!;
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                product.Name = request.Name;
+                product.BasePrice = request.BasePrice;
+                product.CategoryId = request.CategoryId;
+                product.Description = request.Description;
+                product.IsAvailable = request.IsAvailable;
+                product.StockQuantity = sizes.Any() ? sizes.Sum(s => s.StockQuantity) : request.StockQuantity;
+
+                if (request.ImageFile != null && request.ImageFile.Length > 0)
+                {
+                    var uploadResult = await _photoService.AddPhotoAsync(request.ImageFile);
+                    if (uploadResult.Error != null)
+                        throw new Exception($"Lỗi tải ảnh lên hệ thống: {uploadResult.Error.Message}");
+                        
+                    if (!string.IsNullOrEmpty(product.ImagePublicId))
+                    {
+                        await _photoService.DeletePhotoAsync(product.ImagePublicId);
+                    }
+
+                    product.ImageUrl = uploadResult.SecureUrl.AbsoluteUri;
+                    product.ImagePublicId = uploadResult.PublicId;
+                }
+
+                _unitOfWork.Product.Update(product);
+
+                if (sizes.Any())
+                {
+                    var existingSizes = await _unitOfWork.ProductSize.GetAllAsync(ps => ps.ProductId == id);
+                    foreach (var es in existingSizes)
+                    {
+                        _unitOfWork.ProductSize.Remove(es);
+                    }
+                            
+                    foreach (var s in sizes)
+                    {
+                        var ps = new ProductSize
+                        {
+                            ProductId = product.ProductId,
+                            SizeId = s.SizeId,
+                            Price = s.Price,
+                            StockQuantity = s.StockQuantity
+                        };
+                        await _unitOfWork.ProductSize.AddAsync(ps);
+                    }
+                }
+
+                if (toppingIds != null)
+                {
+                    var existingToppings = await _unitOfWork.ProductTopping.GetAllAsync(pt => pt.ProductId == id);
+                    foreach (var et in existingToppings)
+                    {
+                        _unitOfWork.ProductTopping.Remove(et);
+                    }
+
+                    foreach (var tId in toppingIds)
+                    {
+                        var pt = new ProductTopping
+                        {
+                            ProductId = product.ProductId,
+                            ToppingId = tId
+                        };
+                        await _unitOfWork.ProductTopping.AddAsync(pt);
+                    }
+                }
+
+                await _unitOfWork.SaveAsync();
+                await transaction.CommitAsync();
+
+                await InvalidateProductCacheAsync(product.ProductId);
+                var updatedProduct = await GetByIdAsync(product.ProductId);
+                return updatedProduct!;
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task ToggleAvailabilityAsync(int id)

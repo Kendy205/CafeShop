@@ -85,7 +85,7 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                 className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/10 backdrop-blur-[2px] p-4 transition-all animate-in fade-in duration-200 ${isExpanded ? 'p-0' : 'p-4'}`}
                 onClick={(e) => e.target === e.currentTarget && onClose()}
             >
-                <div className={`relative w-full overflow-y-auto bg-white shadow-2xl border border-slate-200/80 transition-all duration-300 ${isExpanded
+                <div className={`relative w-full overflow-y-auto custom-scrollbar bg-white shadow-2xl border border-slate-200/80 transition-all duration-300 ${isExpanded
                         ? 'max-w-full h-full rounded-none'
                         : 'max-w-4xl max-h-[90vh] rounded-3xl'
                     }`}>
@@ -169,16 +169,17 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                         ) : (
                                             <div className={`${isSingleItem ? 'flex flex-col gap-3.5' : 'grid grid-cols-1 md:grid-cols-2 gap-3.5 content-start'} overflow-y-auto pr-1 custom-scrollbar w-full`} style={{ maxHeight: isExpanded ? 'calc(100vh - 400px)' : 'calc(100vh - 550px)', minHeight: '160px' }}>
                                                 {detail.items.map((item, i) => (
-                                                    <div key={i} className="flex flex-col sm:flex-row sm:items-start gap-4 rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group w-full">
-                                                        <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200 shadow-xs">
-                                                            {item.imageUrl ? (
-                                                                <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
-                                                            ) : (
-                                                                <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs">No img</div>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex flex-1 flex-col justify-center min-w-0">
-                                                            <div className="flex justify-between items-start gap-3">
+                                                    <div key={i} className="flex flex-col rounded-2xl border-2 border-slate-100 bg-white p-4 hover:border-sky-200 hover:shadow-md transition-all group w-full">
+                                                        {/* Thông tin sản phẩm chính */}
+                                                        <div className="flex items-start gap-3.5 w-full">
+                                                            <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-slate-200 shadow-xs">
+                                                                {item.imageUrl ? (
+                                                                    <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
+                                                                ) : (
+                                                                    <div className="h-full w-full flex items-center justify-center text-slate-400 text-xs">No img</div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-1 justify-between items-start gap-2.5 min-w-0">
                                                                 <div className="min-w-0 flex-1">
                                                                     <p className="text-sm font-bold text-slate-800 truncate" title={item.productName}>{item.productName || 'Sản phẩm'}</p>
                                                                     <div className="flex flex-wrap items-center gap-1.5 mt-1">
@@ -210,26 +211,33 @@ export default function OrderDetailModal({ orderId, onClose, onStatusUpdated }) 
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            {item.toppings?.length > 0 && (
-                                                                <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1.5">
-                                                                    {item.toppings.map((t, idx) => (
-                                                                        <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-1.5 rounded-xl border border-slate-100/80 text-xs">
-                                                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                                                {t.imageUrl ? (
-                                                                                    <img src={t.imageUrl} alt={t.toppingName} className="h-7 w-7 rounded-lg object-cover border border-slate-200 shrink-0" />
-                                                                                ) : (
-                                                                                    <div className="h-7 w-7 rounded-lg bg-slate-200 border border-slate-300 shrink-0" />
-                                                                                )}
-                                                                                <span className="text-slate-600 font-medium truncate">+ {t.toppingName} <span className="font-bold text-slate-800">(x{t.quantity || 1} / ly)</span></span>
-                                                                            </div>
-                                                                            <span className="font-semibold text-slate-600 text-[11px] shrink-0 ml-2 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs">
-                                                                                +{formatCurrency(t.unitPrice)} / ly
+                                                        </div>
+
+                                                        {/* Danh sách topping thẳng hàng toàn thẻ món */}
+                                                        {item.toppings?.length > 0 && (
+                                                            <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5 w-full">
+                                                                {item.toppings.map((t, idx) => (
+                                                                    <div key={idx} className="flex justify-between items-center bg-slate-50/90 px-3 py-1.5 rounded-xl border border-slate-100/80 text-xs gap-2">
+                                                                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                                                            {t.imageUrl ? (
+                                                                                <img src={t.imageUrl} alt={t.toppingName} className="h-6 w-6 rounded-md object-cover border border-slate-200 shrink-0" />
+                                                                            ) : (
+                                                                                <div className="h-6 w-6 rounded-md bg-slate-200 border border-slate-300 shrink-0" />
+                                                                            )}
+                                                                            <span className="text-slate-700 font-medium truncate" title={t.toppingName}>
+                                                                                + {t.toppingName}
+                                                                            </span>
+                                                                            <span className="font-bold text-slate-800 text-[11px] shrink-0 bg-slate-200/70 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                                                                                (x{t.quantity || 1} / ly)
                                                                             </span>
                                                                         </div>
-                                                                    ))}
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                                        <span className="font-semibold text-slate-600 text-[11px] shrink-0 ml-1 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs whitespace-nowrap">
+                                                                            +{formatCurrency(t.unitPrice)} / ly
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>

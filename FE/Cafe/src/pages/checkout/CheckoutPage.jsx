@@ -56,7 +56,7 @@ export default function CheckoutPage() {
     const addresses = useSelector((s) => s.user.address.items)
     const vouchers = useSelector((s) => s.user.voucher.items)
     const { submitting, error } = useSelector((s) => s.user.order)
-    
+
     // Đọc config cửa hàng từ store (gồm có latitude, longitude)
     const { profile: storeProfile } = useSelector((s) => s.app.storeProfile || {})
     const cafeLat = storeProfile?.latitude
@@ -179,7 +179,7 @@ export default function CheckoutPage() {
 
         let payload = {
             isBuyNow: Boolean(isBuyNow),
-            paymentMethod: paymentMethod.toUpperCase() === 'VNPAY' ? 'VNPay' : 'COD',
+            paymentMethod: paymentMethod.toUpperCase() === 'VNPAY' ? 'VNPAY' : 'COD',
             voucherCode: voucherCode.trim() || null,
             note: note.trim() || null,
         }
@@ -294,8 +294,8 @@ export default function CheckoutPage() {
                                 type="button"
                                 onClick={() => handleSwitchAddressTab(TAB_SAVED)}
                                 className={`rounded-3xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_SAVED
-                                        ? 'bg-sky-800 text-white shadow-xs'
-                                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                    ? 'bg-sky-800 text-white shadow-xs'
+                                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
                                 📋 Địa chỉ đã lưu
@@ -304,8 +304,8 @@ export default function CheckoutPage() {
                                 type="button"
                                 onClick={() => handleSwitchAddressTab(TAB_MAP)}
                                 className={`rounded-3xl px-4 py-2 text-sm font-medium transition-all cursor-pointer ${addressTab === TAB_MAP
-                                        ? 'bg-sky-800 text-white shadow-xs'
-                                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                    ? 'bg-sky-800 text-white shadow-xs'
+                                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
                                 🗺️ Chọn trên bản đồ
@@ -369,8 +369,8 @@ export default function CheckoutPage() {
                                             {!recipientName.trim()
                                                 ? 'Vui lòng nhập tên người nhận để giao hàng'
                                                 : !phone.trim()
-                                                ? 'Vui lòng nhập số điện thoại người nhận'
-                                                : 'Vui lòng tìm kiếm hoặc click chọn vị trí giao hàng trên bản đồ'}
+                                                    ? 'Vui lòng nhập số điện thoại người nhận'
+                                                    : 'Vui lòng tìm kiếm hoặc click chọn vị trí giao hàng trên bản đồ'}
                                         </span>
                                     </div>
                                 )}

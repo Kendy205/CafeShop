@@ -61,6 +61,7 @@ class SignalRService {
     constructor() {
         this.connection = null
         this.startPromise = null
+        this.orderCallbacks = new Set()
         this.adminCallbacks = new Set()
         this.userCallbacks = new Set()
         this.reconnectedCallbacks = new Set()
@@ -82,8 +83,27 @@ class SignalRService {
             .configureLogging(signalR.LogLevel.Information)
             .build()
 
-        // Đăng ký lắng nghe sự kiện dành cho Admin
-        const adminEvents = ['ReceiveAdminNotification', 'NewOrder', 'ReceiveOrderNotification']
+        // Đăng ký lắng nghe sự kiện biến động đơn hàng dành cho Staff & Admin
+        this.connection.on('ReceiveOrderNotification', (data) => {
+            devLog('[SignalR Hub] Order event (ReceiveOrderNotification) received:', data)
+            this.orderCallbacks.forEach((cb) => {
+                try {
+                    cb(data)
+                } catch (err) {
+                    console.error('Error in order notification callback:', err)
+                }
+            })
+            this.adminCallbacks.forEach((cb) => {
+                try {
+                    cb(data)
+                } catch (err) {
+                    console.error('Error in admin notification callback:', err)
+                }
+            })
+        })
+
+        // Đăng ký lắng nghe các sự kiện chung khác dành cho Admin
+        const adminEvents = ['ReceiveAdminNotification', 'NewOrder']
         adminEvents.forEach((evt) => {
             this.connection.on(evt, (data) => {
                 devLog(`[SignalR Hub] Admin event (${evt}) received:`, data)
@@ -97,8 +117,8 @@ class SignalRService {
             })
         })
 
-        // Đăng ký lắng nghe sự kiện dành cho User
-        const userEvents = ['ReceiveUserNotification', 'ReceiveNotification', 'OrderStatusChanged', 'ReceiveOrderNotification', 'OrderUpdated']
+        // Đăng ký lắng nghe sự kiện dành cho Khách hàng (User)
+        const userEvents = ['ReceiveUserNotification', 'ReceiveNotification', 'OrderUpdated']
         userEvents.forEach((evt) => {
             this.connection.on(evt, (data) => {
                 devLog(`[SignalR Hub] User event (${evt}) received:`, data)
@@ -176,6 +196,13 @@ class SignalRService {
             } finally {
                 this.startPromise = null
             }
+        }
+    }
+
+    onOrderNotification(callback) {
+        this.orderCallbacks.add(callback)
+        return () => {
+            this.orderCallbacks.delete(callback)
         }
     }
 

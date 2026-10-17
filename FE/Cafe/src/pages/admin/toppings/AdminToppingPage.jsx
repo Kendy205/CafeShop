@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { message, Modal, Switch, Space, Button, Upload } from 'antd'
+import { Modal, Switch, Button, Upload } from 'antd'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { EditOutlined, PlusOutlined, UploadOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
@@ -10,14 +10,13 @@ import {
     toggleToppingAvailability,
 } from '../../../redux/actions/admin/adminToppingAction'
 import { formatVnd } from '../../../utils/helpers/format'
-import AdminPageBanner from '../../../components/admin/common/AdminPageBanner'
 import AdminTable from '../../../components/admin/common/AdminTable'
 import AdminModalBanner from '../../../components/admin/common/AdminModalBanner'
 import AppButton from '../../../components/common/AppButton'
 import AppSearchBox from '../../../components/common/AppSearchBox'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
-import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+import { AppToast } from '../../../components/common/AppNotification'
 
 
 const toppingSchema = Yup.object().shape({
@@ -25,7 +24,7 @@ const toppingSchema = Yup.object().shape({
     price: Yup.number().min(0, 'Giá không hợp lệ').required('Vui lòng nhập giá'),
     unit: Yup.string().required('Vui lòng nhập đơn vị tính'),
     stockQuantity: Yup.number().min(0, 'Số lượng không hợp lệ').required('Vui lòng nhập số lượng tồn'),
-    imageFile: Yup.mixed()
+    imageFile: Yup.mixed().nullable()
 })
 
 /**
@@ -62,42 +61,42 @@ export default function AdminToppingPage() {
 
     const handleSubmit = async (values, { resetForm }) => {
         const formData = new FormData()
-        formData.append('name', (values.name || '').toString().trim())
-        formData.append('price', values.price || 0)
-        formData.append('unit', (values.unit || '').toString().trim())
-        formData.append('stockQuantity', values.stockQuantity || 0)
+        formData.append('Name', (values.name || '').toString().trim())
+        formData.append('Price', Number(values.price) || 0)
+        formData.append('Unit', (values.unit || '').toString().trim())
+        formData.append('StockQuantity', Number(values.stockQuantity) || 0)
 
         if (editingItem && editingItem.isAvailable !== undefined) {
-            formData.append('isAvailable', editingItem.isAvailable)
+            formData.append('IsAvailable', Boolean(editingItem.isAvailable))
         } else {
-            formData.append('isAvailable', true)
+            formData.append('IsAvailable', true)
         }
 
         if (values.imageFile) {
-            formData.append('imageFile', values.imageFile)
+            formData.append('ImageFile', values.imageFile)
         }
 
         if (editingItem) {
             const res = await dispatch(updateAdminTopping({ id: editingItem.toppingId, formData }))
             if (updateAdminTopping.fulfilled.match(res)) {
-                AppToast.success('Cập nhật thành công!')
+                AppToast.success('Cập nhật topping thành công!')
                 closeModal()
                 resetForm()
             } else {
-                /* API Error Modal will handle this */
+                AppToast.error(res.payload || 'Cập nhật topping thất bại!')
             }
         } else {
             if (!values.imageFile) {
-                AppToast.warning('Vui lòng chọn ảnh cho Topping!')
+                AppToast.warning('Vui lòng chọn ảnh cho Topping mới!')
                 return
             }
             const res = await dispatch(createAdminTopping(formData))
             if (createAdminTopping.fulfilled.match(res)) {
-                AppToast.success('Thêm mới thành công!')
+                AppToast.success('Thêm topping mới thành công!')
                 closeModal()
                 resetForm()
             } else {
-                /* API Error Modal will handle this */
+                AppToast.error(res.payload || 'Thêm topping mới thất bại!')
             }
         }
     }
@@ -107,16 +106,13 @@ export default function AdminToppingPage() {
         if (toggleToppingAvailability.fulfilled.match(res)) {
             AppToast.success(`Đã ${checked ? 'bật' : 'tắt'} hiển thị topping!`)
         } else {
-            /* API Error Modal will handle this */
+            AppToast.error(res.payload || 'Đổi trạng thái topping thất bại!')
         }
     }
 
     const filteredItems = items.filter(t => t.name.toLowerCase().includes(searchText.toLowerCase()))
     const paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [searchText])
 
     const columns = [
         {
@@ -264,9 +260,9 @@ export default function AdminToppingPage() {
                 >
                     {({ errors, touched, setFieldValue }) => {
                         const handleFileChange = (info) => {
-                            const file = info.file.originFileObj || info.file
+                            const file = info.file?.originFileObj || info.file
                             if (!file) return
-                            if (!file.type.startsWith('image/')) {
+                            if (file.type && !file.type.startsWith('image/')) {
                                 AppToast.error('Chỉ được phép upload file ảnh!')
                                 return
                             }
@@ -369,6 +365,12 @@ export default function AdminToppingPage() {
                                         <p className="mt-1 text-xs font-medium text-red-500">{errors.stockQuantity}</p>
                                     )}
                                 </div>
+
+                                {Object.keys(errors).length > 0 && (
+                                    <div className="rounded-2xl border border-red-200 bg-red-50/80 p-3.5 text-xs font-semibold text-red-600 flex items-center gap-2">
+                                        <span>⚠️ Vui lòng kiểm tra lại: {Object.values(errors).join(', ')}</span>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-end gap-3 pt-6 mt-2">
                                     <AppButton type="button" variant="ghost" onClick={closeModal}>

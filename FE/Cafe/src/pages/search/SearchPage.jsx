@@ -16,11 +16,11 @@ const SORT_OPTIONS = [
 ]
 
 const RATING_OPTIONS = [
-    { value: '', label: '⭐ Tất cả sao' },
-    { value: '5', label: '5 sao ⭐⭐⭐⭐⭐' },
-    { value: '4', label: 'Từ 4 sao trở lên ⭐' },
-    { value: '3', label: 'Từ 3 sao trở lên ⭐' },
-    { value: '2', label: 'Từ 2 sao trở lên ⭐' },
+    { value: '', label: 'Tất cả sao' },
+    { value: '5', label: '5 sao' },
+    { value: '4', label: 'Từ 4 sao trở lên' },
+    { value: '3', label: 'Từ 3 sao trở lên' },
+    { value: '2', label: 'Từ 2 sao trở lên' },
 ]
 
 function getCategoryIcon(catName) {

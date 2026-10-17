@@ -147,6 +147,10 @@ namespace CafeShop.Mapper
             CreateMap<StoreProfile, CafeShop.DTO.StoreProfile.StoreProfileDto>();
             CreateMap<CafeShop.DTO.StoreProfile.UpdateStoreProfileDto, StoreProfile>();
 
+            // ==========================================
+            // 10. Category
+            // ==========================================
+            CreateMap<Category, CafeShop.DTO.Category.Responses.CategoryDto>().ReverseMap();
         }
     }
 }

@@ -1,5 +1,6 @@
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Payment.Responses;
+using CafeShop.DTO.Notifications;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService;
@@ -281,7 +282,28 @@ namespace CafeShop.Service.Service
                     {
                         try
                         {
+                            // 1. Báo cho khách hàng
                             await _signalRService.NotifyOrderStatusToUserAsync(order.UserId, order.OrderId, "Thanh toán thành công");
+
+                            // 2. Báo cho nhóm quản lý đơn (Staff & Admin) để chuẩn bị làm món
+                            var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == order.UserId);
+                            string customerName = user?.FullName ?? user?.Username ?? "Khách hàng";
+
+                            await _signalRService.NotifyOrderEventAsync(new OrderNotificationDto
+                            {
+                                OrderId = order.OrderId,
+                                CustomerName = customerName,
+                                CustomerPhone = user?.PhoneNumber,
+                                TotalAmount = order.TotalAmount,
+                                PaymentMethod = PaymentMethodConstants.VNPAY,
+                                PaymentStatus = PaymentStatusConstants.Paid,
+                                OrderStatus = order.CurrentStatus,
+                                Message = $"Đơn hàng #{order.OrderId} ({order.TotalAmount:N0}đ) của khách hàng {customerName} đã thanh toán VNPay thành công!",
+                                NotificationType = NotificationTypes.PaymentSuccess,
+                                ActionUserId = order.UserId,
+                                ActionUserName = customerName,
+                                CreatedAt = DateTimeHelper.VietnamNow
+                            });
                         }
                         catch { /* Ignore notification error */ }
                     }

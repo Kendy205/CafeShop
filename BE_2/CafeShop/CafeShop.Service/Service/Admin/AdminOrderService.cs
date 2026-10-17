@@ -1,6 +1,7 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Notifications;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
@@ -200,7 +201,32 @@ namespace CafeShop.Service.Service.Admin
 
                 try
                 {
+                    // 1. Thông báo riêng cho khách hàng
                     await _signalRService.NotifyOrderStatusToUserAsync(order.UserId, order.OrderId, newStatus);
+
+                    // 2. Thông báo tới nhóm quản lý đơn (Staff & Admin) để đồng bộ Live Kitchen Board
+                    var actionUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == adminId);
+                    string actionUserName = actionUser?.FullName ?? actionUser?.Username ?? "Nhân viên";
+                    string statusVi = OrderStatus.ToVietnamese(newStatus);
+                    string staffMsg = newStatus == OrderStatus.Cancelled
+                        ? $"{actionUserName} đã hủy đơn hàng #{order.OrderId}. Lý do: {cancelReason ?? "Không có"}"
+                        : $"{actionUserName} đã chuyển đơn hàng #{order.OrderId} sang trạng thái: {statusVi}.";
+
+                    await _signalRService.NotifyOrderEventAsync(new OrderNotificationDto
+                    {
+                        OrderId = order.OrderId,
+                        CustomerName = order.User?.FullName ?? "Khách hàng",
+                        CustomerPhone = order.User?.PhoneNumber,
+                        TotalAmount = order.TotalAmount,
+                        PaymentMethod = order.PaymentMethod,
+                        PaymentStatus = order.PaymentStatus,
+                        OrderStatus = newStatus,
+                        Message = staffMsg,
+                        NotificationType = NotificationTypes.OrderStatusChanged,
+                        ActionUserId = adminId,
+                        ActionUserName = actionUserName,
+                        CreatedAt = DateTimeHelper.VietnamNow
+                    });
                 }
                 catch { /* Ignore notification error */ }
             }
@@ -216,17 +242,40 @@ namespace CafeShop.Service.Service.Admin
             if (orderDetails == null || !orderDetails.Any())
                 return;
 
+            var sizeDetails = orderDetails.Where(d => d.SizeId.HasValue && d.SizeId.Value > 0).ToList();
+            var noSizeProductIds = orderDetails.Where(d => !d.SizeId.HasValue || d.SizeId.Value <= 0).Select(d => d.ProductId).Distinct().ToList();
+
+            var productSizesDict = sizeDetails.Any()
+                ? (await _unitOfWork.ProductSize.GetAllAsync(ps =>
+                    sizeDetails.Select(d => d.ProductId).Contains(ps.ProductId) &&
+                    sizeDetails.Select(d => d.SizeId!.Value).Contains(ps.SizeId)))
+                    .ToDictionary(ps => (ps.ProductId, ps.SizeId))
+                : new Dictionary<(int, int), ProductSize>();
+
+            var productsDict = noSizeProductIds.Any()
+                ? (await _unitOfWork.Product.GetAllAsync(p => noSizeProductIds.Contains(p.ProductId)))
+                    .ToDictionary(p => p.ProductId)
+                : new Dictionary<int, Product>();
+
+            var allToppingIds = orderDetails
+                .Where(d => d.OrderDetailToppings != null)
+                .SelectMany(d => d.OrderDetailToppings!)
+                .Select(t => t.ToppingId)
+                .Distinct()
+                .ToList();
+
+            var toppingsDict = allToppingIds.Any()
+                ? (await _unitOfWork.Topping.GetAllAsync(t => allToppingIds.Contains(t.ToppingId)))
+                    .ToDictionary(t => t.ToppingId)
+                : new Dictionary<int, Topping>();
+
             foreach (var detail in orderDetails)
             {
                 int qty = detail.Quantity > 0 ? detail.Quantity : 1;
 
-                if (detail.SizeId > 0)
+                if (detail.SizeId.HasValue && detail.SizeId.Value > 0)
                 {
-                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                        ps => ps.ProductId == detail.ProductId && ps.SizeId == detail.SizeId
-                    );
-
-                    if (productSize != null)
+                    if (productSizesDict.TryGetValue((detail.ProductId, detail.SizeId.Value), out var productSize))
                     {
                         productSize.StockQuantity += qty;
                         _unitOfWork.ProductSize.Update(productSize);
@@ -234,8 +283,7 @@ namespace CafeShop.Service.Service.Admin
                 }
                 else
                 {
-                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
-                    if (product != null)
+                    if (productsDict.TryGetValue(detail.ProductId, out var product))
                     {
                         product.StockQuantity += qty;
                         _unitOfWork.Product.Update(product);
@@ -247,13 +295,12 @@ namespace CafeShop.Service.Service.Admin
 
                 foreach (var toppingLine in detail.OrderDetailToppings)
                 {
-                    var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == toppingLine.ToppingId);
-                    if (topping == null)
-                        continue;
-
-                    int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
-                    topping.StockQuantity += toppingQty * qty;
-                    _unitOfWork.Topping.Update(topping);
+                    if (toppingsDict.TryGetValue(toppingLine.ToppingId, out var topping))
+                    {
+                        int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
+                        topping.StockQuantity += toppingQty * qty;
+                        _unitOfWork.Topping.Update(topping);
+                    }
                 }
             }
         }

@@ -20,11 +20,19 @@ namespace CafeShop.DTO.Topping
 
     public class CreateUpdateToppingDto
     {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Tên topping không được để trống")]
+        [System.ComponentModel.DataAnnotations.MaxLength(50, ErrorMessage = "Tên topping tối đa 50 ký tự")]
         public string Name { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(0, double.MaxValue, ErrorMessage = "Giá không hợp lệ")]
         public decimal Price { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(20, ErrorMessage = "Đơn vị tính tối đa 20 ký tự")]
         public string Unit { get; set; } = string.Empty; // ml, gram, phần...
+
         public bool IsAvailable { get; set; } = true;
 
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, ErrorMessage = "Số lượng tồn kho không được âm")]
         public int StockQuantity { get; set; } = 0;
         
         // Thêm IFormFile để hỗ trợ upload ảnh từ form-data

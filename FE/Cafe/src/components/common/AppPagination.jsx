@@ -18,16 +18,19 @@ export default function AppPagination({
     current,
     page,
     pageNumber,     // alias cho current/page
+    currentPage,    // alias cho current/page
     pageSize = 8,
     total,
     totalPages,     // fallback nếu gọi kiểu user-side chỉ truyền totalPages
     onChange,
+    onPageChange,   // alias cho onChange
     showTotal,
     className = '',
     border = false,
 }) {
-    const activePage = Number(current ?? page ?? pageNumber ?? 1)
+    const activePage = Number(current ?? page ?? pageNumber ?? currentPage ?? 1)
     const effectivePageSize = Number(pageSize) || 8
+    const handlePageChange = onChange || onPageChange
 
     // Nếu có total thì dùng total, nếu không có mà có totalPages thì ước tính total
     const computedTotal = total !== undefined && total !== null
@@ -50,7 +53,7 @@ export default function AppPagination({
                 current={activePage}
                 pageSize={effectivePageSize}
                 total={computedTotal}
-                onChange={onChange}
+                onChange={handlePageChange}
                 showSizeChanger={false}
                 showTotal={
                     shouldShowTotal

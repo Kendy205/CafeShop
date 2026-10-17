@@ -48,7 +48,6 @@ builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 //User Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
-//builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -56,11 +55,8 @@ builder.Services.AddScoped<ISizeService, SizeService>();
 builder.Services.AddScoped<IToppingService, ToppingService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
-//builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserVoucherService, UserVoucherService>();
-builder.Services.AddScoped<IOrderDetailToppingService, OrderDetailToppingService>();
 builder.Services.AddScoped<IOrderStatusHistoryService, OrderStatusHistoryService>();
 
 // Admin Services

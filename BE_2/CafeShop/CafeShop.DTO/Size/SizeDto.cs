@@ -14,6 +14,8 @@ namespace CafeShop.DTO.Size
 
     public class CreateUpdateSizeDto
     {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Tên kích thước không được để trống")]
+        [System.ComponentModel.DataAnnotations.MaxLength(10, ErrorMessage = "Tên kích thước tối đa 10 ký tự")]
         public string Name { get; set; } = string.Empty;
     }
 }

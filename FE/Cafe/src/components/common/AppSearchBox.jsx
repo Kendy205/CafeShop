@@ -47,14 +47,14 @@ export default function AppSearchBox({
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder={placeholder}
-                className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 pl-10 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none transition-colors focus:border-sky-600 focus:bg-white focus:ring-1 focus:ring-sky-200 shadow-xs"
+                className="w-full rounded-[16px] border border-black/[0.06] bg-black/[0.04] px-4 py-2 pl-9 text-xs sm:text-sm font-medium text-[#1D1D1F] placeholder-[#86868B] outline-none transition-all focus:border-[#0071E3]/40 focus:bg-white focus:ring-2 focus:ring-[#0071E3]/15 shadow-2xs"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">🔍</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86868B] text-xs pointer-events-none">🔍</span>
             {keyword && (
                 <button
                     type="button"
                     onClick={() => setKeyword('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-[#86868B] hover:bg-black/[0.08] hover:text-[#1D1D1F] cursor-pointer transition-colors"
                 >
                     ✕
                 </button>

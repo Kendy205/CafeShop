@@ -86,34 +86,45 @@ namespace CafeShop.Service.Service.Admin
                     throw new ArgumentException("Số điện thoại này đã được sử dụng bởi một tài khoản khác!");
             }
 
-            var newUser = new User
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Username = dto.Username,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                FullName = dto.FullName,
-                PhoneNumber = dto.PhoneNumber,
-                Email = dto.Email,
-                IsActive = true,
-                CreatedAt = DateTimeHelper.VietnamNow
-            };
+                var newUser = new User
+                {
+                    Username = dto.Username,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    FullName = dto.FullName,
+                    PhoneNumber = dto.PhoneNumber,
+                    Email = dto.Email,
+                    IsActive = true,
+                    CreatedAt = DateTimeHelper.VietnamNow
+                };
 
-            var newCart = new Cart
-            {
-                User = newUser,
-                Status = CafeShop.Uitls.CartStatus.Active
-            };
+                var newCart = new Cart
+                {
+                    User = newUser,
+                    Status = CafeShop.Uitls.CartStatus.Active
+                };
 
-            await _unitOfWork.User.AddAsync(newUser);
-            await _unitOfWork.Cart.AddAsync(newCart);
-            await _unitOfWork.SaveAsync();
+                await _unitOfWork.User.AddAsync(newUser);
+                await _unitOfWork.Cart.AddAsync(newCart);
+                await _unitOfWork.SaveAsync();
 
-            if (dto.RoleIds != null && dto.RoleIds.Any())
-            {
-                await AssignRolesAsync(newUser.UserId, dto.RoleIds);
+                if (dto.RoleIds != null && dto.RoleIds.Any())
+                {
+                    await AssignRolesAsync(newUser.UserId, dto.RoleIds);
+                }
+
+                await transaction.CommitAsync();
+
+                var createdUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == newUser.UserId, includeProperties: "UserRoles.Role");
+                return _mapper.Map<AdminUserDto>(createdUser);
             }
-
-            var createdUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == newUser.UserId, includeProperties: "UserRoles.Role");
-            return _mapper.Map<AdminUserDto>(createdUser);
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<AdminUserDto> UpdateUserAsync(int id, UpdateAdminUserDto dto)
@@ -178,19 +189,30 @@ namespace CafeShop.Service.Service.Admin
                 user.IsActive = dto.IsActive.Value;
             }
 
-            user.UpdatedAt = DateTimeHelper.VietnamNow;
-
-            _unitOfWork.User.Update(user);
-            await _unitOfWork.SaveAsync();
-
-            // 7. Cập nhật danh sách vai trò nếu có truyền
-            if (dto.RoleIds != null)
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                await AssignRolesAsync(user.UserId, dto.RoleIds);
-            }
+                user.UpdatedAt = DateTimeHelper.VietnamNow;
 
-            var updatedUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == id, includeProperties: "UserRoles.Role");
-            return _mapper.Map<AdminUserDto>(updatedUser);
+                _unitOfWork.User.Update(user);
+                await _unitOfWork.SaveAsync();
+
+                // 7. Cập nhật danh sách vai trò nếu có truyền
+                if (dto.RoleIds != null)
+                {
+                    await AssignRolesAsync(user.UserId, dto.RoleIds);
+                }
+
+                await transaction.CommitAsync();
+
+                var updatedUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == id, includeProperties: "UserRoles.Role");
+                return _mapper.Map<AdminUserDto>(updatedUser);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> ToggleUserStatusAsync(int id)

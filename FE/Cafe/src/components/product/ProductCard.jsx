@@ -1,6 +1,23 @@
 import LoadingLink from '../loading/LoadingLink'
 import { formatVnd } from '../../utils/helpers/format'
 
+function getCategoryIcon(name) {
+    if (!name) return '☕'
+    const lower = name.toLowerCase()
+    if (lower.includes('cà phê') || lower.includes('coffee')) return '☕'
+    if (lower.includes('trà sữa') || lower.includes('milk tea')) return '🧋'
+    if (lower.includes('trà trái cây') || lower.includes('trà hoa quả')) return '🍹'
+    if (lower.includes('trà') || lower.includes('tea')) return '🍵'
+    if (lower.includes('sinh tố') || lower.includes('smoothie')) return '🥑'
+    if (lower.includes('đá xay') || lower.includes('freeze')) return '🥤'
+    if (lower.includes('soda')) return '🫧'
+    if (lower.includes('nước ép') || lower.includes('juice')) return '🍹'
+    if (lower.includes('bánh ngọt') || lower.includes('cake') || lower.includes('pastry')) return '🍰'
+    if (lower.includes('bánh mặn') || lower.includes('bread')) return '🥐'
+    if (lower.includes('đồ ăn') || lower.includes('snack')) return '🍟'
+    return '✨'
+}
+
 /**
  * ProductCard Component
  * Thẻ hiển thị tóm tắt thông tin sản phẩm (ảnh, tên, giá, số lượng tồn kho).
@@ -51,8 +68,8 @@ export default function ProductCard({ product }) {
                     {/* Badge Danh mục ở góc trên bên trái */}
                     {product.categoryName && (
                         <div className="absolute left-3 top-3">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-2xs">
-                                <span>☕</span>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-1 text-[11px] font-semibold text-slate-700 shadow-xs border border-white/60">
+                                <span className="text-xs">{getCategoryIcon(product.categoryName)}</span>
                                 <span>{product.categoryName}</span>
                             </span>
                         </div>
@@ -61,16 +78,19 @@ export default function ProductCard({ product }) {
                     {/* Badge Tồn kho ở góc trên bên phải */}
                     <div className="absolute right-3 top-3">
                         {isOutOfStock ? (
-                            <span className="rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
-                                Hết hàng
+                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/95 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-white shadow-xs border border-rose-400/30">
+                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                <span>Tạm hết</span>
                             </span>
                         ) : totalStock !== null && totalStock <= 10 ? (
-                            <span className="rounded-full bg-sky-500/95 backdrop-blur-xs px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
-                                Còn {totalStock} phần
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/95 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-white shadow-xs border border-amber-400/30">
+                                <span>⚡</span>
+                                <span>Còn {totalStock} phần</span>
                             </span>
                         ) : totalStock !== null ? (
-                            <span className="rounded-full bg-emerald-600/90 backdrop-blur-xs px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
-                                Còn {totalStock}
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-1 text-[11px] font-semibold text-slate-700 shadow-xs border border-white/60">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                <span>Còn {totalStock}</span>
                             </span>
                         ) : null}
                     </div>

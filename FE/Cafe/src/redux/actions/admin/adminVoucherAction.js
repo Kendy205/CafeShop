@@ -61,3 +61,16 @@ export const assignAdminVoucher = createAsyncThunk(
         }
     }
 )
+
+export const deleteAdminVoucher = createAsyncThunk(
+    'adminVoucher/delete',
+    async (id, { rejectWithValue }) => {
+        try {
+            await adminVoucherService.deleteVoucher(id)
+            return id
+        } catch (e) {
+            return rejectWithValue(pickErrorMessage(e, 'Xóa mã giảm giá thất bại'))
+        }
+    }
+)
+

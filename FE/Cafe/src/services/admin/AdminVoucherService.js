@@ -12,6 +12,10 @@ export class AdminVoucherService extends BaseServices {
     toggleActive = (id) => this.patch(`${this.basePath}/${id}/toggle-active`)
 
     assignUser = (body) => this.post(`${this.basePath}/assign-user`, body)
+
+    getVoucherById = (id) => this.get(`${this.basePath}/${id}`)
+
+    deleteVoucher = (id) => this.delete(`${this.basePath}/${id}`)
 }
 
 export const adminVoucherService = new AdminVoucherService()

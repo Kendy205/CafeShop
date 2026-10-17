@@ -1,14 +1,7 @@
+using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Category.Requests;
 using CafeShop.DTO.Category.Responses;
-using CafeShop.DTO.Product.Requests;
-using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.User;
-using CafeShop.DTO.Order.Requests;
-using CafeShop.DTO.Order.Responses;
-using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard.Requests;
-using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 using CafeShop.Service.IService.Admin;
 using System.Collections.Generic;
@@ -19,23 +12,27 @@ namespace CafeShop.Service.Service.Admin
     public class AdminCategoryService : IAdminCategoryService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AdminCategoryService(IUnitOfWork unitOfWork)
+        public AdminCategoryService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Category>> GetAllAsync()
+        public async Task<List<CategoryDto>> GetAllAsync()
         {
-            return await _unitOfWork.Category.GetAllAsync();
+            var categories = await _unitOfWork.Category.GetAllAsync();
+            return _mapper.Map<List<CategoryDto>>(categories);
         }
 
-        public async Task<Category> GetByIdAsync(int id)
+        public async Task<CategoryDto?> GetByIdAsync(int id)
         {
-            return await _unitOfWork.Category.GetFirstOrDefaultAsync(c => c.CategoryId == id);
+            var category = await _unitOfWork.Category.GetFirstOrDefaultAsync(c => c.CategoryId == id);
+            return category == null ? null : _mapper.Map<CategoryDto>(category);
         }
 
-        public async Task<Category> AddAsync(CreateCategoryDto dto)
+        public async Task<CategoryDto> AddAsync(CreateCategoryDto dto)
         {
             var category = new Category
             {
@@ -44,20 +41,19 @@ namespace CafeShop.Service.Service.Admin
             };
             await _unitOfWork.Category.AddAsync(category);
             await _unitOfWork.SaveAsync();
-            return category;
+            return _mapper.Map<CategoryDto>(category);
         }
 
-        public async Task<Category> UpdateAsync(int id, UpdateCategoryDto dto)
+        public async Task<CategoryDto?> UpdateAsync(int id, UpdateCategoryDto dto)
         {
             var category = await _unitOfWork.Category.GetFirstOrDefaultAsync(c => c.CategoryId == id);
-            if (category != null)
-            {
-                category.Name = dto.Name;
-                category.Description = dto.Description;
-                _unitOfWork.Category.Update(category);
-                await _unitOfWork.SaveAsync();
-            }
-            return category;
+            if (category == null) return null;
+
+            category.Name = dto.Name;
+            category.Description = dto.Description;
+            _unitOfWork.Category.Update(category);
+            await _unitOfWork.SaveAsync();
+            return _mapper.Map<CategoryDto>(category);
         }
 
         public async Task DeleteAsync(int id)

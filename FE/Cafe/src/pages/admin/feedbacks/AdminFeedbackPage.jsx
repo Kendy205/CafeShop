@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { 
     Table, 
@@ -15,7 +15,7 @@ import {
     Space,
     Avatar
 } from 'antd'
-import { EyeOutlined, MessageOutlined, CheckCircleOutlined, UserOutlined } from '@ant-design/icons'
+import { MessageOutlined, CheckCircleOutlined, UserOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { 
     fetchAllFeedbacks, 
@@ -39,18 +39,18 @@ export default function AdminFeedbackPage() {
     const [currentFeedback, setCurrentFeedback] = useState(null)
     const [form] = Form.useForm()
 
-    useEffect(() => {
-        loadData(page, pageSize)
-    }, [filterRating, filterHasImages])
-
-    const loadData = (p = 1, pSize = 10) => {
+    const loadData = useCallback((p = 1, pSize = 10) => {
         dispatch(fetchAllFeedbacks({
             pageNumber: p,
             pageSize: pSize,
             rating: filterRating,
             hasImages: filterHasImages
         }))
-    }
+    }, [dispatch, filterRating, filterHasImages])
+
+    useEffect(() => {
+        loadData(page, pageSize)
+    }, [loadData, page, pageSize])
 
     const handleTableChange = (pagination) => {
         loadData(pagination.current, pagination.pageSize)
@@ -237,32 +237,50 @@ export default function AdminFeedbackPage() {
         <div className="space-y-4">
             <h2 className="text-2xl font-bold text-slate-800">Quản lý Đánh giá Khách hàng</h2>
             
-            <Card bordered={false} className="shadow-sm rounded-xl">
-                <div className="flex gap-4 mb-4">
+            {/* Apple Style Filter Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white/80 backdrop-blur-xl p-4 rounded-[24px] border border-black/[0.06] shadow-apple">
+                <div className="flex flex-wrap items-center gap-3">
                     <Select 
-                        placeholder="Lọc theo sao"
+                        placeholder="⭐ Lọc theo số sao"
                         allowClear
-                        style={{ width: 150 }}
-                        onChange={setFilterRating}
+                        value={filterRating || undefined}
+                        className="apple-select min-w-[170px]"
+                        popupClassName="apple-select-dropdown"
+                        onChange={(val) => setFilterRating(val ?? null)}
                         options={[
-                            { value: 5, label: '5 Sao' },
-                            { value: 4, label: '4 Sao' },
-                            { value: 3, label: '3 Sao' },
-                            { value: 2, label: '2 Sao' },
-                            { value: 1, label: '1 Sao' },
+                            { value: 5, label: '⭐⭐⭐⭐⭐ 5 Sao' },
+                            { value: 4, label: '⭐⭐⭐⭐ 4 Sao' },
+                            { value: 3, label: '⭐⭐⭐ 3 Sao' },
+                            { value: 2, label: '⭐⭐ 2 Sao' },
+                            { value: 1, label: '⭐ 1 Sao' },
                         ]}
                     />
                     <Select 
-                        placeholder="Có hình ảnh?"
+                        placeholder="🖼️ Có hình ảnh?"
                         allowClear
-                        style={{ width: 150 }}
-                        onChange={setFilterHasImages}
+                        value={filterHasImages !== null ? filterHasImages : undefined}
+                        className="apple-select min-w-[170px]"
+                        popupClassName="apple-select-dropdown"
+                        onChange={(val) => setFilterHasImages(val ?? null)}
                         options={[
-                            { value: true, label: 'Có ảnh đính kèm' },
-                            { value: false, label: 'Không có ảnh' },
+                            { value: true, label: '🖼️ Có ảnh đính kèm' },
+                            { value: false, label: '📝 Không có ảnh' },
                         ]}
                     />
                 </div>
+
+                {(filterRating != null || filterHasImages !== null) && (
+                    <button
+                        type="button"
+                        onClick={() => { setFilterRating(null); setFilterHasImages(null); }}
+                        className="h-[38px] px-3.5 rounded-[16px] text-xs font-semibold text-[#86868B] hover:text-[#1D1D1F] hover:bg-black/[0.05] transition-all cursor-pointer"
+                    >
+                        Đặt lại bộ lọc
+                    </button>
+                )}
+            </div>
+
+            <Card bordered={false} className="shadow-sm rounded-2xl">
 
                 <Table 
                     columns={columns}

@@ -28,11 +28,10 @@ export default function PaymentMethodSection({
                         key={method}
                         type="button"
                         onClick={() => setPaymentMethod(method)}
-                        className={`flex-1 rounded-3xl border-2 py-3 text-sm font-semibold transition-all cursor-pointer ${
-                            paymentMethod === method
-                                ? 'border-sky-700 bg-sky-50 text-sky-900 shadow-xs'
-                                : 'border-slate-100 text-slate-500 hover:border-slate-200 hover:bg-slate-50/50'
-                        }`}
+                        className={`flex-1 rounded-3xl border-2 py-3 text-sm font-semibold transition-all cursor-pointer ${paymentMethod === method
+                            ? 'border-sky-700 bg-sky-50 text-sky-900 shadow-xs'
+                            : 'border-slate-100 text-slate-500 hover:border-slate-200 hover:bg-slate-50/50'
+                            }`}
                     >
                         {method === 'COD' ? '💵 Tiền mặt (COD)' : '🏦 VNPAY'}
                     </button>
@@ -57,13 +56,12 @@ export default function PaymentMethodSection({
                                 }
                             }}
                             placeholder="Nhập mã giảm giá..."
-                            className={`w-full rounded-3xl border px-3 py-2 pr-8 font-mono text-sm uppercase outline-none transition-colors focus:ring-1 ${
-                                voucherResult
-                                    ? voucherResult.isValid
-                                        ? 'border-green-500 bg-green-50 text-green-900 focus:ring-green-200'
-                                        : 'border-red-400 bg-red-50 text-red-900 focus:ring-red-200'
-                                    : 'border-slate-200 focus:border-sky-500 focus:ring-sky-200'
-                            }`}
+                            className={`w-full rounded-3xl border px-3 py-2 pr-8 font-mono text-sm uppercase outline-none transition-colors focus:ring-1 ${voucherResult
+                                ? voucherResult.isValid
+                                    ? 'border-green-500 bg-green-50 text-green-900 focus:ring-green-200'
+                                    : 'border-red-400 bg-red-50 text-red-900 focus:ring-red-200'
+                                : 'border-slate-200 focus:border-sky-500 focus:ring-sky-200'
+                                }`}
                         />
                         {voucherInput && (
                             <button
@@ -104,11 +102,10 @@ export default function PaymentMethodSection({
 
                 {voucherResult && !voucherChecking && (
                     <div
-                        className={`mt-2 flex items-center justify-between rounded-3xl px-3 py-2 text-xs font-medium ${
-                            voucherResult.isValid
-                                ? 'border border-green-200 bg-green-50 text-green-800'
-                                : 'border border-red-200 bg-red-50 text-red-700'
-                        }`}
+                        className={`mt-2 flex items-center justify-between rounded-3xl px-3 py-2 text-xs font-medium ${voucherResult.isValid
+                            ? 'border border-green-200 bg-green-50 text-green-800'
+                            : 'border border-red-200 bg-red-50 text-red-700'
+                            }`}
                     >
                         <div className="flex items-center gap-1.5 flex-wrap">
                             <span>{voucherResult.isValid ? (voucherResult.isAutoApplied ? '✨' : '✅') : '❌'}</span>
@@ -119,11 +116,11 @@ export default function PaymentMethodSection({
                                 </span>
                             )}
                         </div>
-                        {voucherResult.isValid && voucherResult.discountAmount > 0 && (
+                        {/* {voucherResult.isValid && voucherResult.discountAmount > 0 && (
                             <span className="font-bold text-green-700 shrink-0 ml-2">
                                 −{formatVnd(voucherResult.discountAmount)}
                             </span>
-                        )}
+                        )} */}
                     </div>
                 )}
             </div>

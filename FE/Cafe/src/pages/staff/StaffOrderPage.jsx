@@ -7,7 +7,6 @@ import {
 } from '../../redux/actions/admin/adminOrderAction'
 import {
     OrderStatus,
-    STATUS_CONFIG,
     getStatusConfig,
     NEXT_STATUSES,
     canCancelOrder,
@@ -29,11 +28,10 @@ import {
     UserOutlined,
     PhoneOutlined,
     EnvironmentOutlined,
-    DollarOutlined
+    LoadingOutlined
 } from '@ant-design/icons'
 
 const STAFF_TABS = [
-    { key: 'ACTIVE', label: 'Cần làm ngay', icon: '⚡' },
     { key: OrderStatus.PENDING, label: 'Chờ xác nhận', icon: '⏳' },
     { key: OrderStatus.CONFIRMED, label: 'Đã nhận đơn', icon: '✓' },
     { key: OrderStatus.PREPARING, label: 'Đang pha chế', icon: '☕' },
@@ -43,11 +41,37 @@ const STAFF_TABS = [
     { key: 'ALL', label: 'Tất cả đơn', icon: '📋' },
 ]
 
+const APPLE_STATUS_STYLES = {
+    PENDING: { label: 'Chờ xác nhận', bg: 'bg-[#0071E3]/10 text-[#0071E3] border-[#0071E3]/25', dot: 'bg-[#0071E3]' },
+    CONFIRMED: { label: 'Đã nhận đơn', bg: 'bg-[#007AFF]/10 text-[#0062CC] border-[#007AFF]/25', dot: 'bg-[#007AFF]' },
+    PREPARING: { label: 'Đang pha chế', bg: 'bg-[#AF52DE]/10 text-[#8E3EB9] border-[#AF52DE]/25', dot: 'bg-[#AF52DE]' },
+    DELIVERING: { label: 'Đang giao', bg: 'bg-[#5856D6]/10 text-[#4745B8] border-[#5856D6]/25', dot: 'bg-[#5856D6]' },
+    COMPLETED: { label: 'Hoàn thành', bg: 'bg-[#34C759]/10 text-[#248A3D] border-[#34C759]/25', dot: 'bg-[#34C759]' },
+    CANCELLED: { label: 'Đã hủy', bg: 'bg-[#8E8E93]/10 text-[#636366] border-[#8E8E93]/25', dot: 'bg-[#8E8E93]' },
+}
+
+function getAppleStatus(status) {
+    const key = String(status || 'PENDING').toUpperCase()
+    return APPLE_STATUS_STYLES[key] || APPLE_STATUS_STYLES.PENDING
+}
+
+function formatOrderRelativeTime(dateStr) {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    const now = new Date()
+    const diffMin = Math.floor((now - d) / 60000)
+    if (diffMin < 1) return 'Vừa đặt'
+    if (diffMin < 60) return `${diffMin} phút trước`
+    const diffHours = Math.floor(diffMin / 60)
+    if (diffHours < 24) return `${diffHours} giờ trước`
+    return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
+}
+
 export default function StaffOrderPage() {
     const dispatch = useDispatch()
     const { items: orders, total, totalPages, loading } = useSelector((s) => s.admin.order)
 
-    const [activeTab, setActiveTab] = useState('ACTIVE')
+    const [activeTab, setActiveTab] = useState(OrderStatus.PENDING)
     const [pageNumber, setPageNumber] = useState(1)
     const [keyword, setKeyword] = useState('')
     const [selectedOrderId, setSelectedOrderId] = useState(null)
@@ -60,13 +84,7 @@ export default function StaffOrderPage() {
     const PAGE_SIZE = 12
 
     const fetchOrders = useCallback(() => {
-        let statusParam = undefined
-        if (activeTab === 'ACTIVE') {
-            // Cho active tab, có thể load PENDING hoặc fetch chung
-            statusParam = undefined
-        } else if (activeTab !== 'ALL') {
-            statusParam = activeTab
-        }
+        const statusParam = activeTab !== 'ALL' ? activeTab : undefined
 
         dispatch(
             fetchAdminOrders({
@@ -92,11 +110,6 @@ export default function StaffOrderPage() {
             window.removeEventListener('app:admin-new-order', handleNewOrder)
         }
     }, [fetchOrders])
-
-    // Lọc đơn hàng cho tab 'ACTIVE' (PENDING, CONFIRMED, PREPARING, DELIVERING)
-    const displayedOrders = activeTab === 'ACTIVE'
-        ? orders.filter(o => ['PENDING', 'CONFIRMED', 'PREPARING', 'DELIVERING'].includes((o.currentStatus || o.status || '').toUpperCase()))
-        : orders
 
     const handleQuickUpdateStatus = async (orderId, targetStatus, cancelReason = null) => {
         try {
@@ -126,25 +139,32 @@ export default function StaffOrderPage() {
         const orderId = order.orderId ?? order.id
         const status = (order.currentStatus || order.status || '').toUpperCase()
         const isUpdating = updatingOrderId === orderId
+        const isPaid = String(order.paymentStatus || '').toUpperCase() === 'PAID'
+        const isCod = String(order.paymentMethod || 'COD').toUpperCase() === 'COD'
+        const isOnlineUnpaid = !isCod && !isPaid
 
         if (status === OrderStatus.PENDING) {
             return (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
-                    <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() => handleQuickUpdateStatus(orderId, OrderStatus.CONFIRMED)}
-                        className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                        <CheckOutlined /> Nhận đơn
-                    </button>
+                <div className="flex items-center gap-2 mt-3.5 pt-3 border-t border-black/[0.04]">
+                    <Tooltip title={isOnlineUnpaid ? 'Đơn thanh toán online chưa hoàn tất thanh toán, không thể nhận đơn' : ''}>
+                        <button
+                            type="button"
+                            disabled={isUpdating || isOnlineUnpaid}
+                            onClick={() => handleQuickUpdateStatus(orderId, OrderStatus.CONFIRMED)}
+                            className="flex-1 py-2.5 px-4 bg-[#0071E3] hover:bg-[#0077ED] active:scale-[0.97] text-white font-semibold text-xs sm:text-sm rounded-[16px] shadow-[0_2px_10px_rgba(0,113,227,0.25)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            {isUpdating ? <LoadingOutlined /> : <CheckOutlined />}
+                            <span>Nhận đơn</span>
+                        </button>
+                    </Tooltip>
                     <button
                         type="button"
                         disabled={isUpdating}
                         onClick={() => setCancellingOrderId(orderId)}
-                        className="py-2 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+                        className="py-2.5 px-3.5 bg-[#FF3B30]/10 hover:bg-[#FF3B30]/15 active:scale-[0.97] text-[#FF3B30] font-semibold text-xs sm:text-sm rounded-[16px] transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
                     >
-                        <CloseOutlined /> Từ chối
+                        <CloseOutlined />
+                        <span>Từ chối</span>
                     </button>
                 </div>
             )
@@ -152,20 +172,21 @@ export default function StaffOrderPage() {
 
         if (status === OrderStatus.CONFIRMED) {
             return (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 mt-3.5 pt-3 border-t border-black/[0.04]">
                     <button
                         type="button"
                         disabled={isUpdating}
                         onClick={() => handleQuickUpdateStatus(orderId, OrderStatus.PREPARING)}
-                        className="flex-1 py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2.5 px-4 bg-[#AF52DE] hover:bg-[#A343D5] active:scale-[0.97] text-white font-semibold text-xs sm:text-sm rounded-[16px] shadow-[0_2px_10px_rgba(175,82,222,0.22)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
-                        <CoffeeOutlined /> Bắt đầu pha chế
+                        {isUpdating ? <LoadingOutlined /> : <CoffeeOutlined />}
+                        <span>Bắt đầu pha chế</span>
                     </button>
                     <button
                         type="button"
                         disabled={isUpdating}
                         onClick={() => setCancellingOrderId(orderId)}
-                        className="py-2 px-2.5 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-semibold text-xs rounded-xl transition-all cursor-pointer"
+                        className="w-10 h-10 flex items-center justify-center bg-black/[0.04] hover:bg-[#FF3B30]/10 text-[#86868B] hover:text-[#FF3B30] rounded-[16px] active:scale-[0.97] transition-all cursor-pointer"
                         title="Hủy đơn"
                     >
                         <CloseOutlined />
@@ -176,20 +197,21 @@ export default function StaffOrderPage() {
 
         if (status === OrderStatus.PREPARING) {
             return (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 mt-3.5 pt-3 border-t border-black/[0.04]">
                     <button
                         type="button"
                         disabled={isUpdating}
                         onClick={() => handleQuickUpdateStatus(orderId, OrderStatus.DELIVERING)}
-                        className="flex-1 py-2 px-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2.5 px-4 bg-[#0071E3] hover:bg-[#0077ED] active:scale-[0.97] text-white font-semibold text-xs sm:text-sm rounded-[16px] shadow-[0_2px_10px_rgba(0,113,227,0.22)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
-                        <CarOutlined /> Món xong / Giao hàng
+                        {isUpdating ? <LoadingOutlined /> : <CarOutlined />}
+                        <span>Món xong / Giao hàng</span>
                     </button>
                     <button
                         type="button"
                         disabled={isUpdating}
                         onClick={() => setCancellingOrderId(orderId)}
-                        className="py-2 px-2.5 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-semibold text-xs rounded-xl transition-all cursor-pointer"
+                        className="w-10 h-10 flex items-center justify-center bg-black/[0.04] hover:bg-[#FF3B30]/10 text-[#86868B] hover:text-[#FF3B30] rounded-[16px] active:scale-[0.97] transition-all cursor-pointer"
                         title="Hủy đơn"
                     >
                         <CloseOutlined />
@@ -200,68 +222,76 @@ export default function StaffOrderPage() {
 
         if (status === OrderStatus.DELIVERING) {
             return (
-                <div className="mt-3 pt-3 border-t border-slate-100">
+                <div className="mt-3.5 pt-3 border-t border-black/[0.04]">
                     <button
                         type="button"
                         disabled={isUpdating}
                         onClick={() => handleQuickUpdateStatus(orderId, OrderStatus.COMPLETED)}
-                        className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="w-full py-2.5 px-4 bg-[#30B0C7] hover:bg-[#289EB3] active:scale-[0.97] text-white font-semibold text-xs sm:text-sm rounded-[16px] shadow-[0_2px_10px_rgba(48,176,199,0.22)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
-                        <CheckCircleOutlined /> Đã hoàn thành đơn
+                        {isUpdating ? <LoadingOutlined /> : <CheckCircleOutlined />}
+                        <span>Đã hoàn thành đơn</span>
                     </button>
                 </div>
             )
         }
 
         return (
-            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                <span>{status === OrderStatus.COMPLETED ? 'Đơn đã giao thành công' : 'Đơn đã kết thúc'}</span>
+            <div className="mt-3.5 pt-3 border-t border-black/[0.04] flex items-center justify-between text-xs text-[#86868B]">
+                <span className="font-medium">
+                    {status === OrderStatus.COMPLETED ? '✓ Đơn đã hoàn tất' : '✕ Đơn đã kết thúc'}
+                </span>
                 <button
                     type="button"
                     onClick={() => setSelectedOrderId(orderId)}
-                    className="text-sky-600 hover:underline font-semibold"
+                    className="text-[#0071E3] hover:text-[#0077ED] font-semibold hover:underline cursor-pointer flex items-center gap-1"
                 >
-                    Chi tiết
+                    <EyeOutlined /> Chi tiết
                 </button>
             </div>
         )
     }
 
     return (
-        <div className="space-y-4">
-            {/* Header Control Panel */}
-            <div className="rounded-3xl bg-white p-4 sm:p-5 shadow-sm border border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-5">
+            {/* Header Control Panel - Apple Card */}
+            <div className="rounded-[26px] bg-white/80 backdrop-blur-2xl p-5 sm:p-6 border border-black/[0.05] shadow-[0_2px_16px_rgba(0,0,0,0.02)] flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1D1D1F] tracking-tight flex items-center gap-3">
                         <span>Quản lý & Nhận Đơn hàng</span>
                         <button
                             type="button"
                             onClick={fetchOrders}
-                            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#1D1D1F] flex items-center justify-center transition-all cursor-pointer"
                             title="Tải lại danh sách"
                         >
-                            <SyncOutlined spin={loading} className="text-base" />
+                            <SyncOutlined spin={loading} className="text-sm" />
                         </button>
+                        {total > 0 && (
+                            <span className="text-xs font-bold text-[#0071E3] bg-[#0071E3]/10 border border-[#0071E3]/20 px-3 py-1 rounded-full">
+                                {total} đơn
+                            </span>
+                        )}
                     </h1>
-                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    <p className="text-xs sm:text-sm text-[#86868B] mt-1 font-normal">
                         Theo dõi tiến độ đơn, bấm nhận đơn và hoàn tất pha chế tại quầy
                     </p>
                 </div>
 
-                <div className="w-full sm:w-72">
+                <div className="w-full md:w-80">
                     <AppSearchBox
                         placeholder="Tìm mã đơn, tên, SĐT..."
-                        value={keyword}
-                        onChange={(e) => {
-                            setKeyword(e.target.value)
+                        initialValue={keyword}
+                        onSearch={(val) => {
+                            setKeyword(val)
                             setPageNumber(1)
                         }}
                     />
                 </div>
             </div>
 
-            {/* Status Tabs Bar */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            {/* Apple Segmented Control for Status Tabs */}
+            <div className="p-1 bg-[#E5E5EA]/80 rounded-[20px] inline-flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar shadow-2xs">
                 {STAFF_TABS.map((tab) => {
                     const isActive = activeTab === tab.key
                     return (
@@ -272,10 +302,10 @@ export default function StaffOrderPage() {
                                 setActiveTab(tab.key)
                                 setPageNumber(1)
                             }}
-                            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
+                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[16px] text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 select-none cursor-pointer ${
                                 isActive
-                                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
-                                    : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+                                    ? 'bg-white text-[#0071E3] font-bold shadow-[0_2px_8px_rgba(0,113,227,0.12)] border border-[#0071E3]/15'
+                                    : 'text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-white/40'
                             }`}
                         >
                             <span>{tab.icon}</span>
@@ -287,108 +317,159 @@ export default function StaffOrderPage() {
 
             {/* Orders Grid / Cards */}
             {loading && orders.length === 0 ? (
-                <div className="flex h-64 items-center justify-center rounded-3xl bg-white border border-slate-200/60">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
-                        <SyncOutlined spin className="text-3xl text-amber-500" />
+                <div className="flex h-64 items-center justify-center rounded-[26px] bg-white border border-black/[0.05]">
+                    <div className="flex flex-col items-center gap-2 text-[#86868B]">
+                        <SyncOutlined spin className="text-3xl text-[#0071E3]" />
                         <span className="text-sm font-medium">Đang tải danh sách đơn hàng...</span>
                     </div>
                 </div>
-            ) : displayedOrders.length === 0 ? (
-                <div className="flex h-64 flex-col items-center justify-center rounded-3xl bg-white border border-slate-200/60 p-6 text-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 text-3xl mb-3">
+            ) : orders.length === 0 ? (
+                <div className="flex h-64 flex-col items-center justify-center rounded-[26px] bg-white border border-black/[0.05] p-6 text-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-blue-50 text-[#0071E3] text-3xl mb-3">
                         ☕
                     </div>
-                    <h3 className="text-base font-bold text-slate-800">Hiện không có đơn nào trong mục này</h3>
-                    <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                    <h3 className="text-base font-bold text-[#1D1D1F]">Hiện không có đơn nào trong mục này</h3>
+                    <p className="text-xs text-[#86868B] mt-1 max-w-sm">
                         Khi khách đặt món mới qua ứng dụng, đơn sẽ tự động xuất hiện tại đây theo thời gian thực.
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {displayedOrders.map((order) => {
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4.5">
+                    {orders.map((order) => {
                         const orderId = order.orderId ?? order.id
                         const status = (order.currentStatus || order.status || 'PENDING').toUpperCase()
-                        const statusConfig = getStatusConfig(status)
+                        const appleStatus = getAppleStatus(status)
+                        const isPaid = String(order.paymentStatus || '').toUpperCase() === 'PAID'
+                        const paymentMethod = String(order.paymentMethod || 'COD').toUpperCase()
+                        const isCod = paymentMethod === 'COD'
                         const items = order.orderItems || order.items || []
-                        const isUpdating = updatingOrderId === orderId
+                        const isPending = status === OrderStatus.PENDING
 
                         return (
                             <div
                                 key={orderId}
-                                className={`rounded-3xl bg-white p-4 border transition-all duration-200 flex flex-col justify-between ${
-                                    status === OrderStatus.PENDING
-                                        ? 'border-amber-300 ring-2 ring-amber-400/20 shadow-md shadow-amber-500/5'
-                                        : 'border-slate-200/80 shadow-sm hover:shadow-md'
+                                className={`rounded-[26px] bg-white p-5 border transition-all duration-300 flex flex-col justify-between group ${
+                                    isPending
+                                        ? 'border-[#0071E3]/35 ring-2 ring-[#0071E3]/15 shadow-[0_4px_24px_rgba(0,113,227,0.08)]'
+                                        : 'border-black/[0.05] shadow-[0_2px_14px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_40px_rgba(0,113,227,0.08)] hover:border-[#0071E3]/30'
                                 }`}
                             >
                                 {/* Card Header */}
                                 <div>
-                                    <div className="flex items-center justify-between gap-2 mb-2.5">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-black text-slate-900">#{orderId}</span>
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusConfig.color}`}>
-                                                <span className={`h-1.5 w-1.5 rounded-full ${statusConfig.dot}`}></span>
-                                                {statusConfig.label}
+                                    <div className="flex items-center justify-between gap-2 mb-3.5">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-base font-extrabold text-[#1D1D1F] tracking-tight">
+                                                #{orderId}
+                                            </span>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border ${appleStatus.bg}`}>
+                                                <span className={`h-2 w-2 rounded-full ${appleStatus.dot} ${isPending ? 'animate-pulse' : ''}`}></span>
+                                                {appleStatus.label}
                                             </span>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => setSelectedOrderId(orderId)}
-                                            className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                                            title="Xem toàn bộ chi tiết"
+                                            className="w-8 h-8 rounded-full flex items-center justify-center bg-black/[0.04] hover:bg-black/[0.08] text-[#1D1D1F] transition-colors cursor-pointer"
+                                            title="Xem toàn bộ chi tiết đơn"
                                         >
-                                            <EyeOutlined />
+                                            <EyeOutlined className="text-sm" />
                                         </button>
                                     </div>
 
-                                    {/* Customer brief */}
-                                    <div className="text-xs text-slate-600 space-y-1 mb-3 bg-slate-50/80 p-2.5 rounded-2xl border border-slate-100">
-                                        <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                                            <UserOutlined className="text-slate-400 text-xs" />
-                                            <span className="truncate">{order.userName || order.receiverName || 'Khách đặt'}</span>
+                                    {/* Customer & Info Card (Apple subtle inset container) */}
+                                    <div className="text-xs text-[#1D1D1F] space-y-2 mb-3.5 bg-[#F9F9FB] p-3.5 rounded-[20px] border border-black/[0.03]">
+                                        <div className="flex items-center justify-between gap-1.5">
+                                            <div className="flex items-center gap-1.5 font-bold truncate">
+                                                <UserOutlined className="text-[#86868B] text-xs shrink-0" />
+                                                <span className="truncate">{order.userName || order.receiverName || 'Khách đặt'}</span>
+                                            </div>
                                             {(order.userPhone || order.receiverPhone) && (
-                                                <span className="text-slate-500 font-normal">({order.userPhone || order.receiverPhone})</span>
+                                                <a
+                                                    href={`tel:${order.userPhone || order.receiverPhone}`}
+                                                    className="inline-flex items-center gap-1 font-semibold text-[#0071E3] hover:underline shrink-0"
+                                                >
+                                                    <PhoneOutlined className="text-[10px]" />
+                                                    <span>{order.userPhone || order.receiverPhone}</span>
+                                                </a>
                                             )}
                                         </div>
+
                                         {(order.shippingAddress || order.deliveryAddress) && (
-                                            <div className="flex items-start gap-1.5 text-[11px] text-slate-500 line-clamp-1" title={order.shippingAddress || order.deliveryAddress}>
-                                                <EnvironmentOutlined className="text-slate-400 shrink-0 mt-0.5" />
-                                                <span>{order.shippingAddress || order.deliveryAddress}</span>
+                                            <div
+                                                className="flex items-start gap-1.5 text-[11px] text-[#86868B] line-clamp-1 font-normal"
+                                                title={order.shippingAddress || order.deliveryAddress}
+                                            >
+                                                <EnvironmentOutlined className="text-[#86868B] shrink-0 mt-0.5" />
+                                                <span className="truncate">{order.shippingAddress || order.deliveryAddress}</span>
                                             </div>
                                         )}
-                                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
-                                            <span>{order.orderDate || order.createdAt ? new Date(order.orderDate || order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
-                                            <span className="font-bold text-amber-700">
-                                                {Number(order.totalAmount || order.total || 0).toLocaleString('vi-VN')}đ
-                                            </span>
+
+                                        <div className="flex items-center justify-between text-xs pt-2 border-t border-black/[0.04]">
+                                            <div className="flex items-center gap-1 text-[11px] text-[#86868B]">
+                                                <ClockCircleOutlined />
+                                                <span>{formatOrderRelativeTime(order.orderDate || order.createdAt)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {isCod ? (
+                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                                        isPaid ? 'bg-[#34C759]/10 text-[#248A3D] border-[#34C759]/25' : 'bg-[#FF9500]/10 text-[#C97700] border-[#FF9500]/25'
+                                                    }`}>
+                                                        {isPaid ? 'COD • Đã thanh toán' : 'Thu tiền (COD)'}
+                                                    </span>
+                                                ) : (
+                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                                        isPaid ? 'bg-[#34C759]/10 text-[#248A3D] border-[#34C759]/25' : 'bg-[#FF3B30]/10 text-[#FF3B30] border-[#FF3B30]/25'
+                                                    }`}>
+                                                        {paymentMethod} • {isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                                    </span>
+                                                )}
+                                                <span className="font-extrabold text-[#1D1D1F] text-sm">
+                                                    {Number(order.totalAmount || order.total || 0).toLocaleString('vi-VN')}đ
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Items Preview */}
                                     <div className="space-y-1.5">
-                                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                            Món đặt ({items.length || order.itemCount || 1})
-                                        </div>
-                                        <div className="max-h-28 overflow-y-auto no-scrollbar space-y-1">
-                                            {items.slice(0, 3).map((item, idx) => (
-                                                <div key={idx} className="flex items-center justify-between text-xs text-slate-700">
-                                                    <span className="truncate font-medium">
-                                                        <span className="font-bold text-amber-600 mr-1">{item.quantity}x</span>
-                                                        {item.productName || item.name}
-                                                    </span>
-                                                    {item.sizeName && (
-                                                        <span className="text-[10px] text-slate-400 bg-slate-100 px-1 rounded ml-1 shrink-0">
-                                                            {item.sizeName}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            ))}
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-[#86868B] flex items-center justify-between">
+                                            <span>Món đặt {items.length > 0 ? `(${items.length})` : ''}</span>
                                             {items.length > 3 && (
-                                                <div className="text-[11px] text-slate-400 italic">
-                                                    + {items.length - 3} món khác...
-                                                </div>
+                                                <span className="text-[10px] text-[#0071E3] font-semibold lowercase">
+                                                    +{items.length - 3} món nữa
+                                                </span>
                                             )}
                                         </div>
+                                        {items.length > 0 ? (
+                                            <div className="max-h-32 overflow-y-auto no-scrollbar space-y-1 bg-white">
+                                                {items.slice(0, 3).map((item, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between text-xs py-0.5">
+                                                        <div className="flex items-center gap-1.5 truncate">
+                                                            <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 bg-black/[0.05] text-[#1D1D1F] text-[11px] font-bold rounded-[7px] shrink-0">
+                                                                {item.quantity}x
+                                                            </span>
+                                                            <span className="truncate font-medium text-[#1D1D1F]">
+                                                                {item.productName || item.name}
+                                                            </span>
+                                                        </div>
+                                                        {item.sizeName && (
+                                                            <span className="text-[10px] font-semibold text-[#86868B] bg-black/[0.04] px-1.5 py-0.5 rounded-md ml-1 shrink-0">
+                                                                {item.sizeName}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedOrderId(orderId)}
+                                                className="w-full text-left py-2 px-3 rounded-[14px] bg-[#F9F9FB] hover:bg-black/[0.04] text-[11px] text-[#0071E3] font-medium flex items-center justify-between transition-colors cursor-pointer border border-black/[0.03]"
+                                            >
+                                                <span>Xem chi tiết danh sách món</span>
+                                                <span className="text-xs font-semibold text-[#0071E3]/70">→</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -402,16 +483,19 @@ export default function StaffOrderPage() {
                 </div>
             )}
 
-            {/* Pagination if multiple pages */}
-            {totalPages > 1 && (
-                <div className="flex justify-end pt-2">
-                    <AppPagination
-                        currentPage={pageNumber}
-                        totalPages={totalPages}
-                        onPageChange={setPageNumber}
-                    />
-                </div>
-            )}
+            {/* Pagination via AppPagination */}
+            <div className="flex justify-center sm:justify-end pt-4 pb-2">
+                <AppPagination
+                    current={pageNumber}
+                    pageSize={PAGE_SIZE}
+                    total={total}
+                    totalPages={totalPages}
+                    onChange={(p) => {
+                        setPageNumber(p)
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                />
+            </div>
 
             {/* Order Detail Modal */}
             {selectedOrderId && (

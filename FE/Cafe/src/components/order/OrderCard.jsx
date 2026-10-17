@@ -305,11 +305,16 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
     } = order
 
     const [payingVnPay, setPayingVnPay] = useState(false)
+    const [expanded, setExpanded] = useState(false)
 
     // Hỗ trợ cả items (đặc tả mới) và fallback orderDetails
     const orderItems = Array.isArray(order.items)
         ? order.items
         : (Array.isArray(order.orderDetails) ? order.orderDetails : [])
+
+    const hasMoreItems = orderItems.length > 1
+    const visibleItems = expanded || !hasMoreItems ? orderItems : orderItems.slice(0, 1)
+    const remainingCount = orderItems.length - 1
 
     const canCancel = canCancelOrder(currentStatus)
     const isCompleted = String(currentStatus || '').toUpperCase() === 'COMPLETED'
@@ -357,6 +362,11 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                     <span className="font-mono text-sm font-extrabold text-slate-800">
                         Đơn hàng #{orderId}
                     </span>
+                    {orderItems.length > 0 && (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 border border-slate-200/70">
+                            {orderItems.length} món
+                        </span>
+                    )}
                     <StatusBadge status={currentStatus} />
                     {paymentStatus && (
                         <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold shadow-2xs ${paymentStatusCfg.color}`}>
@@ -403,7 +413,7 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
             {/* Danh sách các món của đơn hàng */}
             <div className="p-5">
                 <div className="space-y-3.5">
-                    {orderItems.map((item, idx) => {
+                    {visibleItems.map((item, idx) => {
                         const hasSize = item.sizeId !== null && item.sizeId !== undefined && item.sizeName
                         const itemToppings = Array.isArray(item.toppings) ? item.toppings : []
 
@@ -419,7 +429,7 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                 >
                                     {item.imageUrl ? (
                                         <img
-                                            src={item.imageUrl}
+                                             src={item.imageUrl}
                                             alt={item.productName || item.name}
                                             className="h-full w-full object-cover"
                                         />
@@ -505,10 +515,7 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                     {/* Nút Đánh giá món khi đơn đã giao thành công */}
                                     {isCompleted && item.productId && (
                                         <div className="mt-2 flex items-center">
-                                            {Boolean(
-                                                item.isReviewed ||
-                                                (item.orderDetailId && reviewedMap?.[item.orderDetailId])
-                                            ) ? (
+                                            {(item.isReviewed || (item.orderDetailId && reviewedMap?.[item.orderDetailId])) ? (
                                                 <span className="inline-flex items-center gap-1 rounded-2xl bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
                                                     <span>✓</span>
                                                     <span>Đã đánh giá</span>
@@ -552,6 +559,31 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                         )
                     })}
                 </div>
+
+                {/* Nút Xem thêm / Thu gọn danh sách món */}
+                {hasMoreItems && (
+                    <div className="mt-3.5 pt-2 border-t border-dashed border-slate-200">
+                        {!expanded ? (
+                            <button
+                                type="button"
+                                onClick={() => setExpanded(true)}
+                                className="group w-full py-2.5 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-sky-800 bg-sky-50/70 hover:bg-sky-100 rounded-2xl border border-sky-200/80 transition-all cursor-pointer shadow-2xs"
+                            >
+                                <span>Xem thêm {remainingCount} món khác (Tổng {orderItems.length} món)</span>
+                                <span className="text-[10px] transition-transform group-hover:translate-y-0.5">▼</span>
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setExpanded(false)}
+                                className="w-full py-1.5 px-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200/60 transition-all cursor-pointer"
+                            >
+                                <span>Thu gọn danh sách món</span>
+                                <span className="text-[10px]">▲</span>
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {/* Ghi chú của đơn (nếu có) */}
                 {note && (
