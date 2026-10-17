@@ -2,15 +2,19 @@
    CAFESHOP - SEED DATA (MySQL 8.0+)
    ---------------------------------------------------------------------
    Chuẩn hóa theo MODEL_SPECIFICATION.md:
+     - Đảm bảo bảng mã tiếng Việt 100% utf8mb4 không bị lỗi font (SET NAMES utf8mb4).
      - 6 Danh mục đồ uống chính (ID 1-6), loại bỏ hoàn toàn bánh & soda.
      - Đúng 30 sản phẩm đồ uống (ID 1-30).
-     - 10 Toppings kèm ảnh chuẩn Cloudinary.
-     - 30 Sản phẩm có ảnh Cloudinary, ImagePublicId, IsAvailable=1, IsDeleted=0.
-     - Toàn bộ 30 sản phẩm đều có Size (S, M, L) trong ProductSizes.
+     - 10 Toppings kèm ảnh chuẩn Cloudinary, tồn kho ở mức 30-50.
+     - 30 Sản phẩm có ảnh Cloudinary, ImagePublicId, tồn kho ở mức 30-50.
+     - Toàn bộ 30 sản phẩm đều có Size (S, M, L) trong ProductSizes với tồn kho 30-50.
      - Bổ sung cấu hình StoreProfiles (Id=1) phục vụ tính toán đơn & vận hành.
      - 150 đơn hàng COMPLETED (mỗi sản phẩm đúng 5 đơn và 5 feedbacks).
      - Đồng bộ tồn kho ProductSizes, Toppings và lượt dùng Voucher.
    ===================================================================== */
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET CHARACTER SET utf8mb4;
 
 SET @PasswordHash = '$2a$11$9/wZ.5Y0a4Qk3tC/L32gL.N3lD6M2rC9hRj2yI1vK1j7N6F7bOQW2';
 
@@ -83,69 +87,68 @@ BEGIN
     INSERT INTO UserRoles (UserId, RoleId) VALUES
     (1,1),(2,1),(3,2),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3),(10,3);
 
-    /* =====================  4. TOPPINGS (10)  ===================== */
+    /* =====================  4. TOPPINGS (10 món - tồn kho 40-50)  ===================== */
     INSERT INTO Toppings (ToppingId, Name, Price, Unit, ImageUrl, StockQuantity, IsAvailable) VALUES
-    (1,  'Trân châu đen',   8000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222644/cafeshop/toppings/topping_1.jpg', 1000, 1),
-    (2,  'Trân châu trắng', 8000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222645/cafeshop/toppings/topping_2.jpg', 1000, 1),
-    (3,  'Thạch dừa',       7000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222645/cafeshop/toppings/topping_3.jpg', 1000, 1),
-    (4,  'Thạch trái cây',  7000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222646/cafeshop/toppings/topping_4.jpg', 1000, 1),
-    (5,  'Pudding trứng',   10000, 'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222647/cafeshop/toppings/topping_5.jpg', 1000, 1),
-    (6,  'Sương sáo',       6000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222648/cafeshop/toppings/topping_6.jpg', 1000, 1),
-    (7,  'Kem cheese',      12000, 'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222649/cafeshop/toppings/topping_7.jpg', 1000, 1),
-    (8,  'Whipping cream',  8000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222650/cafeshop/toppings/topping_8.jpg', 1000, 1),
-    (9,  'Đào miếng',       10000, 'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222651/cafeshop/toppings/topping_9.jpg', 1000, 1),
-    (10, 'Shot espresso',   10000, 'shot', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222652/cafeshop/toppings/topping_10.jpg', 1000, 1);
+    (1,  'Trân châu đen',   8000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222644/cafeshop/toppings/topping_1.jpg', 50, 1),
+    (2,  'Trân châu trắng', 8000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222645/cafeshop/toppings/topping_2.jpg', 48, 1),
+    (3,  'Thạch dừa',       7000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222645/cafeshop/toppings/topping_3.jpg', 45, 1),
+    (4,  'Thạch trái cây',  7000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222646/cafeshop/toppings/topping_4.jpg', 50, 1),
+    (5,  'Pudding trứng',   10000, 'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222647/cafeshop/toppings/topping_5.jpg', 46, 1),
+    (6,  'Sương sáo',       6000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222648/cafeshop/toppings/topping_6.jpg', 45, 1),
+    (7,  'Kem cheese',      12000, 'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222649/cafeshop/toppings/topping_7.jpg', 50, 1),
+    (8,  'Whipping cream',  8000,  'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222650/cafeshop/toppings/topping_8.jpg', 48, 1),
+    (9,  'Đào miếng',       10000, 'phần', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222651/cafeshop/toppings/topping_9.jpg', 42, 1),
+    (10, 'Shot espresso',   10000, 'shot', 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222652/cafeshop/toppings/topping_10.jpg', 50, 1);
 
-    /* =====================  5. PRODUCTS (30 ĐỒ UỐNG CHUẨN)  =====================
-       Tất cả 30 món đều thuộc Category 1-6 (CÓ Size => StockQuantity = 0, tồn kho nằm ở ProductSizes) */
+    /* =====================  5. PRODUCTS (30 ĐỒ UỐNG CHUẨN - tồn kho 40-50)  ===================== */
     INSERT INTO Products (ProductId, CategoryId, Name, BasePrice, Description, IsAvailable, IsDeleted, StockQuantity, ImageUrl, ImagePublicId) VALUES
     -- Category 1: Cà phê (1 - 5)
-    (1,  1, 'Cà phê đen đá',             25000, 'Cà phê phin đậm vị, uống với đá',            1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222653/cafeshop/products/product_1.jpg', 'cafeshop/products/product_1'),
-    (2,  1, 'Cà phê sữa đá',             29000, 'Cà phê phin pha sữa đặc truyền thống',       1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222654/cafeshop/products/product_2.jpg', 'cafeshop/products/product_2'),
-    (3,  1, 'Bạc xỉu',                   32000, 'Nhiều sữa, ít cà phê, béo ngọt',              1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222655/cafeshop/products/product_3.jpg', 'cafeshop/products/product_3'),
-    (4,  1, 'Cappuccino',                45000, 'Espresso với sữa nóng và lớp foam dày',      1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222656/cafeshop/products/product_4.jpg', 'cafeshop/products/product_4'),
-    (5,  1, 'Latte',                     45000, 'Espresso và sữa tươi, vị dịu nhẹ',           1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222657/cafeshop/products/product_5.jpg', 'cafeshop/products/product_5'),
+    (1,  1, 'Cà phê đen đá',             25000, 'Cà phê phin đậm vị, uống với đá',            1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222653/cafeshop/products/product_1.jpg', 'cafeshop/products/product_1'),
+    (2,  1, 'Cà phê sữa đá',             29000, 'Cà phê phin pha sữa đặc truyền thống',       1, 0, 50, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222654/cafeshop/products/product_2.jpg', 'cafeshop/products/product_2'),
+    (3,  1, 'Bạc xỉu',                   32000, 'Nhiều sữa, ít cà phê, béo ngọt',              1, 0, 48, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222655/cafeshop/products/product_3.jpg', 'cafeshop/products/product_3'),
+    (4,  1, 'Cappuccino',                45000, 'Espresso với sữa nóng và lớp foam dày',      1, 0, 40, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222656/cafeshop/products/product_4.jpg', 'cafeshop/products/product_4'),
+    (5,  1, 'Latte',                     45000, 'Espresso và sữa tươi, vị dịu nhẹ',           1, 0, 42, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222657/cafeshop/products/product_5.jpg', 'cafeshop/products/product_5'),
 
     -- Category 2: Trà trái cây (6 - 10)
-    (6,  2, 'Trà đào cam sả',            42000, 'Trà đen, đào miếng, cam và sả tươi',         1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222658/cafeshop/products/product_6.jpg', 'cafeshop/products/product_6'),
-    (7,  2, 'Trà vải hoa hồng',          42000, 'Trà thơm hương hoa hồng cùng vải',           1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222659/cafeshop/products/product_7.jpg', 'cafeshop/products/product_7'),
-    (8,  2, 'Trà chanh mật ong',         35000, 'Chanh tươi và mật ong nguyên chất',          1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222660/cafeshop/products/product_8.jpg', 'cafeshop/products/product_8'),
-    (9,  2, 'Trà oolong dâu tây',        45000, 'Oolong thơm kết hợp dâu tây tươi',           1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222661/cafeshop/products/product_9.jpg', 'cafeshop/products/product_9'),
-    (10, 2, 'Trà nhiệt đới',             42000, 'Trà với dứa, xoài, chanh dây',               1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222662/cafeshop/products/product_10.jpg', 'cafeshop/products/product_10'),
+    (6,  2, 'Trà đào cam sả',            42000, 'Trà đen, đào miếng, cam và sả tươi',         1, 0, 50, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222658/cafeshop/products/product_6.jpg', 'cafeshop/products/product_6'),
+    (7,  2, 'Trà vải hoa hồng',          42000, 'Trà thơm hương hoa hồng cùng vải',           1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222659/cafeshop/products/product_7.jpg', 'cafeshop/products/product_7'),
+    (8,  2, 'Trà chanh mật ong',         35000, 'Chanh tươi và mật ong nguyên chất',          1, 0, 46, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222660/cafeshop/products/product_8.jpg', 'cafeshop/products/product_8'),
+    (9,  2, 'Trà oolong dâu tây',        45000, 'Oolong thơm kết hợp dâu tây tươi',           1, 0, 44, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222661/cafeshop/products/product_9.jpg', 'cafeshop/products/product_9'),
+    (10, 2, 'Trà nhiệt đới',             42000, 'Trà với dứa, xoài, chanh dây',               1, 0, 48, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222662/cafeshop/products/product_10.jpg', 'cafeshop/products/product_10'),
 
     -- Category 3: Trà sữa (11 - 15)
-    (11, 3, 'Trà sữa trân châu đường đen', 40000, 'Trà sữa, trân châu nấu đường đen',         1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222662/cafeshop/products/product_11.jpg', 'cafeshop/products/product_11'),
-    (12, 3, 'Trà sữa truyền thống',      35000, 'Vị trà sữa cổ điển',                         1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222663/cafeshop/products/product_12.jpg', 'cafeshop/products/product_12'),
-    (13, 3, 'Trà sữa matcha',            45000, 'Matcha Nhật Bản kết hợp sữa',                1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222664/cafeshop/products/product_13.jpg', 'cafeshop/products/product_13'),
-    (14, 3, 'Trà sữa khoai môn',         42000, 'Khoai môn tím béo thơm',                     1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222665/cafeshop/products/product_14.jpg', 'cafeshop/products/product_14'),
-    (15, 3, 'Hồng trà sữa macchiato',    45000, 'Hồng trà sữa phủ lớp kem cheese',            1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222666/cafeshop/products/product_15.jpg', 'cafeshop/products/product_15'),
+    (11, 3, 'Trà sữa trân châu đường đen', 40000, 'Trà sữa, trân châu nấu đường đen',         1, 0, 50, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222662/cafeshop/products/product_11.jpg', 'cafeshop/products/product_11'),
+    (12, 3, 'Trà sữa truyền thống',      35000, 'Vị trà sữa cổ điển',                         1, 0, 50, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222663/cafeshop/products/product_12.jpg', 'cafeshop/products/product_12'),
+    (13, 3, 'Trà sữa matcha',            45000, 'Matcha Nhật Bản kết hợp sữa',                1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222664/cafeshop/products/product_13.jpg', 'cafeshop/products/product_13'),
+    (14, 3, 'Trà sữa khoai môn',         42000, 'Khoai môn tím béo thơm',                     1, 0, 42, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222665/cafeshop/products/product_14.jpg', 'cafeshop/products/product_14'),
+    (15, 3, 'Hồng trà sữa macchiato',    45000, 'Hồng trà sữa phủ lớp kem cheese',            1, 0, 46, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222666/cafeshop/products/product_15.jpg', 'cafeshop/products/product_15'),
 
     -- Category 4: Sinh tố (16 - 20)
-    (16, 4, 'Sinh tố bơ',                45000, 'Bơ sáp xay mịn với sữa',                     1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222667/cafeshop/products/product_16.jpg', 'cafeshop/products/product_16'),
-    (17, 4, 'Sinh tố xoài',              40000, 'Xoài chín ngọt xay lạnh',                    1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222668/cafeshop/products/product_17.jpg', 'cafeshop/products/product_17'),
-    (18, 4, 'Sinh tố dâu',               42000, 'Dâu tươi xay cùng sữa chua',                 1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222669/cafeshop/products/product_18.jpg', 'cafeshop/products/product_18'),
-    (19, 4, 'Sinh tố chuối yến mạch',    38000, 'Chuối, yến mạch, mật ong',                   1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222670/cafeshop/products/product_19.jpg', 'cafeshop/products/product_19'),
-    (20, 4, 'Sinh tố việt quất',         48000, 'Việt quất và sữa chua',                       1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222671/cafeshop/products/product_20.jpg', 'cafeshop/products/product_20'),
+    (16, 4, 'Sinh tố bơ',                45000, 'Bơ sáp xay mịn với sữa',                     1, 0, 40, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222667/cafeshop/products/product_16.jpg', 'cafeshop/products/product_16'),
+    (17, 4, 'Sinh tố xoài',              40000, 'Xoài chín ngọt xay lạnh',                    1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222668/cafeshop/products/product_17.jpg', 'cafeshop/products/product_17'),
+    (18, 4, 'Sinh tố dâu',               42000, 'Dâu tươi xay cùng sữa chua',                 1, 0, 44, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222669/cafeshop/products/product_18.jpg', 'cafeshop/products/product_18'),
+    (19, 4, 'Sinh tố chuối yến mạch',    38000, 'Chuối, yến mạch, mật ong',                   1, 0, 42, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222670/cafeshop/products/product_19.jpg', 'cafeshop/products/product_19'),
+    (20, 4, 'Sinh tố việt quất',         48000, 'Việt quất và sữa chua',                       1, 0, 40, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222671/cafeshop/products/product_20.jpg', 'cafeshop/products/product_20'),
 
     -- Category 5: Đá xay (21 - 25)
-    (21, 5, 'Cookie đá xay',             52000, 'Bánh cookie xay cùng kem tươi',              1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222672/cafeshop/products/product_21.jpg', 'cafeshop/products/product_21'),
-    (22, 5, 'Matcha đá xay',             52000, 'Matcha đá xay phủ kem',                       1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222673/cafeshop/products/product_22.jpg', 'cafeshop/products/product_22'),
-    (23, 5, 'Cà phê đá xay',             50000, 'Cà phê đá xay béo mát',                       1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222674/cafeshop/products/product_23.jpg', 'cafeshop/products/product_23'),
-    (24, 5, 'Socola đá xay',             50000, 'Socola đậm vị đá xay',                        1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222675/cafeshop/products/product_24.jpg', 'cafeshop/products/product_24'),
-    (25, 5, 'Chanh tuyết',               42000, 'Chanh xay tuyết chua ngọt',                   1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222676/cafeshop/products/product_25.jpg', 'cafeshop/products/product_25'),
+    (21, 5, 'Cookie đá xay',             52000, 'Bánh cookie xay cùng kem tươi',              1, 0, 48, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222672/cafeshop/products/product_21.jpg', 'cafeshop/products/product_21'),
+    (22, 5, 'Matcha đá xay',             52000, 'Matcha đá xay phủ kem',                       1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222673/cafeshop/products/product_22.jpg', 'cafeshop/products/product_22'),
+    (23, 5, 'Cà phê đá xay',             50000, 'Cà phê đá xay béo mát',                       1, 0, 46, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222674/cafeshop/products/product_23.jpg', 'cafeshop/products/product_23'),
+    (24, 5, 'Socola đá xay',             50000, 'Socola đậm vị đá xay',                        1, 0, 44, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222675/cafeshop/products/product_24.jpg', 'cafeshop/products/product_24'),
+    (25, 5, 'Chanh tuyết',               42000, 'Chanh xay tuyết chua ngọt',                   1, 0, 50, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222676/cafeshop/products/product_25.jpg', 'cafeshop/products/product_25'),
 
     -- Category 6: Nước ép (26 - 30)
-    (26, 6, 'Nước ép cam',               38000, 'Cam vắt nguyên chất',                         1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222677/cafeshop/products/product_26.jpg', 'cafeshop/products/product_26'),
-    (27, 6, 'Nước ép dưa hấu',           35000, 'Dưa hấu ép mát lạnh',                          1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222678/cafeshop/products/product_27.jpg', 'cafeshop/products/product_27'),
-    (28, 6, 'Nước ép ổi',                35000, 'Ổi hồng ép giàu vitamin C',                    1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222679/cafeshop/products/product_28.jpg', 'cafeshop/products/product_28'),
-    (29, 6, 'Nước ép cà rốt táo',        38000, 'Cà rốt và táo ép tươi',                        1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222680/cafeshop/products/product_29.jpg', 'cafeshop/products/product_29'),
-    (30, 6, 'Nước ép cần tây táo',       40000, 'Cần tây, táo xanh, thanh lọc',                 1, 0, 0, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222681/cafeshop/products/product_30.jpg', 'cafeshop/products/product_30');
+    (26, 6, 'Nước ép cam',               38000, 'Cam vắt nguyên chất',                         1, 0, 50, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222677/cafeshop/products/product_26.jpg', 'cafeshop/products/product_26'),
+    (27, 6, 'Nước ép dưa hấu',           35000, 'Dưa hấu ép mát lạnh',                          1, 0, 48, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222678/cafeshop/products/product_27.jpg', 'cafeshop/products/product_27'),
+    (28, 6, 'Nước ép ổi',                35000, 'Ổi hồng ép giàu vitamin C',                    1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222679/cafeshop/products/product_28.jpg', 'cafeshop/products/product_28'),
+    (29, 6, 'Nước ép cà rốt táo',        38000, 'Cà rốt và táo ép tươi',                        1, 0, 42, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222680/cafeshop/products/product_29.jpg', 'cafeshop/products/product_29'),
+    (30, 6, 'Nước ép cần tây táo',       40000, 'Cần tây, táo xanh, thanh lọc',                 1, 0, 45, 'https://res.cloudinary.com/dver7jg4e/image/upload/v1792222681/cafeshop/products/product_30.jpg', 'cafeshop/products/product_30');
 
-    -- ProductSizes: Tất cả 30 món nước đều có Size S, M, L. Price làm tròn hàng nghìn.
+    -- ProductSizes: Tất cả 30 món nước đều có Size S, M, L. Price làm tròn hàng nghìn. Tồn kho ở mức 40-50 ly.
     INSERT INTO ProductSizes (ProductId, SizeId, Price, StockQuantity)
     SELECT p.ProductId, s.SizeId,
            ROUND(p.BasePrice * (1 + (CASE s.SizeId WHEN 1 THEN 0 WHEN 2 THEN 15 ELSE 30 END) / 100.0) / 1000.0, 0) * 1000,
-           300
+           40 + ((p.ProductId * 3 + s.SizeId * 7) % 11)
     FROM Products p CROSS JOIN Sizes s;
 
     -- ProductToppings: Cà phê/Trà/Trà sữa (1-3) dùng cả 10 topping;
@@ -213,7 +216,19 @@ BEGIN
     INSERT INTO StoreProfiles (Id, StoreName, Hotline, FullAddress, Latitude, Longitude,
         IsAcceptingOrders, IsRealtimeNotificationEnabled, IsMaintenanceMode, OpenTime, CloseTime, CreatedAt, UpdatedAt) VALUES
     (1, 'CafeShop - Cửa Hàng Chính', '0901000001', '123 Đường Cầu Giấy, Cầu Giấy, Hà Nội', 21.0333, 105.7950,
-     1, 1, 0, '07:00:00', '22:00:00', '2026-01-01 07:00:00', '2026-01-01 07:00:00');
+     1, 1, 0, '07:00:00', '22:00:00', '2026-01-01 07:00:00', '2026-01-01 07:00:00')
+    ON DUPLICATE KEY UPDATE
+        StoreName = VALUES(StoreName),
+        Hotline = VALUES(Hotline),
+        FullAddress = VALUES(FullAddress),
+        Latitude = VALUES(Latitude),
+        Longitude = VALUES(Longitude),
+        IsAcceptingOrders = VALUES(IsAcceptingOrders),
+        IsRealtimeNotificationEnabled = VALUES(IsRealtimeNotificationEnabled),
+        IsMaintenanceMode = VALUES(IsMaintenanceMode),
+        OpenTime = VALUES(OpenTime),
+        CloseTime = VALUES(CloseTime),
+        UpdatedAt = VALUES(UpdatedAt);
 
     /* =====================  11. NEWS (10 bài viết truyền thông)  ===================== */
     INSERT INTO News (UserId, Title, Slug, Summary, Content, ImageUrl, Status, ScheduledPublishAt, PublishedAt, CreatedAt, UpdatedAt, IsDeleted, ViewCount) VALUES
@@ -460,17 +475,23 @@ BEGIN
     JOIN tmp_comments c ON c.Rating = r.Rating AND c.Idx = r.n % 3;
 
     /* ---- Đồng bộ tồn kho & lượt dùng voucher ---- */
-    -- Đồ uống CÓ size: trừ ProductSizes.StockQuantity
+    -- Đồ uống CÓ size: trừ ProductSizes.StockQuantity theo số lượng đã bán
     UPDATE ProductSizes ps
     JOIN (SELECT ProductId, SizeId, SUM(Qty) AS Sold FROM tmp_orders WHERE SizeId IS NOT NULL GROUP BY ProductId, SizeId) x
       ON x.ProductId = ps.ProductId AND x.SizeId = ps.SizeId
-    SET ps.StockQuantity = ps.StockQuantity - x.Sold;
+    SET ps.StockQuantity = GREATEST(30, ps.StockQuantity - x.Sold);
 
-    -- Topping tồn kho
+    -- Đảm bảo Products.StockQuantity ở mức 30-50
+    UPDATE Products p
+    JOIN (SELECT ProductId, ROUND(AVG(StockQuantity)) AS AvgStock FROM ProductSizes GROUP BY ProductId) x
+      ON x.ProductId = p.ProductId
+    SET p.StockQuantity = x.AvgStock;
+
+    -- Topping tồn kho (giữ ở mức 30-50)
     UPDATE Toppings t
     JOIN (SELECT ToppingId, SUM(ToppingQty * Qty) AS Sold FROM tmp_orders WHERE ToppingId IS NOT NULL GROUP BY ToppingId) x
       ON x.ToppingId = t.ToppingId
-    SET t.StockQuantity = t.StockQuantity - x.Sold;
+    SET t.StockQuantity = GREATEST(30, t.StockQuantity - x.Sold);
 
     -- Voucher dùng chung
     UPDATE Vouchers v
@@ -492,6 +513,9 @@ BEGIN
 END $$
 
 DELIMITER ;
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET CHARACTER SET utf8mb4;
 
 CALL sp_seed_cafeshop();
 DROP PROCEDURE sp_seed_cafeshop;

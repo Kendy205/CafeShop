@@ -16,6 +16,12 @@ services:
       - ./db-init:/docker-entrypoint-initdb.d
     networks:
       - cafeshop_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   redis:
     image: redis:7-alpine
@@ -27,6 +33,12 @@ services:
       - redis_data:/data
     networks:
       - cafeshop_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
     build:
       context: ./BE_2/CafeShop
@@ -38,11 +50,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
+      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};CharSet=utf8mb4;
       - Redis__ConnectionString=redis:6379
     depends_on:
-      - mysql_db
-      - redis
+      mysql_db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - cafeshop_network
 
