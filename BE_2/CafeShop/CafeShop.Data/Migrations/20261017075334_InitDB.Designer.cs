@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeShop.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261013050733_AddUpdatedAtToUser")]
-    partial class AddUpdatedAtToUser
+    [Migration("20261017075334_InitDB")]
+    partial class InitDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -389,7 +389,8 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CurrentStatus")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<double>("DistanceKm")
                         .HasColumnType("double");
@@ -407,10 +408,11 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<decimal>("OrderDiscount")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("PaymentMethod")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
@@ -427,19 +429,19 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<decimal>("ShippingDiscount")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ShippingFee")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("SubTotal")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -649,19 +651,22 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<decimal>("BasePrice")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("ImagePublicId")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("tinyint(1)");
@@ -847,6 +852,9 @@ namespace CafeShop.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeSpan>("CloseTime")
+                        .HasColumnType("time(6)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -875,6 +883,9 @@ namespace CafeShop.Data.Migrations
                     b.Property<double>("Longitude")
                         .HasColumnType("double");
 
+                    b.Property<TimeSpan>("OpenTime")
+                        .HasColumnType("time(6)");
+
                     b.Property<string>("StoreName")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -897,7 +908,8 @@ namespace CafeShop.Data.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ToppingId"));
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("tinyint(1)");
@@ -909,7 +921,7 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<decimal?>("Price")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("StockQuantity")
                         .IsConcurrencyToken()
@@ -934,19 +946,23 @@ namespace CafeShop.Data.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<string>("AvatarPublicId")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("AvatarUrl")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
-                        .HasColumnType("varchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("FullName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
@@ -956,10 +972,12 @@ namespace CafeShop.Data.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("RefreshToken")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime(6)");
@@ -1039,21 +1057,26 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<string>("ApplyType")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Code")
-                        .HasColumnType("varchar(255)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("DiscountType")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<decimal>("DiscountValue")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
@@ -1063,18 +1086,19 @@ namespace CafeShop.Data.Migrations
 
                     b.Property<decimal>("MaxDiscountAmount")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("MinOrderValue")
                         .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("TargetType")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<int>("UsageLimit")
                         .HasColumnType("int");
