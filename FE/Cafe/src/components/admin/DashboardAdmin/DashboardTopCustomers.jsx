@@ -1,10 +1,18 @@
 import { Link } from 'react-router-dom'
-import { CrownOutlined, FileTextOutlined } from '@ant-design/icons'
+import { 
+    CrownOutlined, 
+    FileTextOutlined,
+    EnvironmentOutlined,
+    PhoneOutlined,
+    ClockCircleOutlined,
+    CreditCardOutlined
+} from '@ant-design/icons'
 import { formatVnd } from '../../../utils/helpers/format'
 import { useState } from 'react'
-import { Modal, Pagination, Spin, Tag } from 'antd'
+import { Modal, Pagination, Spin } from 'antd'
 import { adminOrderService } from '../../../services/admin/AdminOrderService'
 import { unwrapApi, normalizePagedResult } from '../../../utils/helpers/api'
+import AdminModalBanner from '../common/AdminModalBanner'
 
 /**
  * DashboardTopCustomers Component
@@ -130,102 +138,149 @@ export default function DashboardTopCustomers({ topCustomers, dates }) {
             </div>
 
             <Modal
-                title={
-                    <div className="flex items-center gap-2 text-slate-800">
-                        <FileTextOutlined className="text-sky-600" />
-                        <span>Đơn hàng đã hoàn thành - {selectedUser?.fullName || selectedUser?.username}</span>
-                    </div>
-                }
                 open={!!selectedUser}
                 onCancel={handleCloseModal}
                 footer={null}
-                width={600}
+                width={640}
                 centered
                 destroyOnClose
+                className="custom-admin-modal"
+                closeIcon={null}
             >
-                {loadingOrders ? (
-                    <div className="flex justify-center items-center py-12">
-                        <Spin size="large" />
-                    </div>
-                ) : (
-                    <div className="space-y-4 mt-6">
-                        {orders.length === 0 ? (
-                            <div className="text-center text-slate-500 py-8 bg-slate-50 rounded-xl border border-slate-100">
-                                Không tìm thấy đơn hàng hoàn thành nào.
-                            </div>
-                        ) : (
-                            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                                {orders.map(order => (
-                                    <div key={order.orderId} className="flex flex-col gap-3 border border-slate-200 rounded-xl p-4 bg-white hover:border-sky-300 transition-colors shadow-sm">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-black text-slate-800 text-base">#{order.orderId}</span>
-                                                    <Tag color="success" className="m-0 border-transparent bg-emerald-100 text-emerald-700 font-bold">
-                                                        Đã hoàn thành
-                                                    </Tag>
+                <AdminModalBanner 
+                    title="Đơn Hàng Đã Hoàn Thành"
+                    subtitle={`Khách hàng: ${selectedUser?.fullName || selectedUser?.username || '—'} (@${selectedUser?.username || ''})`}
+                    icon={<FileTextOutlined className="text-2xl text-white" />}
+                    badgeText={`${totalOrders} ĐƠN HOÀN THÀNH`}
+                    onClose={handleCloseModal}
+                />
+
+                <div className="p-6">
+                    {loadingOrders ? (
+                        <div className="flex justify-center items-center py-16">
+                            <Spin size="large" />
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {orders.length === 0 ? (
+                                <div className="text-center text-slate-500 py-10 bg-slate-50 rounded-2xl border border-slate-100 font-medium text-sm">
+                                    Không tìm thấy đơn hàng hoàn thành nào trong khoảng thời gian này.
+                                </div>
+                            ) : (
+                                <div className="space-y-3.5 max-h-[60vh] overflow-y-auto pr-1 no-scrollbar">
+                                    {orders.map(order => {
+                                        const isVnpay = order.paymentMethod?.toUpperCase() === 'VNPAY'
+                                        const totalDiscount = (order.orderDiscount || 0) + (order.shippingDiscount || 0)
+
+                                        return (
+                                            <div 
+                                                key={order.orderId} 
+                                                className="group relative flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 transition-all duration-200 hover:border-sky-300 hover:shadow-md"
+                                            >
+                                                {/* Header: Mã đơn, Trạng thái, Phương thức & Thời gian */}
+                                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-2.5 py-0.5 text-xs font-black tracking-wide text-white shadow-2xs">
+                                                            #{order.orderId}
+                                                        </span>
+                                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                            Đã hoàn thành
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-bold ${
+                                                            isVnpay 
+                                                                ? 'border-blue-200 bg-blue-50 text-blue-700' 
+                                                                : 'border-amber-200 bg-amber-50 text-amber-800'
+                                                        }`}>
+                                                            <CreditCardOutlined className="text-[10px]" />
+                                                            {order.paymentMethod || 'COD'}
+                                                        </span>
+                                                        <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                                                            <ClockCircleOutlined className="text-[11px]" />
+                                                            {new Date(order.orderDate).toLocaleString('vi-VN', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs text-slate-500 font-medium">
-                                                    {new Date(order.orderDate).toLocaleString('vi-VN')}
+
+                                                {/* Delivery Info */}
+                                                <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 space-y-2 text-xs">
+                                                    <div className="flex items-start gap-2">
+                                                        <EnvironmentOutlined className="mt-0.5 text-sky-500 shrink-0 text-sm" />
+                                                        <div className="flex-1 text-slate-700">
+                                                            <span className="font-semibold text-slate-800">{order.shippingAddress}</span>
+                                                            {order.distanceKm != null && (
+                                                                <span className="ml-2 inline-flex items-center rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-600 border border-sky-100">
+                                                                    {order.distanceKm} km
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 text-slate-600">
+                                                        <PhoneOutlined className="text-slate-400 shrink-0 text-xs" />
+                                                        <span>Người nhận: <strong className="text-slate-800 font-semibold">{order.userPhone || '—'}</strong></span>
+                                                    </div>
+
+                                                    {order.note && (
+                                                        <div className="flex items-start gap-1.5 rounded-lg border border-amber-200/60 bg-amber-50/80 px-2.5 py-1.5 text-xs text-amber-800">
+                                                            <span className="font-bold shrink-0">Ghi chú:</span>
+                                                            <span className="italic">{order.note}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Footer: Chi tiết tiền & Tổng thanh toán */}
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100/80">
+                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                                                        <span>Tạm tính: <strong className="text-slate-700 font-semibold">{formatVnd(order.subTotal || 0)}</strong></span>
+                                                        <span className="text-slate-300">•</span>
+                                                        <span>Phí giao: <strong className="text-slate-700 font-semibold">{formatVnd(order.shippingFee || 0)}</strong></span>
+                                                        {totalDiscount > 0 && (
+                                                            <>
+                                                                <span className="text-slate-300">•</span>
+                                                                <span className="text-emerald-600 font-semibold">
+                                                                    Giảm: -{formatVnd(totalDiscount)}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-baseline justify-end gap-1.5">
+                                                        <span className="text-[11px] font-bold uppercase text-slate-400">Thành tiền:</span>
+                                                        <span className="text-lg font-black text-sky-600">{formatVnd(order.totalAmount || 0)}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Thành tiền</span>
-                                                <span className="font-black text-sky-600 text-lg">{formatVnd(order.totalAmount || 0)}</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs text-slate-600 space-y-1.5">
-                                            <div className="flex gap-2">
-                                                <span className="font-semibold min-w-[70px]">Giao đến:</span>
-                                                <span className="text-slate-800">{order.shippingAddress} <span className="text-slate-400">({order.distanceKm} km)</span></span>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <span className="font-semibold min-w-[70px]">SĐT nhận:</span>
-                                                <span className="text-slate-800 font-medium">{order.userPhone}</span>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <span className="font-semibold min-w-[70px]">Thanh toán:</span>
-                                                <span className="text-slate-800 font-medium">{order.paymentMethod}</span>
-                                            </div>
-                                            {order.note && (
-                                                <div className="flex gap-2">
-                                                    <span className="font-semibold min-w-[70px]">Ghi chú:</span>
-                                                    <span className="text-orange-600 italic">{order.note}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    
-                                        <div className="flex justify-end text-[11px] font-medium text-slate-500 mt-1">
-                                            <div className="flex flex-col text-right space-y-1">
-                                                <span>Tạm tính: {formatVnd(order.subTotal || 0)}</span>
-                                                <span>Phí giao: {formatVnd(order.shippingFee || 0)}</span>
-                                                {(order.orderDiscount > 0 || order.shippingDiscount > 0) && (
-                                                    <span className="text-emerald-600">
-                                                        Giảm giá: -{formatVnd((order.orderDiscount || 0) + (order.shippingDiscount || 0))}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        
-                        {totalOrders > 0 && (
-                            <div className="flex justify-end pt-4 border-t border-slate-100 mt-4">
-                                <Pagination 
-                                    current={currentPage} 
-                                    total={totalOrders} 
-                                    pageSize={5} 
-                                    onChange={handlePageChange}
-                                    showSizeChanger={false}
-                                    size="small"
-                                />
-                            </div>
-                        )}
-                    </div>
-                )}
+                                        )
+                                    })}
+                                </div>
+                            )}
+
+                            {totalOrders > 0 && (
+                                <div className="flex justify-end pt-3 border-t border-slate-100">
+                                    <Pagination 
+                                        current={currentPage} 
+                                        total={totalOrders} 
+                                        pageSize={5} 
+                                        onChange={handlePageChange}
+                                        showSizeChanger={false}
+                                        size="small"
+                                        className="custom-admin-pagination"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </Modal>
         </div>
     )

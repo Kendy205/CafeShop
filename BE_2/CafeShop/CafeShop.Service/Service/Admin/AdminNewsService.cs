@@ -26,28 +26,51 @@ namespace CafeShop.Service.Service.Admin
             _redisCache = redisCache;
         }
 
+        private string RemoveDiacritics(string text)
+        {
+            var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            var stringBuilder = new System.Text.StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).Replace('đ', 'd').Replace('Đ', 'D');
+        }
+
         private string GenerateSlug(string title)
         {
             if (string.IsNullOrWhiteSpace(title)) return string.Empty;
-            string slug = title.ToLower().Trim();
+            string slug = RemoveDiacritics(title).ToLower().Trim();
             slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
-            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-").Trim();
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-").Trim('-');
             return slug;
         }
 
         private async Task<string> GenerateUniqueSlugAsync(string title)
         {
             string baseSlug = GenerateSlug(title);
-            string slug = baseSlug;
-            int counter = 1;
+            if (string.IsNullOrEmpty(baseSlug)) baseSlug = "bai-viet";
 
-            while (await _unitOfWork.News.GetFirstOrDefaultAsync(n => n.Slug == slug) != null)
+            var existingSlugs = (await _unitOfWork.News.GetAllAsync(n => n.Slug != null && n.Slug.StartsWith(baseSlug)))
+                .Select(n => n.Slug)
+                .ToHashSet();
+
+            if (!existingSlugs.Contains(baseSlug))
+                return baseSlug;
+
+            int counter = 1;
+            while (existingSlugs.Contains($"{baseSlug}-{counter}"))
             {
-                slug = $"{baseSlug}-{counter}";
                 counter++;
             }
 
-            return slug;
+            return $"{baseSlug}-{counter}";
         }
 
         public async Task<PagedResult<NewsListResponseDto>> GetNewsForManagementAsync(string? keyword = null, string? status = null, int pageNumber = 1, int pageSize = 10)
@@ -112,8 +135,8 @@ namespace CafeShop.Service.Service.Admin
                 UserId = authorId,
                 Status = string.IsNullOrEmpty(request.Status) ? NewsStatus.Published : request.Status,
                 ScheduledPublishAt = request.ScheduledPublishAt,
-                PublishedAt = string.IsNullOrEmpty(request.Status) || request.Status == NewsStatus.Published ? DateTime.UtcNow : null,
-                CreatedAt = DateTime.UtcNow,
+                PublishedAt = string.IsNullOrEmpty(request.Status) || request.Status == NewsStatus.Published ? DateTimeHelper.VietnamNow : null,
+                CreatedAt = DateTimeHelper.VietnamNow,
                 IsDeleted = false
             };
 
@@ -152,7 +175,7 @@ namespace CafeShop.Service.Service.Admin
             {
                 if (news.Status != request.Status && request.Status == NewsStatus.Published)
                 {
-                    news.PublishedAt = DateTime.UtcNow;
+                    news.PublishedAt = DateTimeHelper.VietnamNow;
                 }
                 news.Status = request.Status;
             }
@@ -162,7 +185,7 @@ namespace CafeShop.Service.Service.Admin
                 news.ScheduledPublishAt = request.ScheduledPublishAt;
             }
 
-            news.UpdatedAt = DateTime.UtcNow;
+            news.UpdatedAt = DateTimeHelper.VietnamNow;
 
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();
@@ -178,7 +201,7 @@ namespace CafeShop.Service.Service.Admin
             if (news == null) throw new Exception("Không tìm thấy bài viết");
 
             news.IsDeleted = true;
-            news.UpdatedAt = DateTime.UtcNow;
+            news.UpdatedAt = DateTimeHelper.VietnamNow;
             
             _unitOfWork.News.Update(news);
             await _unitOfWork.SaveAsync();

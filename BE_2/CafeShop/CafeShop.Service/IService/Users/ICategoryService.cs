@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CafeShop.Model;
+using CafeShop.DTO.Category.Responses;
 
 namespace CafeShop.Services.IServices
 {
     public interface ICategoryService
     {
-        Task<IEnumerable<Category>> GetAllAsync();
-        Task<Category> GetByIdAsync(int id);
+        Task<List<CategoryDto>> GetAllAsync();
+        Task<CategoryDto?> GetByIdAsync(int id);
     }
 }

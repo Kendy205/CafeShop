@@ -32,5 +32,6 @@ namespace CafeShop.Services.IServices
         Task<ProductResponseDto?> GetByIdAsync(int id);
         Task<SearchSuggestionDto> GetSearchSuggestionsAsync();
         Task<IEnumerable<ProductAutocompleteDto>> GetAutocompleteSuggestionsAsync(string keyword);
+        Task<IEnumerable<ProductResponseDto>> GetRelatedProductsAsync(int productId, int limit = 4);
     }
 }

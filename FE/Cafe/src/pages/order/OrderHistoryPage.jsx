@@ -118,7 +118,6 @@ export default function OrderHistoryPage() {
     }, [myOrders, selectedStatus])
 
     const currentTabInfo = ORDER_STATUS_TABS.find((t) => t.key === selectedStatus) || ORDER_STATUS_TABS[0]
-    const pageNumbers = Array.from({ length: myOrdersTotalPages }, (_, i) => i + 1)
 
     return (
         <div className="mx-auto max-w-3xl px-4 py-8">
@@ -254,39 +253,6 @@ export default function OrderHistoryPage() {
                     />
 
                     {/* Pagination */}
-                    {myOrdersTotalPages > 1 && (
-                        <div className="mt-8 flex items-center justify-center gap-1.5">
-                            <button
-                                type="button"
-                                disabled={page <= 1}
-                                onClick={() => setPage((p) => p - 1)}
-                                className="h-9 w-9 rounded-3xl border border-slate-200 bg-white text-sm font-bold text-slate-600 shadow-2xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                            >
-                                ‹
-                            </button>
-                            {pageNumbers.map((n) => (
-                                <button
-                                    key={n}
-                                    type="button"
-                                    onClick={() => setPage(n)}
-                                    className={`h-9 w-9 rounded-3xl text-xs font-bold transition-all shadow-2xs ${n === page
-                                        ? 'bg-sky-800 text-white shadow-sm'
-                                        : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                                        }`}
-                                >
-                                    {n}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                disabled={page >= myOrdersTotalPages}
-                                onClick={() => setPage((p) => p + 1)}
-                                className="h-9 w-9 rounded-3xl border border-slate-200 bg-white text-sm font-bold text-slate-600 shadow-2xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                            >
-                                ›
-                            </button>
-                        </div>
-                    )}
                     <AppPagination
                         current={page}
                         pageSize={10}

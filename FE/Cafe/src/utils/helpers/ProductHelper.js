@@ -33,19 +33,22 @@ export const buildProductFormData = (form, selectedSizes, toppingIds = []) => {
         }
     }
 
-    if (sizeListToSubmit.length === 0) {
-        AppToast.warning('Vui lòng chọn ít nhất 1 kích cỡ cho sản phẩm!')
-        return null
-    }
-
-    let finalStockQuantity = totalSizeStock
-    if (form.stockQuantity !== '' && form.stockQuantity !== null && form.stockQuantity !== undefined) {
-        const inputStock = Number(form.stockQuantity)
-        if (inputStock !== totalSizeStock) {
-            AppToast.warning(`Tổng số lượng các size (${totalSizeStock}) không khớp với tổng tồn kho bạn nhập (${inputStock})! Vui lòng sửa lại hoặc để trống.`)
-            return null
+    let finalStockQuantity = 0
+    if (sizeListToSubmit.length > 0) {
+        finalStockQuantity = totalSizeStock
+        if (form.stockQuantity !== '' && form.stockQuantity !== null && form.stockQuantity !== undefined) {
+            const inputStock = Number(form.stockQuantity)
+            if (inputStock !== totalSizeStock) {
+                AppToast.warning(`Tổng số lượng các size (${totalSizeStock}) không khớp với tổng tồn kho bạn nhập (${inputStock})! Vui lòng sửa lại hoặc để trống.`)
+                return null
+            }
+            finalStockQuantity = inputStock
         }
-        finalStockQuantity = inputStock
+    } else {
+        // Sản phẩm không có size: lấy tồn kho trực tiếp từ ô nhập
+        if (form.stockQuantity !== '' && form.stockQuantity !== null && form.stockQuantity !== undefined) {
+            finalStockQuantity = Number(form.stockQuantity) || 0
+        }
     }
 
     const formData = new FormData()

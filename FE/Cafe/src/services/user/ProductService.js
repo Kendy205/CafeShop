@@ -26,6 +26,14 @@ export class ProductService extends BaseServices {
     // Lấy toàn bộ danh sách danh mục (dùng cho bộ lọc)
     getCategories = (config = {}) =>
         this.get('/api/Category', { __skipGlobalLoading: true, ...config })
+
+    // Lấy danh sách sản phẩm liên quan cùng danh mục: GET /api/Product/{id}/related
+    getRelatedProducts = (id, params = { limit: 4 }, config = {}) =>
+        this.get(`/api/Product/${id}/related`, {
+            params,
+            __skipGlobalLoading: true,
+            ...config,
+        })
 }
 
 export const productService = new ProductService()

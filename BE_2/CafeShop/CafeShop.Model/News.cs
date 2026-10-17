@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -29,7 +30,7 @@ namespace CafeShop.Model
         
         public DateTime? ScheduledPublishAt { get; set; }
         public DateTime? PublishedAt { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
         public DateTime? UpdatedAt { get; set; }
         
         public bool IsDeleted { get; set; } = false;

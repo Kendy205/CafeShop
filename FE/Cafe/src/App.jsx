@@ -9,8 +9,9 @@ import AuthModal from './components/auth/AuthModal'
 import RealtimeNotificationHandler from './components/notification/RealtimeNotificationHandler'
 import UserTemplate from './templates/UserTemplate'
 import AdminTemplate from './templates/AdminTemplate'
+import StaffTemplate from './templates/StaffTemplate'
 import ProtectedRoute from './utils/route/ProtectedRoute'
-import { ADMIN_ROLES, CUSTOMER_ROLES } from './utils/constants/System'
+import { ADMIN_ROLES, CUSTOMER_ROLES, STAFF_ROLES } from './utils/constants/System'
 import HomePage from './pages/home/HomePage'
 import SearchPage from './pages/search/SearchPage'
 import ProductDetailPage from './pages/product/ProductDetailPage'
@@ -32,6 +33,9 @@ import AdminUsersPage from './pages/admin/users/AdminUsersPage'
 import AdminSettingsPage from './pages/admin/settings/AdminSettingsPage'
 import AdminNewsPage from './pages/admin/news/AdminNewsPage'
 import AdminFeedbackPage from './pages/admin/feedbacks/AdminFeedbackPage'
+import StaffOrderPage from './pages/staff/StaffOrderPage'
+import StaffProductPage from './pages/staff/StaffProductPage'
+import StaffFeedbackPage from './pages/staff/StaffFeedbackPage'
 import NotFoundPage from './pages/error/NotFoundPage'
 import NewsListPage from './pages/news/NewsListPage'
 import NewsDetailPage from './pages/news/NewsDetailPage'
@@ -72,8 +76,6 @@ function App() {
                         <Route path="/orders" element={<OrderHistoryPage />} />
                         <Route path="/vouchers" element={<MyVouchersPage />} />
                     </Route>
-                    {/* 404 Catch-all Route for Client */}
-                    <Route path="*" element={<NotFoundPage />} />
                 </Route>
 
                 <Route element={<ProtectedRoute allowedRoles={ADMIN_ROLES} />}>
@@ -89,6 +91,21 @@ function App() {
                         <Route path="feedbacks" element={<AdminFeedbackPage />} />
                     </Route>
                 </Route>
+
+                {/* Phân hệ Staff (Quầy ) - Dành cho STAFF và ADMIN */}
+                <Route element={<ProtectedRoute allowedRoles={STAFF_ROLES} />}>
+                    <Route path="/staff" element={<StaffTemplate />}>
+                        <Route index element={<Navigate to="orders" replace />} />
+                        <Route path="orders" element={<StaffOrderPage />} />
+                        <Route path="products" element={<StaffProductPage />} />
+                        <Route path="feedbacks" element={<StaffFeedbackPage />} />
+                    </Route>
+                </Route>
+
+                {/* 404 Standalone Route - Không có Header */}
+                <Route path="/404" element={<NotFoundPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+
             </Routes>
             <AuthModal />
         </Provider>

@@ -1,15 +1,6 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Category.Requests;
-using CafeShop.DTO.Category.Responses;
-using CafeShop.DTO.Product.Requests;
-using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.User;
-using CafeShop.DTO.Order.Requests;
-using CafeShop.DTO.Order.Responses;
 using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard.Requests;
-using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 using CafeShop.Service.IService.Admin;
 using System.Threading.Tasks;

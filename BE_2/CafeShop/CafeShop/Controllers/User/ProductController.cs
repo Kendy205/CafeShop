@@ -126,5 +126,23 @@ namespace CafeShop.Controllers.User
                 return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
             }
         }
+
+        // GET /api/Product/{id}/related?limit=4
+        [HttpGet("{id:int}/related")]
+        public async Task<IActionResult> GetRelatedProducts(int id, [FromQuery] int limit = 4)
+        {
+            try
+            {
+                if (limit <= 0) limit = 5;
+                if (limit > 5) limit = 5;
+
+                var relatedProducts = await _productService.GetRelatedProductsAsync(id, limit);
+                return Ok(ApiResponse<IEnumerable<ProductResponseDto>>.Succeeded(relatedProducts, 200, "Lay danh sach san pham lien quan thanh cong"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<object>.Failed(ex.Message, 500));
+            }
+        }
     }
 }

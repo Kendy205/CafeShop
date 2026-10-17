@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Modal, Rate, Image, Tag, Button, Form, Input, Space } from 'antd'
+import { Modal, Rate, Image, Tag, Button, Form, Input, Space, Avatar } from 'antd'
 import dayjs from 'dayjs'
 import { fetchAllFeedbacks, replyToFeedback } from '../../../redux/actions/admin/adminFeedbackAction'
-import { CheckCircleOutlined, MessageOutlined, EditOutlined } from '@ant-design/icons'
+import { CheckCircleOutlined, MessageOutlined, EditOutlined, UserOutlined } from '@ant-design/icons'
 import AdminTable from '../common/AdminTable'
 
 /**
@@ -57,9 +57,28 @@ export default function FeedbackDrawer({ productId, open, onClose }) {
     const columns = [
         {
             title: 'Khách hàng',
-            dataIndex: 'userName',
             key: 'userName',
-            width: 120,
+            width: 140,
+            render: (_, record) => (
+                <div className="flex items-center gap-2">
+                    <Avatar 
+                        src={record.userAvatar} 
+                        icon={<UserOutlined />} 
+                        size={28} 
+                        className="shrink-0 bg-slate-100 text-slate-400 border border-slate-200" 
+                    />
+                    <div className="min-w-0">
+                        <span className="font-semibold text-slate-700 text-xs truncate block" title={record.userName}>
+                            {record.userName || 'Khách'}
+                        </span>
+                        {record.orderId && (
+                            <span className="text-[10px] text-sky-600 block font-medium">
+                                Đơn #{record.orderId}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )
         },
         {
             title: 'Size',

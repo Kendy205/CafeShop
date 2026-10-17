@@ -6,14 +6,15 @@ import {
     ShopOutlined,
     BellOutlined,
     CarOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    ClockCircleOutlined
 } from '@ant-design/icons'
 import { Switch, Spin } from 'antd'
 import { fetchShippingConfig, updateShippingConfig } from '../../../redux/actions/admin/adminShippingConfigAction'
 import { AppToast } from '../../../components/common/AppNotification'
 import MapboxLocationPicker from '../../../components/map/MapboxLocationPicker'
 import { Modal } from 'antd'
-import { updateStoreProfileAsync } from '../../../redux/slices/storeProfileSlice'
+import { updateStoreProfileAsync, fetchStoreProfile } from '../../../redux/slices/storeProfileSlice'
 
 
 const shippingSchema = Yup.object().shape({
@@ -35,8 +36,10 @@ const storeProfileSchema = Yup.object().shape({
     storeName: Yup.string().max(255, 'Tên quán tối đa 255 ký tự').required('Tên quán không được để trống'),
     hotline: Yup.string().max(50, 'Hotline tối đa 50 ký tự'),
     fullAddress: Yup.string().max(500, 'Địa chỉ tối đa 500 ký tự'),
-    latitude: Yup.number().typeError('Vĩ độ (Latitude) phải là số').required('Bắt buộc nhập Vĩ độ'),
-    longitude: Yup.number().typeError('Kinh độ (Longitude) phải là số').required('Bắt buộc nhập Kinh độ'),
+    latitude: Yup.number().typeError('Vĩ độ (Latitude) phải là số').required('Bắt buộc có tọa độ vị trí quán'),
+    longitude: Yup.number().typeError('Kinh độ (Longitude) phải là số').required('Bắt buộc có tọa độ vị trí quán'),
+    openTime: Yup.string().required('Vui lòng chọn giờ mở cửa'),
+    closeTime: Yup.string().required('Vui lòng chọn giờ đóng cửa'),
 })
 
 /**
@@ -52,10 +55,18 @@ export default function GeneralSettingsTab() {
 
     useEffect(() => {
         dispatch(fetchShippingConfig())
+        dispatch(fetchStoreProfile())
     }, [dispatch])
 
     const handleSubmitStoreProfile = async (values) => {
-        const res = await dispatch(updateStoreProfileAsync(values))
+        const payload = {
+            ...values,
+            latitude: Number(values.latitude),
+            longitude: Number(values.longitude),
+            openTime: values.openTime?.length === 5 ? `${values.openTime}:00` : values.openTime,
+            closeTime: values.closeTime?.length === 5 ? `${values.closeTime}:00` : values.closeTime,
+        }
+        const res = await dispatch(updateStoreProfileAsync(payload))
         if (updateStoreProfileAsync.fulfilled.match(res)) {
             AppToast.success('Cập nhật cấu hình cửa hàng thành công!')
         }
@@ -86,11 +97,30 @@ export default function GeneralSettingsTab() {
 
     const currentConfig = config || defaultConfig
 
-    const defaultProfile = {
-        storeName: '', hotline: '', fullAddress: '', latitude: 0, longitude: 0,
-        isAcceptingOrders: true, isRealtimeNotificationEnabled: true, isMaintenanceMode: false
+    const formatTimeForInput = (timeStr, fallback) => {
+        if (!timeStr) return fallback
+        return typeof timeStr === 'string' && timeStr.length >= 5 ? timeStr.slice(0, 5) : fallback
     }
-    const currentProfile = storeProfile || defaultProfile
+
+    const defaultProfile = {
+        storeName: '',
+        hotline: '',
+        fullAddress: '',
+        latitude: 0,
+        longitude: 0,
+        isAcceptingOrders: true,
+        isRealtimeNotificationEnabled: true,
+        isMaintenanceMode: false,
+        openTime: '07:00',
+        closeTime: '22:30',
+    }
+    const currentProfile = storeProfile
+        ? {
+              ...storeProfile,
+              openTime: formatTimeForInput(storeProfile.openTime, '07:00'),
+              closeTime: formatTimeForInput(storeProfile.closeTime, '22:30'),
+          }
+        : defaultProfile
 
     if ((shippingLoading && !config) || (profileLoading && !storeProfile)) {
         return (
@@ -139,16 +169,30 @@ export default function GeneralSettingsTab() {
                                 </button>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Vĩ độ (Latitude)</label>
-                                    <Field name="latitude" type="number" step="any" className={`mt-1 w-full rounded-2xl border bg-slate-50 px-4 py-2 text-xs font-mono font-bold text-slate-800 outline-none focus:border-sky-500`} />
+                            {/* Tọa độ ẩn - tự động đồng bộ từ Mapbox */}
+                            <Field type="hidden" name="latitude" />
+                            <Field type="hidden" name="longitude" />
+                            
+                            <div className="flex items-center justify-between rounded-2xl bg-slate-50 border border-slate-200/80 px-4 py-2.5 text-xs">
+                                <div className="flex items-center gap-2 text-slate-600">
+                                    <span className="text-sky-600 font-bold">📍 Tọa độ GPS:</span>
+                                    {values.latitude && values.longitude ? (
+                                        <span className="font-mono font-semibold text-slate-800">
+                                            {Number(values.latitude).toFixed(6)}, {Number(values.longitude).toFixed(6)}
+                                        </span>
+                                    ) : (
+                                        <span className="italic text-slate-400">Chưa định vị tọa độ</span>
+                                    )}
                                 </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-500 uppercase">Kinh độ (Longitude)</label>
-                                    <Field name="longitude" type="number" step="any" className={`mt-1 w-full rounded-2xl border bg-slate-50 px-4 py-2 text-xs font-mono font-bold text-slate-800 outline-none focus:border-sky-500`} />
-                                </div>
+                                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 border border-emerald-200">
+                                    Tự động từ Mapbox
+                                </span>
                             </div>
+                            {(errors.latitude || errors.longitude) && (
+                                <p className="text-[10px] text-red-500">
+                                    {errors.latitude || errors.longitude || 'Vui lòng chọn vị trí trên bản đồ để lưu tọa độ'}
+                                </p>
+                            )}
 
                             <Modal
                                 title={<span className="font-black text-slate-800 text-lg">📍 Chọn vị trí cửa hàng</span>}
@@ -184,19 +228,64 @@ export default function GeneralSettingsTab() {
                                 <h3 className="text-base font-black text-slate-800">Vận hành & Thông báo</h3>
                             </div>
                             <div className="space-y-4 flex-1">
+                                {/* Khung giờ hoạt động hàng ngày */}
+                                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <ClockCircleOutlined className="text-sky-600 text-sm" />
+                                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                                Giờ hoạt động hàng ngày
+                                            </span>
+                                        </div>
+                                        {storeProfile?.isOpenNow !== undefined && (
+                                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold border ${
+                                                storeProfile.isOpenNow 
+                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-300' 
+                                                    : 'bg-rose-500/10 text-rose-600 border-rose-300'
+                                            }`}>
+                                                {storeProfile.isOpenNow ? '🟢 Đang mở cửa' : '🔴 Đang đóng cửa'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[11px] font-bold text-slate-500">Giờ mở cửa *</label>
+                                            <Field
+                                                type="time"
+                                                name="openTime"
+                                                className={`mt-1 w-full rounded-xl border bg-white px-3 py-1.5 text-xs font-bold font-mono text-slate-800 outline-none ${
+                                                    errors.openTime && touched.openTime ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'
+                                                }`}
+                                            />
+                                            {errors.openTime && touched.openTime && (
+                                                <p className="mt-1 text-[10px] text-red-500">{errors.openTime}</p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="text-[11px] font-bold text-slate-500">Giờ đóng cửa *</label>
+                                            <Field
+                                                type="time"
+                                                name="closeTime"
+                                                className={`mt-1 w-full rounded-xl border bg-white px-3 py-1.5 text-xs font-bold font-mono text-slate-800 outline-none ${
+                                                    errors.closeTime && touched.closeTime ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'
+                                                }`}
+                                            />
+                                            {errors.closeTime && touched.closeTime && (
+                                                <p className="mt-1 text-[10px] text-red-500">{errors.closeTime}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 italic">
+                                        * Hệ thống tự động so khớp giờ hiện tại với khung giờ này để tính toán trạng thái mở cửa.
+                                    </p>
+                                </div>
+
                                 <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                                     <div>
                                         <p className="text-xs font-bold text-slate-800">Mở cửa nhận đơn hàng</p>
                                         <p className="text-[11px] text-slate-500">Khách có thể đặt món trực tuyến</p>
                                     </div>
                                     <Switch checked={values.isAcceptingOrders} onChange={v => setFieldValue('isAcceptingOrders', v)} className="custom-admin-switch bg-emerald-500" />
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
-                                    <div>
-                                        <p className="text-xs font-bold text-slate-800">Âm thanh báo Realtime</p>
-                                        <p className="text-[11px] text-slate-500">Phát âm thanh chuông khi có đơn mới</p>
-                                    </div>
-                                    <Switch checked={values.isRealtimeNotificationEnabled} onChange={v => setFieldValue('isRealtimeNotificationEnabled', v)} className="custom-admin-switch bg-sky-500" />
                                 </div>
                                 <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border-l-4 border-red-400">
                                     <div>

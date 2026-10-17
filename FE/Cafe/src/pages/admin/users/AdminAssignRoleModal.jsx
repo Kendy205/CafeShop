@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Modal, Form, Select, message } from 'antd'
+import { Modal, Form, Select } from 'antd'
 import { CloseOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import { assignAdminRoles, fetchAdminUsers } from '../../../redux/actions/admin/adminUserAction'
-import { AppToast, AppConfirm } from '../../../components/common/AppNotification'
+import { AppToast } from '../../../components/common/AppNotification'
 
 
 /**
@@ -11,17 +11,19 @@ import { AppToast, AppConfirm } from '../../../components/common/AppNotification
  * Modal để Admin cấp hoặc gỡ Vai trò (Roles) cho một người dùng bất kỳ.
  * Hỗ trợ chọn nhiều Role cùng lúc qua thẻ Select.
  */
-export default function AdminAssignRoleModal({ visible, onClose, assigningUser, roles }) {
+export default function AdminAssignRoleModal({ visible, onClose, assigningUser, roles, onSuccess }) {
     const [form] = Form.useForm()
     const dispatch = useDispatch()
     const { submitting } = useSelector((s) => s.admin.user)
 
     useEffect(() => {
         if (visible && assigningUser) {
-            const userRoleNames = assigningUser.roles || []
-            const userRoleIds = roles
-                .filter(r => userRoleNames.includes(r.name))
-                .map(r => r.roleId || r.id)
+            let userRoleIds = assigningUser.roleIds || []
+            if ((!userRoleIds || userRoleIds.length === 0) && assigningUser.roles) {
+                userRoleIds = roles
+                    .filter((r) => assigningUser.roles.includes(r.name))
+                    .map((r) => r.roleId || r.id)
+            }
             
             form.setFieldsValue({
                 roleIds: userRoleIds
@@ -37,11 +39,14 @@ export default function AdminAssignRoleModal({ visible, onClose, assigningUser, 
             
             if (assignAdminRoles.fulfilled.match(res)) {
                 AppToast.success('Phân quyền thành công!')
-                dispatch(fetchAdminUsers({})) // Reload to get updated roles
                 onClose()
+                if (typeof onSuccess === 'function') {
+                    onSuccess()
+                } else {
+                    dispatch(fetchAdminUsers({ pageNumber: 1, pageSize: 10 }))
+                }
             }
-            // Không gọi AppToast.error() ở đây nữa vì BaseService đã hiển thị thông báo lỗi chung
-        } catch (error) {
+        } catch {
             // form validation failed
         }
     }

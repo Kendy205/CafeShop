@@ -7,6 +7,7 @@ using CafeShop.DTO.Feedback.Requests;
 using CafeShop.DTO.Feedback.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
+using CafeShop.Uitls;
 
 namespace CafeShop.Service.Service.Admin
 {
@@ -78,6 +79,7 @@ namespace CafeShop.Service.Service.Admin
                     FeedbackId = f.FeedbackId,
                     ProductId = f.ProductId,
                     ProductName = f.Product != null ? f.Product.Name : "N/A",
+                    ProductImage = f.Product != null ? f.Product.ImageUrl : null,
                     UserId = f.UserId,
                     UserName = f.User != null ? (f.User.FullName ?? f.User.Username) : "N/A",
                     UserAvatar = f.User != null ? f.User.AvatarUrl : null,
@@ -123,6 +125,7 @@ namespace CafeShop.Service.Service.Admin
                 FeedbackId = f.FeedbackId,
                 ProductId = f.ProductId,
                 ProductName = f.Product != null ? f.Product.Name : "N/A",
+                ProductImage = f.Product != null ? f.Product.ImageUrl : null,
                 UserId = f.UserId,
                 UserName = f.User != null ? (f.User.FullName ?? f.User.Username) : "N/A",
                 UserAvatar = f.User != null ? f.User.AvatarUrl : null,
@@ -176,7 +179,7 @@ namespace CafeShop.Service.Service.Admin
                 // Update existing reply
                 existingReply.ReplyContent = replyContent;
                 existingReply.AdminUserId = adminUserId;
-                existingReply.CreatedAt = DateTime.UtcNow; // Or keep old and add UpdatedAt, but usually replies can just update date
+                existingReply.CreatedAt = DateTimeHelper.VietnamNow;
                 _unitOfWork.FeedbackReply.Update(existingReply);
             }
             else
@@ -187,7 +190,7 @@ namespace CafeShop.Service.Service.Admin
                     FeedbackId = feedbackId,
                     AdminUserId = adminUserId,
                     ReplyContent = replyContent,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.VietnamNow
                 };
                 await _unitOfWork.FeedbackReply.AddAsync(reply);
             }

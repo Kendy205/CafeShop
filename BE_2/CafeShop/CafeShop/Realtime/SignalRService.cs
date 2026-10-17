@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -18,6 +18,19 @@ namespace CafeShop.Realtime
         {
             _hub = hub;
             _logger = logger;
+        }
+
+        public async Task NotifyOrderEventAsync(OrderNotificationDto notification)
+        {
+            try
+            {
+                await _hub.Clients.Group(NotificationEvents.OrderManagementGroup)
+                    .SendAsync(NotificationEvents.OrderNotification, notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Gửi thông báo sự kiện đơn hàng #{OrderId} (Loại: {Type}) thất bại", notification.OrderId, notification.NotificationType);
+            }
         }
 
         public async Task NotifyNewOrderToAdminsAsync(int orderId, string customerName)

@@ -1,7 +1,7 @@
 using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
-using CafeShop.DTO.Order.Requests;
 using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Notifications;
 using CafeShop.Model;
 using CafeShop.Service.Helpers;
 using CafeShop.Service.IService.Admin;
@@ -35,6 +35,11 @@ namespace CafeShop.Service.Service.Admin
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
+            if (endDate.HasValue && endDate.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+            }
+
             var (orders, totalCount) = await _unitOfWork.Order.GetAdminOrdersWithPagingAsync(
                 status: status,
                 startDate: startDate,
@@ -59,6 +64,11 @@ namespace CafeShop.Service.Service.Admin
         {
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
+
+            if (endDate.HasValue && endDate.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+            }
 
             System.Linq.Expressions.Expression<Func<Order, bool>> filter = x =>
                 x.UserId == userId && x.CurrentStatus == OrderStatus.Completed &&
@@ -111,7 +121,7 @@ namespace CafeShop.Service.Service.Admin
                 if (order == null)
                     throw new ArgumentException("Không tìm thấy đơn hàng!");
 
-                var currentStatus = order.CurrentStatus;
+                var currentStatus = order.CurrentStatus ?? OrderStatus.Pending;
 
                 if (currentStatus == OrderStatus.Cancelled || currentStatus == OrderStatus.Completed)
                     throw new ArgumentException("Không thể thay đổi trạng thái của đơn hàng đã Hủy hoặc Hoàn thành!");
@@ -124,30 +134,66 @@ namespace CafeShop.Service.Service.Admin
                     throw new ArgumentException($"Sai quy trình! Không thể chuyển trực tiếp từ '{currentStatus}' sang '{newStatus}'.");
                 }
 
+                // Không cho phép xác nhận đơn thanh toán online khi khách chưa hoàn tất thanh toán
+                if (!string.Equals(order.PaymentMethod, PaymentMethodConstants.COD, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase)
+                    && newStatus == OrderStatus.Confirmed)
+                {
+                    throw new InvalidOperationException("Đơn hàng thanh toán trực tuyến chưa hoàn tất thanh toán, không thể xác nhận đơn!");
+                }
+
                 if (newStatus == OrderStatus.Cancelled && string.IsNullOrWhiteSpace(cancelReason))
                 {
                     throw new ArgumentException("Bắt buộc phải cung cấp lý do (CancelReason) khi Hủy đơn hàng!");
                 }
 
-                // Nếu admin chuyển trạng thái sang Hủy/Từ chối thì phải refund
+                // Xử lý khi HỦY ĐƠN: Hoàn tồn kho, voucher, ghi chú và cập nhật hoàn tiền (nếu đã thanh toán)
                 if (newStatus == OrderStatus.Cancelled)
                 {
                     await RestoreStockAsync(order.OrderDetails);
                     await RestoreVoucherUsageAsync(order.UserId, order.VoucherId);
+
+                    if (string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase))
+                    {
+                        order.PaymentStatus = PaymentStatusConstants.Refunded;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(cancelReason))
+                    {
+                        order.Note = string.IsNullOrWhiteSpace(order.Note)
+                            ? $"[Lý do hủy: {cancelReason}]"
+                            : $"{order.Note} | [Lý do hủy: {cancelReason}]";
+                    }
+                }
+
+                // Nếu hoàn thành đơn hàng COD: tự động cập nhật trạng thái đã thanh toán và tạo bản ghi Payment
+                if (newStatus == OrderStatus.Completed)
+                {
+                    if (string.Equals(order.PaymentMethod, PaymentMethodConstants.COD, StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(order.PaymentStatus, PaymentStatusConstants.Paid, StringComparison.OrdinalIgnoreCase))
+                    {
+                        order.PaymentStatus = PaymentStatusConstants.Paid;
+
+                        var codPayment = new Payment
+                        {
+                            OrderId = order.OrderId,
+                            PaymentMethod = PaymentMethodConstants.COD,
+                            PaymentProvider = PaymentMethodConstants.COD,
+                            Amount = order.TotalAmount,
+                            PaymentStatus = PaymentStatusConstants.PaymentSuccess,
+                            PaidAt = DateTimeHelper.VietnamNow,
+                            CreatedAt = DateTimeHelper.VietnamNow
+                        };
+                        await _unitOfWork.Payment.AddAsync(codPayment);
+                    }
                 }
 
                 order.CurrentStatus = newStatus;
-                if (newStatus == OrderStatus.Cancelled)
-                {
-                    // Lưu lý do hủy vào order.Note tạm thời hoặc cần thêm CancelReason vào DB sau (tuỳ nhu cầu sau này)
-                    // Tạm thời sẽ ghi vào HistoryService.
-                }
-
                 _unitOfWork.Order.Update(order);
                 
                 string historyNote = newStatus == OrderStatus.Cancelled 
-                                     ? $"Admin Hủy Đơn. Lý do: {cancelReason}" 
-                                     : $"Admin chuyển trạng thái sang {newStatus}";
+                                     ? $"Cửa hàng Hủy Đơn. Lý do: {cancelReason}" 
+                                     : $"Cửa hàng chuyển trạng thái sang {newStatus}";
                 await _historyService.AddHistoryAsync(order.OrderId, newStatus, adminId, historyNote);
 
                 await _unitOfWork.SaveAsync();
@@ -155,7 +201,32 @@ namespace CafeShop.Service.Service.Admin
 
                 try
                 {
+                    // 1. Thông báo riêng cho khách hàng
                     await _signalRService.NotifyOrderStatusToUserAsync(order.UserId, order.OrderId, newStatus);
+
+                    // 2. Thông báo tới nhóm quản lý đơn (Staff & Admin) để đồng bộ Live Kitchen Board
+                    var actionUser = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == adminId);
+                    string actionUserName = actionUser?.FullName ?? actionUser?.Username ?? "Nhân viên";
+                    string statusVi = OrderStatus.ToVietnamese(newStatus);
+                    string staffMsg = newStatus == OrderStatus.Cancelled
+                        ? $"{actionUserName} đã hủy đơn hàng #{order.OrderId}. Lý do: {cancelReason ?? "Không có"}"
+                        : $"{actionUserName} đã chuyển đơn hàng #{order.OrderId} sang trạng thái: {statusVi}.";
+
+                    await _signalRService.NotifyOrderEventAsync(new OrderNotificationDto
+                    {
+                        OrderId = order.OrderId,
+                        CustomerName = order.User?.FullName ?? "Khách hàng",
+                        CustomerPhone = order.User?.PhoneNumber,
+                        TotalAmount = order.TotalAmount,
+                        PaymentMethod = order.PaymentMethod,
+                        PaymentStatus = order.PaymentStatus,
+                        OrderStatus = newStatus,
+                        Message = staffMsg,
+                        NotificationType = NotificationTypes.OrderStatusChanged,
+                        ActionUserId = adminId,
+                        ActionUserName = actionUserName,
+                        CreatedAt = DateTimeHelper.VietnamNow
+                    });
                 }
                 catch { /* Ignore notification error */ }
             }
@@ -171,17 +242,40 @@ namespace CafeShop.Service.Service.Admin
             if (orderDetails == null || !orderDetails.Any())
                 return;
 
+            var sizeDetails = orderDetails.Where(d => d.SizeId.HasValue && d.SizeId.Value > 0).ToList();
+            var noSizeProductIds = orderDetails.Where(d => !d.SizeId.HasValue || d.SizeId.Value <= 0).Select(d => d.ProductId).Distinct().ToList();
+
+            var productSizesDict = sizeDetails.Any()
+                ? (await _unitOfWork.ProductSize.GetAllAsync(ps =>
+                    sizeDetails.Select(d => d.ProductId).Contains(ps.ProductId) &&
+                    sizeDetails.Select(d => d.SizeId!.Value).Contains(ps.SizeId)))
+                    .ToDictionary(ps => (ps.ProductId, ps.SizeId))
+                : new Dictionary<(int, int), ProductSize>();
+
+            var productsDict = noSizeProductIds.Any()
+                ? (await _unitOfWork.Product.GetAllAsync(p => noSizeProductIds.Contains(p.ProductId)))
+                    .ToDictionary(p => p.ProductId)
+                : new Dictionary<int, Product>();
+
+            var allToppingIds = orderDetails
+                .Where(d => d.OrderDetailToppings != null)
+                .SelectMany(d => d.OrderDetailToppings!)
+                .Select(t => t.ToppingId)
+                .Distinct()
+                .ToList();
+
+            var toppingsDict = allToppingIds.Any()
+                ? (await _unitOfWork.Topping.GetAllAsync(t => allToppingIds.Contains(t.ToppingId)))
+                    .ToDictionary(t => t.ToppingId)
+                : new Dictionary<int, Topping>();
+
             foreach (var detail in orderDetails)
             {
                 int qty = detail.Quantity > 0 ? detail.Quantity : 1;
 
-                if (detail.SizeId > 0)
+                if (detail.SizeId.HasValue && detail.SizeId.Value > 0)
                 {
-                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                        ps => ps.ProductId == detail.ProductId && ps.SizeId == detail.SizeId
-                    );
-
-                    if (productSize != null)
+                    if (productSizesDict.TryGetValue((detail.ProductId, detail.SizeId.Value), out var productSize))
                     {
                         productSize.StockQuantity += qty;
                         _unitOfWork.ProductSize.Update(productSize);
@@ -189,8 +283,7 @@ namespace CafeShop.Service.Service.Admin
                 }
                 else
                 {
-                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
-                    if (product != null)
+                    if (productsDict.TryGetValue(detail.ProductId, out var product))
                     {
                         product.StockQuantity += qty;
                         _unitOfWork.Product.Update(product);
@@ -202,13 +295,12 @@ namespace CafeShop.Service.Service.Admin
 
                 foreach (var toppingLine in detail.OrderDetailToppings)
                 {
-                    var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == toppingLine.ToppingId);
-                    if (topping == null)
-                        continue;
-
-                    int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
-                    topping.StockQuantity += toppingQty * qty;
-                    _unitOfWork.Topping.Update(topping);
+                    if (toppingsDict.TryGetValue(toppingLine.ToppingId, out var topping))
+                    {
+                        int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
+                        topping.StockQuantity += toppingQty * qty;
+                        _unitOfWork.Topping.Update(topping);
+                    }
                 }
             }
         }

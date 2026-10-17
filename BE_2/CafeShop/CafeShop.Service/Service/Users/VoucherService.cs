@@ -9,6 +9,7 @@ using CafeShop.Uitls;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CafeShop.Service.IService;
+using CafeShop.DTO.Order.Requests;
 
 namespace CafeShop.Services.Services
 {
@@ -30,46 +31,14 @@ namespace CafeShop.Services.Services
         // =========================================================================
         // CLIENT LOGIC
         // =========================================================================
-
-        //public async Task<List<VoucherDto>> GetAvailableVouchersAsync(int userId)
-        //{
-        //    DateTime now = DateTime.UtcNow;
-
-        //    // 1. Voucher Public còn hạn và còn lượt dùng hệ thống
-        //    var publicVouchers = await _unitOfWork.Voucher.GetAllAsync(v =>
-        //        v.IsActive &&
-        //        v.TargetType == VoucherTypeTarget.PUBLIC &&
-        //        v.StartDate <= now &&
-        //        v.EndDate >= now &&
-        //        v.UsedCount < v.UsageLimit
-        //    );
-
-        //    // 2. Voucher Personal được tặng riêng cho user và chưa dùng hết lượt cá nhân
-        //    var userVouchers = await _unitOfWork.UserVoucher.GetAllAsync(
-        //        uv => uv.UserId == userId &&
-        //              uv.UsedCount < uv.UsageLimitPerUser &&
-        //              uv.Voucher.IsActive &&
-        //              uv.Voucher.StartDate <= now &&
-        //              uv.Voucher.EndDate >= now,
-        //        includeProperties: "Voucher"
-        //    );
-
-        //    var personalVouchers = userVouchers.Select(uv => uv.Voucher);
-
-        //    var allAvailable = publicVouchers.Concat(personalVouchers)
-        //                                     .DistinctBy(v => v.VoucherId)
-        //                                     .ToList();
-
-        //    return _mapper.Map<List<VoucherDto>>(allAvailable);
-        //}
         public async Task<List<VoucherDto>> GetAvailableVouchersAsync(int userId)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTimeHelper.VietnamNow;
 
             // 1. Mã Public (các trường cá nhân tự mang giá trị null)
             var publicVouchers = (await _unitOfWork.Voucher.GetAllAsync(v =>
                 v.IsActive &&
-                (v.TargetType == VoucherTypeTarget.PUBLIC || v.TargetType == "Public") &&
+                v.TargetType == VoucherTypeTarget.PUBLIC &&
                 v.StartDate <= now &&
                 v.EndDate >= now &&
                 v.UsedCount < v.UsageLimit
@@ -117,50 +86,14 @@ namespace CafeShop.Services.Services
         {
             decimal orderTotal = 0;
 
-            // 1. Tính toán giá trị đơn hàng (Zero-Trust)
+            // 1. Tính toán giá trị đơn hàng (Zero-Trust - Batch query)
             if (request.IsBuyNow)
             {
-                if (request.Items == null || !request.Items.Any())
-                    throw new ArgumentException("Danh sách sản phẩm mua ngay không được để trống!");
-
-                foreach (var item in request.Items)
-                {
-                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == item.ProductId);
-                    if (product == null || !product.IsAvailable)
-                        throw new ArgumentException($"Sản phẩm với ID {item.ProductId} không tồn tại hoặc đã ngừng bán!");
-
-                    decimal unitPrice = product.BasePrice;
-
-                    if (item.SizeId.HasValue && item.SizeId.Value > 0)
-                    {
-                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                            ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value
-                        );
-
-                        if (productSize != null && productSize.Price.HasValue)
-                        {
-                            unitPrice = productSize.Price.Value;
-                        }
-                    }
-
-                    if (item.Toppings != null && item.Toppings.Any())
-                    {
-                        foreach (var top in item.Toppings)
-                        {
-                            var toppingInfo = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == top.ToppingId);
-                            if (toppingInfo != null && toppingInfo.IsAvailable)
-                            {
-                                unitPrice += (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
-                            }
-                        }
-                    }
-
-                    orderTotal += unitPrice * (item.Quantity > 0 ? item.Quantity : 1);
-                }
+                orderTotal = await CalculateBuyNowOrderTotalAsync(request.Items, throwOnInvalid: true);
             }
             else
             {
-                var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active", "CartItems");
+                var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active, "CartItems");
                 if (cart == null || !cart.CartItems.Any())
                     throw new ArgumentException("Giỏ hàng đang trống, không thể áp dụng mã giảm giá!");
 
@@ -222,7 +155,7 @@ namespace CafeShop.Services.Services
                 throw new ArgumentException("Mã giảm giá hiện đang bị tạm khóa!");
 
             // 2. Kiểm tra thời hạn hiệu lực
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTimeHelper.VietnamNow;
             if (now < voucher.StartDate || now > voucher.EndDate)
                 throw new ArgumentException("Mã giảm giá chưa đến đợt áp dụng hoặc đã hết hạn!");
 
@@ -328,47 +261,16 @@ namespace CafeShop.Services.Services
 
         public async Task<BestVoucherResponseDto?> GetBestVoucherAsync(int userId, BestVoucherRequestDto request)
         {
-            // 1. Calculate order total
+            // 1. Calculate order total (Batch query)
             decimal orderTotal = 0;
             if (request.IsBuyNow)
             {
                 if (request.Items == null || !request.Items.Any()) return null;
-
-                foreach (var item in request.Items)
-                {
-                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == item.ProductId);
-                    if (product == null || !product.IsAvailable) continue;
-
-                    decimal unitPrice = product.BasePrice;
-                    if (item.SizeId.HasValue && item.SizeId.Value > 0)
-                    {
-                        var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                            ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value
-                        );
-                        if (productSize != null && productSize.Price.HasValue)
-                        {
-                            unitPrice = productSize.Price.Value;
-                        }
-                    }
-
-                    if (item.Toppings != null && item.Toppings.Any())
-                    {
-                        foreach (var top in item.Toppings)
-                        {
-                            var toppingInfo = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == top.ToppingId);
-                            if (toppingInfo != null && toppingInfo.IsAvailable)
-                            {
-                                unitPrice += (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
-                            }
-                        }
-                    }
-
-                    orderTotal += unitPrice * (item.Quantity > 0 ? item.Quantity : 1);
-                }
+                orderTotal = await CalculateBuyNowOrderTotalAsync(request.Items, throwOnInvalid: false);
             }
             else
             {
-                var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active", "CartItems");
+                var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active, "CartItems");
                 if (cart == null || !cart.CartItems.Any()) return null;
                 orderTotal = cart.CartItems.Sum(x => x.UnitPrice * x.Quantity);
             }
@@ -380,52 +282,139 @@ namespace CafeShop.Services.Services
             var availableVouchersDto = await GetAvailableVouchersAsync(userId);
             if (!availableVouchersDto.Any()) return null;
 
-            // 4. Find the best one
+            // 4. Find the best one (Tính toán trực tiếp trong bộ nhớ - 0 query DB trong vòng lặp)
             BestVoucherResponseDto? bestVoucher = null;
             decimal maxDiscount = 0;
 
             foreach (var dto in availableVouchersDto)
             {
-                var voucher = await _unitOfWork.Voucher.GetFirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId);
-                if (voucher == null) continue;
+                // Kiểm tra đơn hàng tối thiểu
+                if (orderTotal < dto.MinOrderValue) continue;
 
-                UserVoucher? userVoucher = null;
-                if (VoucherTypeTarget.IsUser(voucher.TargetType))
-                {
-                    userVoucher = await _unitOfWork.UserVoucher.GetFirstOrDefaultAsync(uv => uv.UserId == userId && uv.VoucherId == voucher.VoucherId);
-                }
+                decimal discount = 0;
 
-                try
+                // A. Giảm giá vận chuyển (SHIPPING)
+                if (string.Equals(dto.ApplyType, VoucherApplyType.SHIPPING, StringComparison.OrdinalIgnoreCase))
                 {
-                    decimal discount = ValidateAndCalculateDiscount(voucher, userId, orderTotal, shippingFee, userVoucher);
-                    if (discount > maxDiscount)
+                    if (shippingFee <= 0) continue;
+
+                    if (string.Equals(dto.DiscountType, DiscountApplyType.FIXED, StringComparison.OrdinalIgnoreCase))
                     {
-                        maxDiscount = discount;
-                        decimal finalShippingFee = shippingFee;
-                        decimal finalOrderAmount = orderTotal;
-
-                        if (voucher.ApplyType == VoucherApplyType.SHIPPING)
-                            finalShippingFee = Math.Max(0, shippingFee - discount);
-                        else
-                            finalOrderAmount = Math.Max(0, orderTotal - discount);
-
-                        bestVoucher = new BestVoucherResponseDto
-                        {
-                            Voucher = dto,
-                            DiscountAmount = discount,
-                            FinalOrderAmount = finalOrderAmount,
-                            FinalShippingFee = finalShippingFee,
-                            FinalTotal = finalOrderAmount + finalShippingFee
-                        };
+                        discount = dto.DiscountValue;
                     }
+                    else if (string.Equals(dto.DiscountType, DiscountApplyType.PERCENTAGE, StringComparison.OrdinalIgnoreCase))
+                    {
+                        discount = shippingFee * (dto.DiscountValue / 100m);
+                        if (dto.MaxDiscountAmount > 0 && discount > dto.MaxDiscountAmount)
+                            discount = dto.MaxDiscountAmount;
+                    }
+
+                    discount = Math.Min(discount, shippingFee);
                 }
-                catch (ArgumentException)
+                // B. Giảm giá đơn hàng (ORDER)
+                else
                 {
-                    // Ignore vouchers that fail validation
+                    if (string.Equals(dto.DiscountType, DiscountApplyType.FIXED, StringComparison.OrdinalIgnoreCase))
+                    {
+                        discount = dto.DiscountValue;
+                    }
+                    else if (string.Equals(dto.DiscountType, DiscountApplyType.PERCENTAGE, StringComparison.OrdinalIgnoreCase))
+                    {
+                        discount = orderTotal * (dto.DiscountValue / 100m);
+                        if (dto.MaxDiscountAmount > 0 && discount > dto.MaxDiscountAmount)
+                            discount = dto.MaxDiscountAmount;
+                    }
+
+                    discount = Math.Min(discount, orderTotal);
+                }
+
+                if (discount > maxDiscount)
+                {
+                    maxDiscount = discount;
+                    decimal finalShippingFee = string.Equals(dto.ApplyType, VoucherApplyType.SHIPPING, StringComparison.OrdinalIgnoreCase)
+                        ? Math.Max(0, shippingFee - discount)
+                        : shippingFee;
+                    decimal finalOrderAmount = !string.Equals(dto.ApplyType, VoucherApplyType.SHIPPING, StringComparison.OrdinalIgnoreCase)
+                        ? Math.Max(0, orderTotal - discount)
+                        : orderTotal;
+
+                    bestVoucher = new BestVoucherResponseDto
+                    {
+                        Voucher = dto,
+                        DiscountAmount = discount,
+                        FinalOrderAmount = finalOrderAmount,
+                        FinalShippingFee = finalShippingFee,
+                        FinalTotal = finalOrderAmount + finalShippingFee
+                    };
                 }
             }
 
             return bestVoucher;
+        }
+
+        // --- HELPER: BATCH QUERY TÍNH TIỀN BUY-NOW TRIỆT TIÊU N+1 QUERY ---
+        private async Task<decimal> CalculateBuyNowOrderTotalAsync(List<CreateOrderDetailDto>? items, bool throwOnInvalid = true)
+        {
+            if (items == null || !items.Any())
+            {
+                if (throwOnInvalid) throw new ArgumentException("Danh sách sản phẩm mua ngay không được để trống!");
+                return 0;
+            }
+
+            var productIds = items.Select(i => i.ProductId).Distinct().ToList();
+            var sizeIds = items.Where(i => i.SizeId.HasValue && i.SizeId.Value > 0).Select(i => i.SizeId!.Value).Distinct().ToList();
+            var toppingIds = items.Where(i => i.Toppings != null)
+                .SelectMany(i => i.Toppings!)
+                .Select(t => t.ToppingId)
+                .Distinct()
+                .ToList();
+
+            var products = (await _unitOfWork.Product.GetAllAsync(p => productIds.Contains(p.ProductId) && !p.IsDeleted))
+                .ToDictionary(p => p.ProductId);
+
+            var productSizes = sizeIds.Any()
+                ? (await _unitOfWork.ProductSize.GetAllAsync(ps => productIds.Contains(ps.ProductId) && sizeIds.Contains(ps.SizeId)))
+                    .ToDictionary(ps => (ps.ProductId, ps.SizeId))
+                : new Dictionary<(int, int), ProductSize>();
+
+            var toppings = toppingIds.Any()
+                ? (await _unitOfWork.Topping.GetAllAsync(t => toppingIds.Contains(t.ToppingId) && t.IsAvailable))
+                    .ToDictionary(t => t.ToppingId)
+                : new Dictionary<int, Topping>();
+
+            decimal orderTotal = 0;
+            foreach (var item in items)
+            {
+                if (!products.TryGetValue(item.ProductId, out var product) || !product.IsAvailable)
+                {
+                    if (throwOnInvalid) throw new ArgumentException($"Sản phẩm với ID {item.ProductId} không tồn tại hoặc đã ngừng bán!");
+                    continue;
+                }
+
+                decimal unitPrice = product.BasePrice;
+                if (item.SizeId.HasValue && item.SizeId.Value > 0)
+                {
+                    if (productSizes.TryGetValue((item.ProductId, item.SizeId.Value), out var productSize) && productSize.Price.HasValue)
+                    {
+                        unitPrice = productSize.Price.Value;
+                    }
+                }
+
+                if (item.Toppings != null && item.Toppings.Any())
+                {
+                    foreach (var top in item.Toppings)
+                    {
+                        if (toppings.TryGetValue(top.ToppingId, out var toppingInfo))
+                        {
+                            unitPrice += (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
+                        }
+                    }
+                }
+
+                orderTotal += unitPrice * (item.Quantity > 0 ? item.Quantity : 1);
+            }
+
+            return orderTotal;
         }
     }
 }

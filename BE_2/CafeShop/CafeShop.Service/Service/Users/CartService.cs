@@ -92,7 +92,7 @@ namespace CafeShop.Service.Service
 
         public async Task AddToCartAsync(int userId, AddToCartRequestDto request)
         {
-            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active", "CartItems.CartItemToppings");
+            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active, "CartItems.CartItemToppings");
             if (cart == null)
                 throw new ArgumentException("Giỏ hàng không tồn tại!");
 
@@ -120,16 +120,18 @@ namespace CafeShop.Service.Service
                 }
             }
 
-            // 3. Lấy thông tin các Topping để cộng giá
+            // 3. Lấy thông tin các Topping để cộng giá (Batch query - loại bỏ N+1)
             var toppingsToAdd = new List<CartItemTopping>();
 
             if (request.Toppings != null && request.Toppings.Any())
             {
+                var toppingIds = request.Toppings.Select(t => t.ToppingId).Distinct().ToList();
+                var toppingsDict = (await _unitOfWork.Topping.GetAllAsync(t => toppingIds.Contains(t.ToppingId) && t.IsAvailable))
+                    .ToDictionary(t => t.ToppingId);
+
                 foreach (var topSelection in request.Toppings)
                 {
-                    var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == topSelection.ToppingId);
-
-                    if (topping != null && topping.IsAvailable)
+                    if (toppingsDict.TryGetValue(topSelection.ToppingId, out var topping))
                     {
                         decimal toppingTotalPrice = (decimal)(topping.Price ?? 0) * topSelection.Quantity;
                         unitPrice += toppingTotalPrice; // Giá Topping cộng thêm vào đơn giá ly
@@ -216,7 +218,7 @@ namespace CafeShop.Service.Service
 
         public async Task UpdateQuantityAsync(int userId, int cartItemId, int quantity)
         {
-            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active");
+            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active);
             if (cart == null) throw new ArgumentException("Giỏ hàng không hợp lệ!");
 
             var cartItem = await _unitOfWork.CartItem.GetFirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.CartId == cart.CartId);
@@ -237,7 +239,7 @@ namespace CafeShop.Service.Service
 
         public async Task RemoveItemAsync(int userId, int cartItemId)
         {
-            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active");
+            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active);
             if (cart == null) throw new ArgumentException("Giỏ hàng không hợp lệ!");
 
             var cartItem = await _unitOfWork.CartItem.GetFirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && ci.CartId == cart.CartId);
@@ -249,7 +251,7 @@ namespace CafeShop.Service.Service
 
         public async Task ClearCartAsync(int userId)
         {
-            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == "active", "CartItems");
+            var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(c => c.UserId == userId && c.Status == CartStatus.Active, "CartItems");
             if (cart != null && cart.CartItems.Any())
             {
                 _unitOfWork.CartItem.RemoveRange(cart.CartItems);

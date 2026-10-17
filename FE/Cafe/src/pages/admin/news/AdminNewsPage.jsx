@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { message, Modal, Space, Button, Upload, Tag, Select } from 'antd'
+import { Modal, Button, Upload, Tag, Select } from 'antd'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import {
     EditOutlined,
@@ -55,7 +55,7 @@ const PAGE_SIZE = 10
 
 export default function AdminNewsPage() {
     const dispatch = useDispatch()
-    const { items, loading, submitting, total, page } = useSelector((s) => s.admin.news)
+    const { items, loading, submitting, total } = useSelector((s) => s.admin.news)
 
     const [isModalVisible, setIsModalVisible] = useState(false)
     const [editingItem, setEditingItem]       = useState(null)
@@ -260,30 +260,47 @@ export default function AdminNewsPage() {
                 }
             />
 
-            {/* ── Toolbar: search + filter ── */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs">
-                <AppSearchBox
-                    initialValue={keyword}
-                    placeholder="Tìm kiếm theo tiêu đề..."
-                    onSearch={handleKeywordChange}
-                    className="flex-1 min-w-[220px] max-w-sm"
-                />
+            {/* ── Apple Style Toolbar: search + filter ── */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/80 backdrop-blur-xl p-4 sm:p-5 rounded-[24px] border border-black/[0.06] shadow-apple">
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[260px]">
+                    <AppSearchBox
+                        initialValue={keyword}
+                        placeholder="Tìm kiếm theo tiêu đề..."
+                        onSearch={handleKeywordChange}
+                        className="flex-1 min-w-[220px] max-w-sm"
+                    />
 
-                <Select
-                    value={filterStatus || undefined}
-                    placeholder="Tất cả trạng thái"
-                    allowClear
-                    onChange={(val) => handleStatusChange(val || '')}
-                    className="w-44"
-                    options={[
-                        { value: 'Published', label: '🟢 Đã xuất bản' },
-                        { value: 'Draft',     label: '🟡 Bản nháp' },
-                        { value: 'Hidden',    label: '⚫ Đang ẩn' },
-                    ]}
-                />
+                    <Select
+                        value={filterStatus || undefined}
+                        placeholder="Tất cả trạng thái"
+                        allowClear
+                        onChange={(val) => handleStatusChange(val || '')}
+                        className="apple-select min-w-[180px]"
+                        popupClassName="apple-select-dropdown"
+                        options={[
+                            { value: 'Published', label: '🟢 Đã xuất bản' },
+                            { value: 'Draft',     label: '🟡 Bản nháp' },
+                            { value: 'Hidden',    label: '⚫ Đang ẩn' },
+                        ]}
+                    />
 
-                <div className="text-xs text-slate-500 font-semibold">
-                    Tổng: <strong className="text-sky-700">{total}</strong> bài viết
+                    {(keyword || filterStatus) && (
+                        <button
+                            type="button"
+                            onClick={() => { handleKeywordChange(''); handleStatusChange(''); }}
+                            className="h-[38px] px-3.5 rounded-[16px] text-xs font-semibold text-[#86868B] hover:text-[#1D1D1F] hover:bg-black/[0.05] transition-all cursor-pointer"
+                        >
+                            Đặt lại
+                        </button>
+                    )}
+                </div>
+
+                <div className="text-xs text-[#86868B] font-semibold flex items-center gap-1.5 ml-auto">
+                    <span>Tổng số:</span>
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-black/[0.05] text-[#1D1D1F] font-bold text-xs">
+                        {total}
+                    </span>
+                    <span>bài viết</span>
                 </div>
             </div>
 

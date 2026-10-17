@@ -6,21 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Product.Requests;
 using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.Category.Requests;
-using CafeShop.DTO.Category.Responses;
-using CafeShop.DTO.Product.Requests;
-using CafeShop.DTO.Product.Responses;
-using CafeShop.DTO.User;
-using CafeShop.DTO.Order.Requests;
-using CafeShop.DTO.Order.Responses;
-using CafeShop.DTO.Shipping;
-using CafeShop.DTO.Dashboard.Requests;
-using CafeShop.DTO.Dashboard.Responses;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
-using System.Text.Json;
 using CafeShop.Service.IService;
 
 namespace CafeShop.Services.Services
@@ -45,7 +34,8 @@ namespace CafeShop.Services.Services
 
         public async Task<PagedResult<ProductResponseDto>> GetAllAsync(string? keyword = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, string? sortBy = null, int? minRating = null, int pageNumber = 1, int pageSize = 10)
         {
-            string cacheKey = $"cafeshop:products:all:kw:{keyword ?? "none"}:cat:{categoryId ?? 0}:minP:{minPrice ?? 0}:maxP:{maxPrice ?? 0}:sort:{sortBy ?? "none"}:minR:{minRating ?? 0}:page:{pageNumber}:size:{pageSize}";
+            var version = await _redisCache.GetVersionAsync("products:ver");
+            string cacheKey = $"cafeshop:products:all:v{version}:kw:{keyword ?? "none"}:cat:{categoryId ?? 0}:minP:{minPrice ?? 0}:maxP:{maxPrice ?? 0}:sort:{sortBy ?? "none"}:minR:{minRating ?? 0}:page:{pageNumber}:size:{pageSize}";
             var cachedResult = await _redisCache.GetAsync<PagedResult<ProductResponseDto>>(cacheKey);
             if (cachedResult != null) return cachedResult;
 
@@ -112,6 +102,30 @@ namespace CafeShop.Services.Services
                 })
                 .ToList();
 
+            return result;
+        }
+
+        public async Task<IEnumerable<ProductResponseDto>> GetRelatedProductsAsync(int productId, int limit = 4)
+        {
+            if (limit <= 0) limit = 4;
+            if (limit > 20) limit = 20;
+
+            var version = await _redisCache.GetVersionAsync("products:ver");
+            string cacheKey = $"cafeshop:products:related:v{version}:{productId}:{limit}";
+            var cachedResult = await _redisCache.GetAsync<IEnumerable<ProductResponseDto>>(cacheKey);
+            if (cachedResult != null) return cachedResult;
+
+            var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(
+                p => p.ProductId == productId && p.IsAvailable && !p.IsDeleted
+            );
+
+            if (product == null)
+                return Enumerable.Empty<ProductResponseDto>();
+
+            var relatedProducts = await _unitOfWork.Product.GetRelatedProductsAsync(productId, product.CategoryId, limit);
+            var result = _mapper.Map<IEnumerable<ProductResponseDto>>(relatedProducts);
+
+            await _redisCache.SetAsync(cacheKey, result, _defaultCacheExpiration);
             return result;
         }
     }

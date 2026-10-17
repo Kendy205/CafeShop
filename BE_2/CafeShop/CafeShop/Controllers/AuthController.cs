@@ -55,7 +55,7 @@ namespace CafeShop.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] AuthResponseDto dto)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto)
         {
             try
             {

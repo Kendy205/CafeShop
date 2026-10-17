@@ -4,6 +4,7 @@ using CafeShop.DTO.Order.Requests;
 using CafeShop.DTO.Order.Responses;
 using CafeShop.Model;
 using CafeShop.Service.IService.Users;
+using CafeShop.Uitls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace CafeShop.Service.Service.Users
                 OrderId = orderId,
                 Status = status,
                 ChangedBy = changedByUserId,
-                ChangedAt = DateTime.UtcNow,
+                ChangedAt = DateTimeHelper.VietnamNow,
                 Note = note
             };
             

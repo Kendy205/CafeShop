@@ -12,6 +12,8 @@ using CafeShop.DTO.Order.Requests;
 using CafeShop.DTO.Order.Responses;
 using CafeShop.Service.Helpers;
 using CafeShop.Services.IServices;
+using CafeShop.Filters;
+using CafeShop.Uitls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -23,7 +25,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+    [Authorize(Roles = $"{SystemRole.Admin},{SystemRole.Staff}")]
     public class OrderController : ControllerBase
     {
         private readonly IAdminOrderService _orderService;
@@ -33,7 +35,7 @@ namespace CafeShop.Controllers.Admin
             _orderService = orderService;
         }
 
-        private int GetAdminId()
+        private int GetCurrentUserId()
         {
             var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdString, out int userId))
@@ -44,6 +46,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet]
+        [HasPermission(SystemPermissions.OrderView)]
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
@@ -65,6 +68,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet("user/{userId:int}/completed")]
+        [HasPermission(SystemPermissions.OrderView)]
         public async Task<IActionResult> GetUserCompletedOrders(
             int userId,
             [FromQuery] int pageNumber = 1,
@@ -84,6 +88,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpGet("{id:int}")]
+        [HasPermission(SystemPermissions.OrderView)]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -102,6 +107,7 @@ namespace CafeShop.Controllers.Admin
         }
 
         [HttpPut("{id:int}/status")]
+        [HasPermission(SystemPermissions.OrderUpdateStatus)]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto request)
         {
             try
@@ -109,8 +115,8 @@ namespace CafeShop.Controllers.Admin
                 if (!ModelState.IsValid)
                     return BadRequest(ApiResponse<object>.Failed("Dữ liệu không hợp lệ", 400));
 
-                int adminId = GetAdminId();
-                await _orderService.UpdateOrderStatusAsync(adminId, id, request.NewStatus, request.CancelReason);
+                int currentUserId = GetCurrentUserId();
+                await _orderService.UpdateOrderStatusAsync(currentUserId, id, request.NewStatus, request.CancelReason);
                 return Ok(ApiResponse<object>.Succeeded(null, 200, "Cập nhật trạng thái đơn hàng thành công"));
             }
             catch (ArgumentException ex)

@@ -51,5 +51,10 @@ export function normalizeRole(role) {
 
 export function isAdminRole(role) {
     const roles = normalizeRole(role)
-    return roles.includes('ADMIN') || roles.includes('ADMINISTRATOR')
+    return roles.includes('ADMIN')
+}
+
+export function isStaffRole(role) {
+    const roles = normalizeRole(role)
+    return roles.includes('STAFF')
 }

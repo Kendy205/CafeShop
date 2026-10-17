@@ -71,7 +71,8 @@ namespace CafeShop.Mapper
             CreateMap<User, UserResponseDto>();
             CreateMap<User, UserProfileDto>().ReverseMap();
             CreateMap<User, AdminUserDto>()
-                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles != null ? src.UserRoles.Where(ur => ur.Role != null).Select(ur => ur.Role.Name).ToList() : new List<string>()));
+                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles != null ? src.UserRoles.Where(ur => ur.Role != null).Select(ur => ur.Role.Name).ToList() : new List<string>()))
+                .ForMember(dest => dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles != null ? src.UserRoles.Select(ur => ur.RoleId).ToList() : new List<int>()));
 
             // ==========================================
             // ==========================================
@@ -146,6 +147,10 @@ namespace CafeShop.Mapper
             CreateMap<StoreProfile, CafeShop.DTO.StoreProfile.StoreProfileDto>();
             CreateMap<CafeShop.DTO.StoreProfile.UpdateStoreProfileDto, StoreProfile>();
 
+            // ==========================================
+            // 10. Category
+            // ==========================================
+            CreateMap<Category, CafeShop.DTO.Category.Responses.CategoryDto>().ReverseMap();
         }
     }
 }

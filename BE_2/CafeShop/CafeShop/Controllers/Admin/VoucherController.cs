@@ -11,7 +11,7 @@ namespace CafeShop.Controllers.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    // [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
+    [Authorize(Roles = CafeShop.Uitls.SystemRole.Admin)]
     public class VoucherController : ControllerBase
     {
         private readonly IAdminVoucherService _voucherService;

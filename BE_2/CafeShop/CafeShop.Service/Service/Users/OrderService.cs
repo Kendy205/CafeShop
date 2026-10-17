@@ -2,6 +2,7 @@ using AutoMapper;
 using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.Order.Requests;
 using CafeShop.DTO.Order.Responses;
+using CafeShop.DTO.Notifications;
 using CafeShop.Model;
 using CafeShop.Repositories.IRepository;
 using CafeShop.Service.Helpers;
@@ -55,6 +56,17 @@ namespace CafeShop.Services.Services
         // ================= XỬ LÝ ĐẶT HÀNG (GỘP CHUNG MUA NGAY & TỪ GIỎ HÀNG) =================
         public async Task<OrderResponseDto> SubmitOrderAsync(int userId, SubmitOrderRequestDto request, string? ipAddress = null)
         {
+            // 0. KIỂM TRA TRẠNG THÁI CỬA HÀNG (GIỜ MỞ CỬA & TÌNH TRẠNG NHẬN ĐƠN)
+            var storeProfile = await _unitOfWork.StoreProfile.GetFirstOrDefaultAsync(x => true);
+            if (storeProfile != null)
+            {
+                var (canAccept, reason) = storeProfile.CheckCanAcceptOrders();
+                if (!canAccept)
+                {
+                    throw new ArgumentException(reason ?? "Cửa hàng hiện đang tạm ngưng nhận đơn hàng!");
+                }
+            }
+
             // Bắt đầu xếp hàng vào cổng đồng bộ (Chỉ cho phép 1 luồng xử lý kho lúc này)
             await _stockSemaphore.WaitAsync();
             try
@@ -128,7 +140,7 @@ namespace CafeShop.Services.Services
                     FullAddress = finalAddress?.FullAddress,
                     DistanceKm = request.DistanceKm,
                     ShippingFee = shippingFee,
-                    OrderDate = DateTime.UtcNow,
+                    OrderDate = DateTimeHelper.VietnamNow,
                     CurrentStatus = OrderStatus.Pending,
                     PaymentMethod = !string.IsNullOrWhiteSpace(request.PaymentMethod) ? request.PaymentMethod.ToUpper() : PaymentMethodConstants.COD,
                     PaymentStatus = PaymentStatusConstants.Unpaid,
@@ -159,7 +171,27 @@ namespace CafeShop.Services.Services
                 try
                 {
                     var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == userId);
-                    string customerName = user?.FullName ?? "Khách hàng";
+                    string customerName = user?.FullName ?? user?.Username ?? "Khách hàng";
+                    string message = string.Equals(order.PaymentMethod, PaymentMethodConstants.VNPAY, StringComparison.OrdinalIgnoreCase)
+                        ? $"Đơn hàng mới #{order.OrderId} ({order.TotalAmount:N0}đ) từ {customerName} đang chờ thanh toán VNPay."
+                        : $"Khách hàng {customerName} vừa đặt đơn hàng mới #{order.OrderId} ({order.PaymentMethod} - {order.TotalAmount:N0}đ).";
+
+                    await _signalRService.NotifyOrderEventAsync(new OrderNotificationDto
+                    {
+                        OrderId = order.OrderId,
+                        CustomerName = customerName,
+                        CustomerPhone = user?.PhoneNumber,
+                        TotalAmount = order.TotalAmount,
+                        PaymentMethod = order.PaymentMethod,
+                        PaymentStatus = order.PaymentStatus,
+                        OrderStatus = order.CurrentStatus,
+                        Message = message,
+                        NotificationType = NotificationTypes.NewOrder,
+                        ActionUserId = userId,
+                        ActionUserName = customerName,
+                        CreatedAt = order.OrderDate
+                    });
+
                     await _signalRService.NotifyNewOrderToAdminsAsync(order.OrderId, customerName);
                 }
                 catch { /* Ignore notification error */ }
@@ -246,6 +278,29 @@ namespace CafeShop.Services.Services
 
                 await _unitOfWork.SaveAsync();
                 await transaction.CommitAsync();
+
+                try
+                {
+                    var user = await _unitOfWork.User.GetFirstOrDefaultAsync(u => u.UserId == userId);
+                    string customerName = user?.FullName ?? user?.Username ?? "Khách hàng";
+
+                    await _signalRService.NotifyOrderEventAsync(new OrderNotificationDto
+                    {
+                        OrderId = order.OrderId,
+                        CustomerName = customerName,
+                        CustomerPhone = user?.PhoneNumber,
+                        TotalAmount = order.TotalAmount,
+                        PaymentMethod = order.PaymentMethod,
+                        PaymentStatus = order.PaymentStatus,
+                        OrderStatus = OrderStatus.Cancelled,
+                        Message = $"Khách hàng {customerName} đã hủy đơn hàng #{order.OrderId}.",
+                        NotificationType = NotificationTypes.OrderCancelled,
+                        ActionUserId = userId,
+                        ActionUserName = customerName,
+                        CreatedAt = DateTimeHelper.VietnamNow
+                    });
+                }
+                catch { /* Ignore notification error */ }
             }
             catch
             {
@@ -340,17 +395,40 @@ namespace CafeShop.Services.Services
             if (orderDetails == null || !orderDetails.Any())
                 return;
 
+            var sizeDetails = orderDetails.Where(d => d.SizeId.HasValue && d.SizeId.Value > 0).ToList();
+            var noSizeProductIds = orderDetails.Where(d => !d.SizeId.HasValue || d.SizeId.Value <= 0).Select(d => d.ProductId).Distinct().ToList();
+
+            var productSizesDict = sizeDetails.Any()
+                ? (await _unitOfWork.ProductSize.GetAllAsync(ps =>
+                    sizeDetails.Select(d => d.ProductId).Contains(ps.ProductId) &&
+                    sizeDetails.Select(d => d.SizeId!.Value).Contains(ps.SizeId)))
+                    .ToDictionary(ps => (ps.ProductId, ps.SizeId))
+                : new Dictionary<(int, int), ProductSize>();
+
+            var productsDict = noSizeProductIds.Any()
+                ? (await _unitOfWork.Product.GetAllAsync(p => noSizeProductIds.Contains(p.ProductId)))
+                    .ToDictionary(p => p.ProductId)
+                : new Dictionary<int, Product>();
+
+            var allToppingIds = orderDetails
+                .Where(d => d.OrderDetailToppings != null)
+                .SelectMany(d => d.OrderDetailToppings!)
+                .Select(t => t.ToppingId)
+                .Distinct()
+                .ToList();
+
+            var toppingsDict = allToppingIds.Any()
+                ? (await _unitOfWork.Topping.GetAllAsync(t => allToppingIds.Contains(t.ToppingId)))
+                    .ToDictionary(t => t.ToppingId)
+                : new Dictionary<int, Topping>();
+
             foreach (var detail in orderDetails)
             {
                 int qty = detail.Quantity > 0 ? detail.Quantity : 1;
 
-                if (detail.SizeId > 0)
+                if (detail.SizeId.HasValue && detail.SizeId.Value > 0)
                 {
-                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                        ps => ps.ProductId == detail.ProductId && ps.SizeId == detail.SizeId
-                    );
-
-                    if (productSize != null)
+                    if (productSizesDict.TryGetValue((detail.ProductId, detail.SizeId.Value), out var productSize))
                     {
                         productSize.StockQuantity += qty;
                         _unitOfWork.ProductSize.Update(productSize);
@@ -358,8 +436,7 @@ namespace CafeShop.Services.Services
                 }
                 else
                 {
-                    var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
-                    if (product != null)
+                    if (productsDict.TryGetValue(detail.ProductId, out var product))
                     {
                         product.StockQuantity += qty;
                         _unitOfWork.Product.Update(product);
@@ -371,13 +448,12 @@ namespace CafeShop.Services.Services
 
                 foreach (var toppingLine in detail.OrderDetailToppings)
                 {
-                    var topping = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == toppingLine.ToppingId);
-                    if (topping == null)
-                        continue;
-
-                    int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
-                    topping.StockQuantity += toppingQty * qty;
-                    _unitOfWork.Topping.Update(topping);
+                    if (toppingsDict.TryGetValue(toppingLine.ToppingId, out var topping))
+                    {
+                        int toppingQty = toppingLine.Quantity > 0 ? toppingLine.Quantity : 1;
+                        topping.StockQuantity += toppingQty * qty;
+                        _unitOfWork.Topping.Update(topping);
+                    }
                 }
             }
         }
@@ -415,7 +491,7 @@ namespace CafeShop.Services.Services
         private async Task<(List<OrderDetail> details, decimal total, Cart cart)> BuildOrderDetailsFromCartAsync(int userId)
         {
             var cart = await _unitOfWork.Cart.GetFirstOrDefaultAsync(
-                c => c.UserId == userId && c.Status == "active",
+                c => c.UserId == userId && c.Status == CartStatus.Active,
                 includeProperties: "CartItems.Product,CartItems.Size,CartItems.CartItemToppings.Topping"
             );
 
@@ -425,25 +501,36 @@ namespace CafeShop.Services.Services
             decimal total = 0;
             var details = new List<OrderDetail>();
 
+            // Batch load ProductSize để tránh N+1 query
+            var sizeItems = cart.CartItems.Where(ci => ci.SizeId.HasValue && ci.SizeId.Value > 0).ToList();
+            var sizeProductIds = sizeItems.Select(ci => ci.ProductId).Distinct().ToList();
+            var sizeIds = sizeItems.Select(ci => ci.SizeId!.Value).Distinct().ToList();
+
+            var productSizesDict = sizeIds.Any()
+                ? (await _unitOfWork.ProductSize.GetAllAsync(
+                    ps => sizeProductIds.Contains(ps.ProductId) && sizeIds.Contains(ps.SizeId),
+                    includeProperties: "Size"
+                )).ToDictionary(ps => (ps.ProductId, ps.SizeId))
+                : new Dictionary<(int, int), ProductSize>();
+
             foreach (var cartItem in cart.CartItems)
             {
                 // 1. Trừ kho Sản phẩm / Size
                 if (cartItem.SizeId.HasValue && cartItem.SizeId.Value > 0)
                 {
-                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                        ps => ps.ProductId == cartItem.ProductId && ps.SizeId == cartItem.SizeId.Value,
-                        includeProperties: "Size"
-                    );
+                    if (!productSizesDict.TryGetValue((cartItem.ProductId, cartItem.SizeId.Value), out var productSize))
+                        throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' không hỗ trợ kích cỡ này!");
 
-                    if (productSize == null) throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' không hỗ trợ kích cỡ này!");
-                    if (productSize.StockQuantity < cartItem.Quantity) throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' (Size {productSize.Size.Name}) chỉ còn {productSize.StockQuantity} ly!");
+                    if (productSize.StockQuantity < cartItem.Quantity)
+                        throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' (Size {productSize.Size?.Name ?? cartItem.Size?.Name}) chỉ còn {productSize.StockQuantity} ly!");
 
                     productSize.StockQuantity -= cartItem.Quantity;
                     _unitOfWork.ProductSize.Update(productSize);
                 }
                 else
                 {
-                    if (cartItem.Product.StockQuantity < cartItem.Quantity) throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' chỉ còn {cartItem.Product.StockQuantity} phần!");
+                    if (cartItem.Product.StockQuantity < cartItem.Quantity)
+                        throw new ArgumentException($"Sản phẩm '{cartItem.Product.Name}' chỉ còn {cartItem.Product.StockQuantity} phần!");
 
                     cartItem.Product.StockQuantity -= cartItem.Quantity;
                     _unitOfWork.Product.Update(cartItem.Product);
@@ -453,7 +540,8 @@ namespace CafeShop.Services.Services
                 foreach (var cartTopping in cartItem.CartItemToppings)
                 {
                     int totalToppingNeeded = cartTopping.Quantity * cartItem.Quantity;
-                    if (cartTopping.Topping.StockQuantity < totalToppingNeeded) throw new ArgumentException($"Topping '{cartTopping.Topping.Name}' không đủ số lượng!");
+                    if (cartTopping.Topping.StockQuantity < totalToppingNeeded)
+                        throw new ArgumentException($"Topping '{cartTopping.Topping.Name}' không đủ số lượng!");
 
                     cartTopping.Topping.StockQuantity -= totalToppingNeeded;
                     _unitOfWork.Topping.Update(cartTopping.Topping);
@@ -462,7 +550,7 @@ namespace CafeShop.Services.Services
                 var orderDetail = new OrderDetail
                 {
                     ProductId = cartItem.ProductId,
-                    SizeId = cartItem.SizeId ,
+                    SizeId = cartItem.SizeId,
                     Quantity = cartItem.Quantity,
                     UnitPrice = cartItem.UnitPrice,
                     OrderDetailToppings = cartItem.CartItemToppings.Select(t => new OrderDetailTopping
@@ -484,13 +572,35 @@ namespace CafeShop.Services.Services
             decimal total = 0;
             var details = new List<OrderDetail>();
 
+            var productIds = items.Select(i => i.ProductId).Distinct().ToList();
+            var sizeIds = items.Where(i => i.SizeId.HasValue && i.SizeId.Value > 0).Select(i => i.SizeId!.Value).Distinct().ToList();
+            var toppingIds = items.Where(i => i.Toppings != null)
+                .SelectMany(i => i.Toppings!)
+                .Select(t => t.ToppingId)
+                .Distinct()
+                .ToList();
+
+            var productsDict = (await _unitOfWork.Product.GetAllAsync(p => productIds.Contains(p.ProductId) && !p.IsDeleted))
+                .ToDictionary(p => p.ProductId);
+
+            var productSizesDict = sizeIds.Any()
+                ? (await _unitOfWork.ProductSize.GetAllAsync(
+                    ps => productIds.Contains(ps.ProductId) && sizeIds.Contains(ps.SizeId),
+                    includeProperties: "Size"
+                )).ToDictionary(ps => (ps.ProductId, ps.SizeId))
+                : new Dictionary<(int, int), ProductSize>();
+
+            var toppingsDict = toppingIds.Any()
+                ? (await _unitOfWork.Topping.GetAllAsync(t => toppingIds.Contains(t.ToppingId)))
+                    .ToDictionary(t => t.ToppingId)
+                : new Dictionary<int, Topping>();
+
             foreach (var item in items)
             {
                 int qty = item.Quantity > 0 ? item.Quantity : 1;
                 decimal unitPrice = 0;
 
-                var product = await _unitOfWork.Product.GetFirstOrDefaultAsync(p => p.ProductId == item.ProductId);
-                if (product == null || !product.IsAvailable)
+                if (!productsDict.TryGetValue(item.ProductId, out var product) || !product.IsAvailable)
                     throw new ArgumentException($"Sản phẩm có ID {item.ProductId} không tồn tại hoặc đã ngừng bán!");
 
                 unitPrice = product.BasePrice;
@@ -498,13 +608,11 @@ namespace CafeShop.Services.Services
                 // 1. Trừ kho Sản phẩm / Size
                 if (item.SizeId.HasValue && item.SizeId.Value > 0)
                 {
-                    var productSize = await _unitOfWork.ProductSize.GetFirstOrDefaultAsync(
-                        ps => ps.ProductId == item.ProductId && ps.SizeId == item.SizeId.Value,
-                        includeProperties: "Size"
-                    );
+                    if (!productSizesDict.TryGetValue((item.ProductId, item.SizeId.Value), out var productSize))
+                        throw new ArgumentException($"Sản phẩm '{product.Name}' không hỗ trợ kích cỡ này!");
 
-                    if (productSize == null) throw new ArgumentException($"Sản phẩm '{product.Name}' không hỗ trợ kích cỡ này!");
-                    if (productSize.StockQuantity < qty) throw new ArgumentException($"Sản phẩm '{product.Name}' (Size {productSize.Size.Name}) chỉ còn {productSize.StockQuantity} ly!");
+                    if (productSize.StockQuantity < qty)
+                        throw new ArgumentException($"Sản phẩm '{product.Name}' (Size {productSize.Size?.Name ?? "đã chọn"}) chỉ còn {productSize.StockQuantity} ly!");
 
                     if (productSize.Price.HasValue) unitPrice = productSize.Price.Value;
 
@@ -513,7 +621,8 @@ namespace CafeShop.Services.Services
                 }
                 else
                 {
-                    if (product.StockQuantity < qty) throw new ArgumentException($"Sản phẩm '{product.Name}' chỉ còn {product.StockQuantity} phần!");
+                    if (product.StockQuantity < qty)
+                        throw new ArgumentException($"Sản phẩm '{product.Name}' chỉ còn {product.StockQuantity} phần!");
 
                     product.StockQuantity -= qty;
                     _unitOfWork.Product.Update(product);
@@ -525,11 +634,11 @@ namespace CafeShop.Services.Services
                 {
                     foreach (var top in item.Toppings)
                     {
-                        var toppingInfo = await _unitOfWork.Topping.GetFirstOrDefaultAsync(t => t.ToppingId == top.ToppingId);
-                        if (toppingInfo != null && toppingInfo.IsAvailable)
+                        if (toppingsDict.TryGetValue(top.ToppingId, out var toppingInfo) && toppingInfo.IsAvailable)
                         {
                             int totalToppingNeeded = top.Quantity * qty;
-                            if (toppingInfo.StockQuantity < totalToppingNeeded) throw new ArgumentException($"Topping '{toppingInfo.Name}' chỉ còn {toppingInfo.StockQuantity} phần!");
+                            if (toppingInfo.StockQuantity < totalToppingNeeded)
+                                throw new ArgumentException($"Topping '{toppingInfo.Name}' chỉ còn {toppingInfo.StockQuantity} phần!");
 
                             decimal toppingPrice = (decimal)(toppingInfo.Price ?? 0) * top.Quantity;
                             unitPrice += toppingPrice;
@@ -550,7 +659,7 @@ namespace CafeShop.Services.Services
                 details.Add(new OrderDetail
                 {
                     ProductId = item.ProductId,
-                    SizeId = item.SizeId ,
+                    SizeId = item.SizeId,
                     Quantity = qty,
                     UnitPrice = unitPrice,
                     OrderDetailToppings = orderDetailToppings

@@ -28,17 +28,17 @@ function getCategoryIcon(catName) {
 
 const SORT_OPTIONS = [
     { value: '', label: 'Mới nhất' },
-    { value: 'rating_desc', label: 'Đánh giá cao nhất ⭐' },
+    { value: 'rating_desc', label: 'Đánh giá cao nhất' },
     { value: 'price_asc', label: 'Giá tăng dần' },
     { value: 'price_desc', label: 'Giá giảm dần' },
     { value: 'name_asc', label: 'Tên A → Z' },
 ]
 
 const RATING_OPTIONS = [
-    { value: '', label: '⭐ Tất cả sao' },
-    { value: '5', label: '5 sao ⭐⭐⭐⭐⭐' },
-    { value: '4', label: 'Từ 4 sao trở lên ⭐' },
-    { value: '3', label: 'Từ 3 sao trở lên ⭐' },
+    { value: '', label: 'Tất cả sao' },
+    { value: '5', label: '5 sao' },
+    { value: '4', label: 'Từ 4 sao trở lên' },
+    { value: '3', label: 'Từ 3 sao trở lên' },
 ]
 
 /**
@@ -49,8 +49,9 @@ const RATING_OPTIONS = [
 export default function HomePage() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { items, loading, error, totalPages, total, pageSize } = useSelector((s) => s.user.product)
+    const { items, loading, error, total, pageSize } = useSelector((s) => s.user.product)
     const { items: categories } = useSelector((s) => s.user.category)
+    const storeProfile = useSelector((s) => s.app.storeProfile.profile)
 
     const [pageNumber, setPageNumber] = useState(1)
     const [keyword, setKeyword] = useState('')
@@ -107,13 +108,13 @@ export default function HomePage() {
     return (
         <div className="space-y-12 pb-16">
             {/* ── 1. Hero Section Cao Cấp & Ấm Cúng ── */}
-            <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#120a05] via-[#211208] to-[#0c0603] text-slate-100 shadow-2xl border border-amber-900/20">
+            <section className="relative rounded-[2.5rem] bg-gradient-to-br from-[#120a05] via-[#211208] to-[#0c0603] text-slate-100 shadow-2xl border border-amber-900/20">
                 {/* Hiệu ứng ánh sáng nền đa tầng (Ambient Glows) */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
                     <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-amber-600/15 blur-[120px]" />
                     <div className="absolute -bottom-32 -right-32 h-[500px] w-[500px] rounded-full bg-sky-500/15 blur-[120px]" />
                     <div className="absolute top-1/2 left-1/3 -translate-y-1/2 h-80 w-80 rounded-full bg-orange-500/10 blur-[100px]" />
-                    <div 
+                    <div
                         className="absolute inset-0 opacity-[0.03]"
                         style={{
                             backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -125,10 +126,19 @@ export default function HomePage() {
                 <div className="relative z-10 grid gap-8 md:grid-cols-12 md:items-center p-6 sm:p-10 lg:p-14">
                     {/* Cột Trái: Tiêu đề & Form tìm kiếm */}
                     <div className="md:col-span-7 flex flex-col justify-center">
-                        {/* Eyebrow Tag */}
-                        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-300 backdrop-blur-md w-fit shadow-xs">
-                            <span className="text-sm">☕</span>
-                            <span>Cà Phê Rang Mộc &amp; Trà Thượng Hạng</span>
+                        {/* Eyebrow Tag: Store Name + Status */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-200 backdrop-blur-md w-fit shadow-xs">
+                                <span className="text-sm">☕</span>
+                                <span className="font-bold text-amber-300">{storeProfile?.storeName || 'Cà Phê Rang Mộc & Trà Thượng Hạng'}</span>
+                            </div>
+
+                            {storeProfile?.isOpenNow !== undefined && (
+                                <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold backdrop-blur-md border ${storeProfile.isOpenNow ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-rose-500/20 text-rose-300 border-rose-400/30'}`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${storeProfile.isOpenNow ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+                                    <span>{storeProfile.isOpenNow ? 'Đang mở cửa' : 'Tạm đóng cửa'}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Headline */}
@@ -175,21 +185,41 @@ export default function HomePage() {
                             ))}
                         </div>
 
-                        {/* 3 Chỉ số cam kết nhanh (Key Highlights) */}
-                        <div className="mt-7 grid grid-cols-3 gap-3 border-t border-white/10 pt-6 max-w-xl">
-                            <div className="flex flex-col">
-                                <span className="text-xl sm:text-2xl font-black text-amber-300">100%</span>
-                                <span className="text-xs text-slate-300/75 mt-0.5">Hạt Cà Phê Mộc</span>
+                        {/* Store Info Bar (Hotline, Giờ mở cửa, Địa chỉ) */}
+                        {storeProfile && (
+                            <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+                                {storeProfile.hotline && (
+                                    <a
+                                        href={`tel:${storeProfile.hotline}`}
+                                        className="inline-flex items-center gap-1.5 rounded-2xl border border-amber-400/25 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 font-bold text-amber-300 hover:text-white transition-all backdrop-blur-sm"
+                                        title="Hotline đặt hàng"
+                                    >
+                                        <span>📞</span>
+                                        <span>{storeProfile.hotline}</span>
+                                    </a>
+                                )}
+
+                                {storeProfile.openTime && storeProfile.closeTime && (
+                                    <div className="inline-flex items-center gap-1.5 rounded-2xl border border-white/15 bg-white/5 px-3.5 py-1.5 text-slate-200 backdrop-blur-sm">
+                                        <span>⏰</span>
+                                        <span>{storeProfile.openTime.slice(0, 5)} - {storeProfile.closeTime.slice(0, 5)}</span>
+                                        {storeProfile.isAcceptingOrders && (
+                                            <span className="text-emerald-400 font-semibold">• Nhận đơn</span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {storeProfile.fullAddress && (
+                                    <div
+                                        className="inline-flex items-center gap-1.5 rounded-2xl border border-white/15 bg-white/5 px-3.5 py-1.5 text-slate-300 backdrop-blur-sm max-w-full truncate"
+                                        title={storeProfile.fullAddress}
+                                    >
+                                        <span>📍</span>
+                                        <span className="truncate max-w-[260px] sm:max-w-[360px]">{storeProfile.fullAddress}</span>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex flex-col border-l border-white/10 pl-3 sm:pl-4">
-                                <span className="text-xl sm:text-2xl font-black text-amber-300">25 Phút</span>
-                                <span className="text-xs text-slate-300/75 mt-0.5">Giao Hàng Siêu Tốc</span>
-                            </div>
-                            <div className="flex flex-col border-l border-white/10 pl-3 sm:pl-4">
-                                <span className="text-xl sm:text-2xl font-black text-amber-300">4.9 ★</span>
-                                <span className="text-xs text-slate-300/75 mt-0.5">Hài Lòng Từ Khách</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Cột Phải: Ảnh Nghệ Thuật & Badges */}
@@ -430,7 +460,7 @@ export default function HomePage() {
             />
 
 
-            {/* ── 3. Dải Banner Khuyến Mãi Nhỏ (Voucher Promo Strip) (Đã di chuyển xuống đây) ── */}
+            {/* ── 8. Dải Banner Khuyến Mãi Nhỏ (Voucher Promo Strip) (Đã di chuyển xuống đây) ── */}
             <section className="relative flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-r from-sky-50 via-orange-50/50 to-sky-100/60 p-5 sm:p-6 shadow-xs">
                 <div className="flex items-center gap-3.5">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-800 text-2xl text-white shadow-sm">🎁</div>
@@ -450,7 +480,7 @@ export default function HomePage() {
                 </LoadingLink>
             </section>
 
-            {/* ── 8. Banner Cuối Trang (Warm Cafe Story & Experience) ── */}
+            {/* ── 9. Banner Cuối Trang (Warm Cafe Story & Experience) ── */}
             <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-8 sm:p-10 text-center text-white shadow-xl">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px]" />
                 <div className="relative z-10 max-w-2xl mx-auto space-y-3">

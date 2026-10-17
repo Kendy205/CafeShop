@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -17,7 +18,7 @@ namespace CafeShop.Model
 
         public string? ImagePublicId { get; set; } // Dành cho Cloudinary xóa ảnh
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
 
         [ForeignKey("FeedbackId")]
         public virtual Feedback? Feedback { get; set; }

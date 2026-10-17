@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -33,7 +34,7 @@ namespace CafeShop.Model
         [MaxLength(500)]
         public string? ErrorMessage { get; set; } // Ghi chú nguyên nhân lỗi nếu giao dịch thất bại
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
 
         // ── Navigation Properties ──────────────────────────────
         [ForeignKey("OrderId")]

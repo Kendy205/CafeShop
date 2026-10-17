@@ -4,6 +4,7 @@ import {
     getAdminVouchers,
     toggleAdminVoucher,
     updateAdminVoucher,
+    deleteAdminVoucher,
 } from '../../actions/admin/adminVoucherAction'
 import { asList } from '../../../utils/helpers/api'
 
@@ -68,6 +69,10 @@ const adminVoucherSlice = createSlice({
                 if (idx !== -1) {
                     state.items[idx] = { ...state.items[idx], isActive: !state.items[idx].isActive }
                 }
+            })
+            .addCase(deleteAdminVoucher.fulfilled, (state, action) => {
+                const id = action.payload
+                state.items = state.items.filter((x) => (x.voucherId ?? x.id) !== id)
             })
     },
 })

@@ -5,7 +5,6 @@ import {
     HomeOutlined,
     LogoutOutlined,
     TagOutlined,
-    UserOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     MenuOutlined,
@@ -17,7 +16,7 @@ import {
     SettingOutlined,
     MessageOutlined
 } from '@ant-design/icons'
-import { Drawer } from 'antd'
+import { Drawer, Dropdown } from 'antd'
 import { logout } from '../redux/slices/authSlice'
 import { getProfile } from '../redux/actions/user/userAction'
 import { useState, useEffect } from 'react'
@@ -25,8 +24,7 @@ import { useState, useEffect } from 'react'
 /**
  * AdminTemplate Component
  * Template bao ngoài cho toàn bộ khu vực Admin.
- * Quản lý Sidebar navigation, Header, Responsive layout (mobile/desktop),
- * và lắng nghe các sự kiện realtime (ví dụ: đơn hàng mới) để cập nhật UI.
+ * Quản lý Sidebar navigation, Header, Responsive layout (mobile/desktop).
  */
 export default function AdminTemplate() {
     const dispatch = useDispatch()
@@ -36,29 +34,12 @@ export default function AdminTemplate() {
 
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
-    const [newOrderCount, setNewOrderCount] = useState(0)
 
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(getProfile())
         }
     }, [isAuthenticated, dispatch])
-
-    useEffect(() => {
-        const handleNewOrder = () => {
-            setNewOrderCount((prev) => prev + 1)
-        }
-        window.addEventListener('app:admin-new-order', handleNewOrder)
-        return () => {
-            window.removeEventListener('app:admin-new-order', handleNewOrder)
-        }
-    }, [])
-
-    useEffect(() => {
-        if (location.pathname === '/admin/orders') {
-            setNewOrderCount(0)
-        }
-    }, [location.pathname])
 
     const navItems = [
         { path: '/admin', label: 'Tổng quan', icon: <DashboardOutlined /> },
@@ -134,6 +115,14 @@ export default function AdminTemplate() {
                     {/* Bottom Actions */}
                     <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
                         <Link
+                            to="/staff/orders"
+                            onClick={() => setMobileOpen(false)}
+                            className="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-amber-700 hover:bg-amber-100 transition-colors font-medium"
+                        >
+                            <CoffeeOutlined className="text-xl" />
+                            <span className="whitespace-nowrap">Chế độ Quầy (Staff)</span>
+                        </Link>
+                        <Link
                             to="/"
                             onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-slate-600 hover:bg-slate-100 transition-colors"
@@ -201,7 +190,15 @@ export default function AdminTemplate() {
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="p-4 border-t border-slate-100 bg-white/50">
+                <div className="p-4 border-t border-slate-100 bg-white/50 flex flex-col gap-2">
+                    <Link
+                        to="/staff/orders"
+                        className={`flex items-center gap-3 rounded-2xl bg-amber-50 text-amber-700 hover:bg-amber-100 px-4 py-3 font-medium transition-colors ${collapsed ? 'justify-center px-0' : ''}`}
+                        title={collapsed ? "Chế độ Quầy (Staff)" : undefined}
+                    >
+                        <CoffeeOutlined className="text-xl" />
+                        {!collapsed && <span className="whitespace-nowrap">Chế độ Quầy (Staff)</span>}
+                    </Link>
                     <Link
                         to="/"
                         className={`flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors ${collapsed ? 'justify-center px-0' : ''}`}
@@ -235,53 +232,36 @@ export default function AdminTemplate() {
                             <MenuOutlined />
                         </button>
                     </div>
-                    <div className="flex items-center gap-6">
-                        {/* Notification Bell */}
-                        <button
-                            type="button"
-                            onClick={() => navigate('/admin/orders')}
-                            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:text-sky-500 hover:shadow-md transition-all cursor-pointer"
-                            title="Thông báo đơn hàng"
+                    <div className="flex items-center gap-4">
+                        {/* User Profile with Antd Dropdown */}
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    {
+                                        key: 'logout',
+                                        icon: <LogoutOutlined className="text-red-500" />,
+                                        label: <span className="font-semibold text-red-500">Đăng xuất</span>,
+                                        danger: true,
+                                        onClick: () => {
+                                            dispatch(logout())
+                                            navigate('/login')
+                                        },
+                                    },
+                                ],
+                            }}
+                            placement="bottomRight"
+                            trigger={['hover', 'click']}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                            </svg>
-                            {newOrderCount > 0 ? (
-                                <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-bounce">
-                                    {newOrderCount > 99 ? '99+' : newOrderCount}
-                                </span>
-                            ) : (
-                                <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" title="Đã kết nối Realtime"></span>
-                            )}
-                        </button>
-
-                        <div className="h-6 w-px bg-slate-200"></div>
-
-                        {/* User Profile */}
-                        <div className="group relative flex cursor-pointer items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-sm font-bold text-white shadow-sm">
-                                {(user?.fullName || 'A').charAt(0).toUpperCase()}
+                            <div className="flex cursor-pointer items-center gap-3 py-1.5 px-3 rounded-2xl bg-white/70 hover:bg-white border border-slate-100 shadow-xs transition-all">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-sm font-bold text-white shadow-sm">
+                                    {(user?.fullName || 'A').charAt(0).toUpperCase()}
+                                </div>
+                                <div className="hidden flex-col md:flex max-w-[120px] xl:max-w-[160px] text-left">
+                                    <span className="text-sm font-bold text-slate-800 truncate">{user?.fullName || 'Administrator'}</span>
+                                    <span className="text-[10px] font-semibold text-sky-600">Quản trị viên</span>
+                                </div>
                             </div>
-                            <div className="hidden flex-col md:flex max-w-[120px] xl:max-w-[160px]">
-                                <span className="text-sm font-bold text-slate-800 truncate">{user?.fullName || 'Administrator'}</span>
-                                <span className="text-[10px] font-semibold text-sky-600">Quản trị viên</span>
-                            </div>
-
-                            {/* Dropdown Logout */}
-                            <div className="absolute right-0 top-full mt-3 hidden w-48 rounded-2xl border border-slate-100 bg-white/90 backdrop-blur-xl p-2 shadow-apple group-hover:block transition-all">
-                                <button
-                                    type="button"
-                                    className="flex w-full items-center gap-2 rounded-3xl px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors"
-                                    onClick={() => {
-                                        dispatch(logout())
-                                        navigate('/login')
-                                    }}
-                                >
-                                    <LogoutOutlined />
-                                    Đăng xuất
-                                </button>
-                            </div>
-                        </div>
+                        </Dropdown>
                     </div>
                 </header>
 

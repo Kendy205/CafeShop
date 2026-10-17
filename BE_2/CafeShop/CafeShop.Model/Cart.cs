@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -19,9 +20,9 @@ namespace CafeShop.Model
         [MaxLength(20)]
         public string Status { get; set; } = CafeShop.Uitls.CartStatus.Active;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTimeHelper.VietnamNow;
 
         // — Navigation Properties —
         [ForeignKey(nameof(UserId))]

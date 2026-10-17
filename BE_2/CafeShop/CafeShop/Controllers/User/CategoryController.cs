@@ -33,16 +33,9 @@ namespace CafeShop.Controllers.User
         {
             try
             {
-                var categories = await _categoryService.GetAllAsync();
-                
-                var result = categories.Select(c => new CategoryDto
-                {
-                    CategoryId = c.CategoryId,
-                    Name = c.Name ?? string.Empty,
-                    Description = c.Description
-                }).ToList();
+                var result = await _categoryService.GetAllAsync();
 
-                return Ok(new ApiResponse<object>
+                return Ok(new ApiResponse<List<CategoryDto>>
                 {
                     Success = true,
                     StatusCode = 200,
@@ -70,19 +63,12 @@ namespace CafeShop.Controllers.User
                         Message = "Không tìm thấy danh mục"
                     });
 
-                var result = new CategoryDto
-                {
-                    CategoryId = category.CategoryId,
-                    Name = category.Name ?? string.Empty,
-                    Description = category.Description
-                };
-
                 return Ok(new ApiResponse<CategoryDto>
                 {
                     Success = true,
                     StatusCode = 200,
                     Message = "Lấy danh mục thành công",
-                    Data = result
+                    Data = category
                 });
             }
             catch (Exception ex)

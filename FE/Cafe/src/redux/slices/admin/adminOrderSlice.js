@@ -28,6 +28,46 @@ const adminOrderSlice = createSlice({
             state.detail = null
             state.detailError = null
         },
+        updateRealtimeOrder: (state, action) => {
+            const data = action.payload
+            if (!data) return
+            const orderId = Number(data.orderId ?? data.id)
+            const status = data.orderStatus || data.status
+            const paymentStatus = data.paymentStatus
+            const idx = state.items.findIndex((o) => Number(o.orderId ?? o.id) === orderId)
+            if (idx !== -1) {
+                if (status) {
+                    state.items[idx] = {
+                        ...state.items[idx],
+                        orderStatus: status,
+                        status: status,
+                        currentStatus: status,
+                        ...(paymentStatus ? { paymentStatus } : {}),
+                    }
+                } else if (paymentStatus) {
+                    state.items[idx] = {
+                        ...state.items[idx],
+                        paymentStatus,
+                    }
+                }
+            }
+            if (state.detail && Number(state.detail.orderId ?? state.detail.id) === orderId) {
+                if (status) {
+                    state.detail = {
+                        ...state.detail,
+                        orderStatus: status,
+                        status: status,
+                        currentStatus: status,
+                        ...(paymentStatus ? { paymentStatus } : {}),
+                    }
+                } else if (paymentStatus) {
+                    state.detail = {
+                        ...state.detail,
+                        paymentStatus,
+                    }
+                }
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -87,6 +127,6 @@ const adminOrderSlice = createSlice({
     },
 })
 
-export const { clearAdminOrderDetail } = adminOrderSlice.actions
+export const { clearAdminOrderDetail, updateRealtimeOrder } = adminOrderSlice.actions
 export default adminOrderSlice.reducer
 

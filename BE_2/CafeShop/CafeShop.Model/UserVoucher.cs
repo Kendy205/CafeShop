@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -18,7 +19,7 @@ namespace CafeShop.Model
         public int UsedCount { get; set; } = 0;         // User này đã dùng mấy lần
         public bool IsUsed => UsedCount >= UsageLimitPerUser;
 
-        public DateTime AssignedDate { get; set; } = DateTime.UtcNow;
+        public DateTime AssignedDate { get; set; } = DateTimeHelper.VietnamNow;
 
         public Voucher Voucher { get; set; } = null!;
     }

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -23,20 +24,32 @@ namespace CafeShop.Model
         [StringLength(500)]
         public string? FullAddress { get; set; }
 
-        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+        public DateTime OrderDate { get; set; } = DateTimeHelper.VietnamNow;
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal SubTotal { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
+
+        [StringLength(50)]
         public string? PaymentMethod { get; set; } // Giữ lại cho tương thích ngược tạm thời
 
         [StringLength(50)]
         public string PaymentStatus { get; set; } = "UNPAID"; // UNPAID, PAID, REFUNDED, FAILED
  
+        [StringLength(50)]
         public string? CurrentStatus { get; set; }
+
         [StringLength(500)]
         public string? Note { get; set; } 
 
         public int? VoucherId { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal OrderDiscount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal ShippingDiscount { get; set; }
 
         [ForeignKey("UserId")]
@@ -46,6 +59,7 @@ namespace CafeShop.Model
         [ForeignKey("AddressId")]
         public virtual Address? Address { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
         public decimal ShippingFee { get; set; } // Phí ship
         public double DistanceKm { get; set; }   // Khoảng cách giao hàng
         public virtual ICollection<OrderDetail>? OrderDetails { get; set; }

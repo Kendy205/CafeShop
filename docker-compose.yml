@@ -13,7 +13,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-      - ./CafeShop_SeedData_MySQL.sql:/docker-entrypoint-initdb.d/CafeShop_SeedData_MySQL.sql
+      - ./db-init:/docker-entrypoint-initdb.d
     networks:
       - cafeshop_network
 

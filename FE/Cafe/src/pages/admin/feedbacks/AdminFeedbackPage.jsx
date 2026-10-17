@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { 
     Table, 
@@ -12,9 +12,10 @@ import {
     Image, 
     Select,
     Tag,
-    Space
+    Space,
+    Avatar
 } from 'antd'
-import { EyeOutlined, MessageOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import { MessageOutlined, CheckCircleOutlined, UserOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { 
     fetchAllFeedbacks, 
@@ -38,18 +39,18 @@ export default function AdminFeedbackPage() {
     const [currentFeedback, setCurrentFeedback] = useState(null)
     const [form] = Form.useForm()
 
-    useEffect(() => {
-        loadData(page, pageSize)
-    }, [filterRating, filterHasImages])
-
-    const loadData = (p = 1, pSize = 10) => {
+    const loadData = useCallback((p = 1, pSize = 10) => {
         dispatch(fetchAllFeedbacks({
             pageNumber: p,
             pageSize: pSize,
             rating: filterRating,
             hasImages: filterHasImages
         }))
-    }
+    }, [dispatch, filterRating, filterHasImages])
+
+    useEffect(() => {
+        loadData(page, pageSize)
+    }, [loadData, page, pageSize])
 
     const handleTableChange = (pagination) => {
         loadData(pagination.current, pagination.pageSize)
@@ -82,43 +83,95 @@ export default function AdminFeedbackPage() {
 
     const columns = [
         {
+            title: 'Mã / Đơn',
+            key: 'feedbackId',
+            width: 110,
+            render: (_, record) => (
+                <div className="flex flex-col gap-1">
+                    <span className="font-black text-slate-800 text-xs">#{record.feedbackId}</span>
+                    {record.orderId && (
+                        <span className="text-[11px] font-semibold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 whitespace-nowrap inline-block w-fit">
+                            Đơn #{record.orderId}
+                        </span>
+                    )}
+                </div>
+            )
+        },
+        {
             title: 'Sản phẩm',
-            dataIndex: 'productName',
-            key: 'productName',
-            width: 200,
-            render: (text, record) => (
-                <div>
-                    <div className="font-medium text-slate-700">{text}</div>
-                    <div className="text-xs text-slate-400">Size: {record.sizeName}</div>
+            key: 'product',
+            width: 240,
+            render: (_, record) => (
+                <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 shrink-0 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs flex items-center justify-center">
+                        {record.productImage ? (
+                            <img src={record.productImage} alt={record.productName} className="h-full w-full object-cover" />
+                        ) : (
+                            <span className="text-slate-400 text-base">☕</span>
+                        )}
+                    </div>
+                    <div className="min-w-0">
+                        <p className="font-bold text-slate-800 text-sm truncate" title={record.productName}>
+                            {record.productName || 'Sản phẩm'}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                            {record.sizeName && (
+                                <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60">
+                                    Size {record.sizeName}
+                                </span>
+                            )}
+                            {record.productId && (
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                    SP #{record.productId}
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )
         },
         {
             title: 'Khách hàng',
-            dataIndex: 'userName',
-            key: 'userName',
-            width: 150,
+            key: 'customer',
+            width: 180,
+            render: (_, record) => (
+                <div className="flex items-center gap-2.5">
+                    <Avatar 
+                        src={record.userAvatar} 
+                        icon={<UserOutlined />} 
+                        className="shrink-0 bg-slate-100 text-slate-400 border border-slate-200 shadow-2xs"
+                        size={38}
+                    />
+                    <div className="min-w-0">
+                        <p className="font-semibold text-slate-800 text-xs truncate" title={record.userName}>
+                            {record.userName || 'Khách hàng'}
+                        </p>
+                        {record.userId && (
+                            <p className="text-[10px] font-medium text-slate-400">ID: #{record.userId}</p>
+                        )}
+                    </div>
+                </div>
+            )
         },
         {
-            title: 'Đánh giá',
-            dataIndex: 'rating',
-            key: 'rating',
-            width: 150,
-            render: (rating) => <Rate disabled defaultValue={rating} className="text-sm" />
-        },
-        {
-            title: 'Nội dung',
+            title: 'Nội dung đánh giá',
             dataIndex: 'comment',
             key: 'comment',
-            width: 250,
+            width: 260,
             render: (text, record) => (
                 <div>
-                    <p className="mb-1 text-sm">{text || <span className="text-slate-400 italic">Không có bình luận</span>}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Rate disabled defaultValue={record.rating} className="text-xs text-amber-400" />
+                        <span className="text-xs font-bold text-slate-600">({record.rating}/5)</span>
+                    </div>
+                    <p className="mb-1 text-sm text-slate-700">
+                        {text || <span className="text-slate-400 italic text-xs">(Không có nhận xét bằng chữ)</span>}
+                    </p>
                     {record.images && record.images.length > 0 && (
-                        <div className="flex gap-1 flex-wrap">
+                        <div className="flex gap-1.5 flex-wrap mt-1.5">
                             <Image.PreviewGroup>
                                 {record.images.map((img, i) => (
-                                    <Image key={i} src={img} width={40} height={40} className="object-cover rounded" />
+                                    <Image key={i} src={img} width={42} height={42} className="object-cover rounded-lg border border-slate-200 shadow-2xs" />
                                 ))}
                             </Image.PreviewGroup>
                         </div>
@@ -127,16 +180,25 @@ export default function AdminFeedbackPage() {
             )
         },
         {
-            title: 'Ngày ĐG',
-            dataIndex: 'createdAt',
+            title: 'Thời gian',
             key: 'createdAt',
-            width: 120,
-            render: (date) => dayjs(date).format('DD/MM/YYYY HH:mm')
+            width: 140,
+            render: (_, record) => (
+                <div className="text-xs text-slate-600">
+                    <p className="font-medium text-slate-700">{dayjs(record.createdAt).format('DD/MM/YYYY')}</p>
+                    <p className="text-slate-400 text-[11px]">{dayjs(record.createdAt).format('HH:mm:ss')}</p>
+                    {record.updatedAt && (
+                        <span className="text-[10px] text-amber-600 italic block mt-0.5">
+                            (Đã sửa: {dayjs(record.updatedAt).format('DD/MM HH:mm')})
+                        </span>
+                    )}
+                </div>
+            )
         },
         {
             title: 'Hiển thị',
             key: 'isVisible',
-            width: 100,
+            width: 90,
             align: 'center',
             render: (_, record) => (
                 <Switch 
@@ -147,29 +209,26 @@ export default function AdminFeedbackPage() {
             )
         },
         {
-            title: 'Trạng thái',
-            key: 'status',
-            width: 150,
-            render: (_, record) => (
-                record.isReplied ? 
-                <Tag color="success" icon={<CheckCircleOutlined />}>Đã phản hồi</Tag> : 
-                <Tag color="warning" icon={<MessageOutlined />}>Chưa phản hồi</Tag>
-            )
-        },
-        {
             title: 'Hành động',
             key: 'action',
-            width: 100,
+            width: 130,
             align: 'center',
             render: (_, record) => (
-                <Button 
-                    type="primary" 
-                    ghost 
-                    size="small"
-                    onClick={() => handleOpenReplyModal(record)}
-                >
-                    {record.isReplied ? 'Sửa Reply' : 'Reply'}
-                </Button>
+                <div className="flex flex-col items-center gap-1.5">
+                    {record.isReplied ? (
+                        <Tag color="success" icon={<CheckCircleOutlined />} className="!mr-0">Đã phản hồi</Tag>
+                    ) : (
+                        <Tag color="warning" icon={<MessageOutlined />} className="!mr-0">Chưa phản hồi</Tag>
+                    )}
+                    <Button 
+                        type="link" 
+                        size="small"
+                        className="!text-xs !p-0 font-semibold text-sky-600 hover:text-sky-700"
+                        onClick={() => handleOpenReplyModal(record)}
+                    >
+                        {record.isReplied ? 'Sửa phản hồi' : 'Gửi phản hồi'}
+                    </Button>
+                </div>
             )
         }
     ]
@@ -178,32 +237,50 @@ export default function AdminFeedbackPage() {
         <div className="space-y-4">
             <h2 className="text-2xl font-bold text-slate-800">Quản lý Đánh giá Khách hàng</h2>
             
-            <Card bordered={false} className="shadow-sm rounded-xl">
-                <div className="flex gap-4 mb-4">
+            {/* Apple Style Filter Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white/80 backdrop-blur-xl p-4 rounded-[24px] border border-black/[0.06] shadow-apple">
+                <div className="flex flex-wrap items-center gap-3">
                     <Select 
-                        placeholder="Lọc theo sao"
+                        placeholder="⭐ Lọc theo số sao"
                         allowClear
-                        style={{ width: 150 }}
-                        onChange={setFilterRating}
+                        value={filterRating || undefined}
+                        className="apple-select min-w-[170px]"
+                        popupClassName="apple-select-dropdown"
+                        onChange={(val) => setFilterRating(val ?? null)}
                         options={[
-                            { value: 5, label: '5 Sao' },
-                            { value: 4, label: '4 Sao' },
-                            { value: 3, label: '3 Sao' },
-                            { value: 2, label: '2 Sao' },
-                            { value: 1, label: '1 Sao' },
+                            { value: 5, label: '⭐⭐⭐⭐⭐ 5 Sao' },
+                            { value: 4, label: '⭐⭐⭐⭐ 4 Sao' },
+                            { value: 3, label: '⭐⭐⭐ 3 Sao' },
+                            { value: 2, label: '⭐⭐ 2 Sao' },
+                            { value: 1, label: '⭐ 1 Sao' },
                         ]}
                     />
                     <Select 
-                        placeholder="Có hình ảnh?"
+                        placeholder="🖼️ Có hình ảnh?"
                         allowClear
-                        style={{ width: 150 }}
-                        onChange={setFilterHasImages}
+                        value={filterHasImages !== null ? filterHasImages : undefined}
+                        className="apple-select min-w-[170px]"
+                        popupClassName="apple-select-dropdown"
+                        onChange={(val) => setFilterHasImages(val ?? null)}
                         options={[
-                            { value: true, label: 'Có ảnh đính kèm' },
-                            { value: false, label: 'Không có ảnh' },
+                            { value: true, label: '🖼️ Có ảnh đính kèm' },
+                            { value: false, label: '📝 Không có ảnh' },
                         ]}
                     />
                 </div>
+
+                {(filterRating != null || filterHasImages !== null) && (
+                    <button
+                        type="button"
+                        onClick={() => { setFilterRating(null); setFilterHasImages(null); }}
+                        className="h-[38px] px-3.5 rounded-[16px] text-xs font-semibold text-[#86868B] hover:text-[#1D1D1F] hover:bg-black/[0.05] transition-all cursor-pointer"
+                    >
+                        Đặt lại bộ lọc
+                    </button>
+                )}
+            </div>
+
+            <Card bordered={false} className="shadow-sm rounded-2xl">
 
                 <Table 
                     columns={columns}
@@ -229,12 +306,37 @@ export default function AdminFeedbackPage() {
                 destroyOnClose
             >
                 {currentFeedback && (
-                    <div className="mb-4 p-3 bg-slate-50 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold text-slate-700">{currentFeedback.userName}</span>
-                            <Rate disabled defaultValue={currentFeedback.rating} className="text-xs" />
+                    <div className="mb-4 p-3.5 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden bg-white border border-slate-200 flex items-center justify-center">
+                                {currentFeedback.productImage ? (
+                                    <img src={currentFeedback.productImage} alt={currentFeedback.productName} className="h-full w-full object-cover" />
+                                ) : (
+                                    <span className="text-slate-400 text-sm">☕</span>
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="font-bold text-slate-800 text-xs truncate">
+                                        {currentFeedback.productName} {currentFeedback.sizeName ? `(Size ${currentFeedback.sizeName})` : ''}
+                                    </p>
+                                    {currentFeedback.orderId && (
+                                        <span className="text-[10px] text-sky-700 font-semibold bg-sky-50 px-1.5 py-0.2 rounded border border-sky-100 shrink-0">
+                                            Đơn #{currentFeedback.orderId}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-xs text-slate-600 font-medium">{currentFeedback.userName}</span>
+                                    <Rate disabled defaultValue={currentFeedback.rating} className="text-[10px] text-amber-400" />
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-slate-600 text-sm mb-0">{currentFeedback.comment}</p>
+                        <div className="pt-2 border-t border-slate-200/60">
+                            <p className="text-slate-700 text-xs mb-0">
+                                {currentFeedback.comment || <span className="text-slate-400 italic">(Khách hàng không để lại nhận xét bằng chữ)</span>}
+                            </p>
+                        </div>
                     </div>
                 )}
                 

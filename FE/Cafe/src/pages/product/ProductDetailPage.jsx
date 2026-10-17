@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { getProductDetail } from '../../redux/actions/user/productAction'
-import { addToCart } from '../../redux/actions/user/cartAction'
+
 import { clearProductDetail } from '../../redux/slices/user/productSlice'
-import { openAuthModal } from '../../redux/slices/authSlice'
-import { formatVnd } from '../../utils/helpers/format'
+
+
 import ProductCustomize from '../../components/product/ProductCustomize'
 import Skeleton from '../../components/loading/Skeleton'
 import ProductFeedbackSection from '../../components/feedback/ProductFeedbackSection'
 import { feedbackService } from '../../services/user/FeedbackService'
+import RelatedProductsSection from '../../components/product/RelatedProductsSection'
 
 /**
  * ProductDetailPage Component
@@ -18,14 +19,20 @@ import { feedbackService } from '../../services/user/FeedbackService'
  */
 export default function ProductDetailPage() {
     const { id } = useParams()
+    const navigate = useNavigate()
     const dispatch = useDispatch()
     const { detail, detailLoading, error } = useSelector((s) => s.user.product)
     const isAuthenticated = useSelector((s) => s.app.auth.isAuthenticated)
     const [summary, setSummary] = useState(null)
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
         dispatch(clearProductDetail())
-        dispatch(getProductDetail(id))
+        dispatch(getProductDetail(id)).then((res) => {
+            if (getProductDetail.rejected.match(res)) {
+                navigate('/404', { replace: true })
+            }
+        })
 
         // Lấy thống kê đánh giá của sản phẩm: GET /api/Feedback/product/{productId}/summary
         if (id) {
@@ -40,7 +47,7 @@ export default function ProductDetailPage() {
                     console.error('Error loading product feedback summary:', err)
                 })
         }
-    }, [dispatch, id])
+    }, [dispatch, id, navigate])
 
     const sizes = useMemo(() => {
         const rawSizes = Array.isArray(detail?.productSizes)
@@ -54,13 +61,13 @@ export default function ProductDetailPage() {
                 sizeName: sizeLabel,
             }
         })
-    }, [detail?.productSizes, detail?.sizes])
+    }, [detail])
 
     const toppings = Array.isArray(detail?.productToppings) && detail.productToppings.length > 0
         ? detail.productToppings.map(t => ({ ...t, name: t.name || t.toppingName || 'Topping' }))
         : []
 
-    if (detailLoading) {
+    if (detailLoading || (!detail && !error)) {
         return (
             <div className="grid gap-6 md:grid-cols-2">
                 <Skeleton className="h-72" />
@@ -73,7 +80,7 @@ export default function ProductDetailPage() {
     }
 
     if (!detail) {
-        return <p className="text-red-600">{error || 'Không tìm thấy món.'}</p>
+        return <Navigate to="/404" replace />
     }
 
     return (
@@ -108,6 +115,9 @@ export default function ProductDetailPage() {
                     summary={summary}
                 />
             </div>
+
+            {/* Khối Sản phẩm liên quan cùng danh mục */}
+            <RelatedProductsSection productId={id || detail?.productId} />
 
             {/* Khối Thống kê & Danh sách đánh giá món (Feedback) */}
             <ProductFeedbackSection productId={id || detail?.productId} summary={summary} />

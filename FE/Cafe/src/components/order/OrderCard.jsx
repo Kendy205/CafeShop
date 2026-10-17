@@ -305,11 +305,16 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
     } = order
 
     const [payingVnPay, setPayingVnPay] = useState(false)
+    const [expanded, setExpanded] = useState(false)
 
     // Hỗ trợ cả items (đặc tả mới) và fallback orderDetails
     const orderItems = Array.isArray(order.items)
         ? order.items
         : (Array.isArray(order.orderDetails) ? order.orderDetails : [])
+
+    const hasMoreItems = orderItems.length > 1
+    const visibleItems = expanded || !hasMoreItems ? orderItems : orderItems.slice(0, 1)
+    const remainingCount = orderItems.length - 1
 
     const canCancel = canCancelOrder(currentStatus)
     const isCompleted = String(currentStatus || '').toUpperCase() === 'COMPLETED'
@@ -357,6 +362,11 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                     <span className="font-mono text-sm font-extrabold text-slate-800">
                         Đơn hàng #{orderId}
                     </span>
+                    {orderItems.length > 0 && (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 border border-slate-200/70">
+                            {orderItems.length} món
+                        </span>
+                    )}
                     <StatusBadge status={currentStatus} />
                     {paymentStatus && (
                         <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold shadow-2xs ${paymentStatusCfg.color}`}>
@@ -403,7 +413,7 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
             {/* Danh sách các món của đơn hàng */}
             <div className="p-5">
                 <div className="space-y-3.5">
-                    {orderItems.map((item, idx) => {
+                    {visibleItems.map((item, idx) => {
                         const hasSize = item.sizeId !== null && item.sizeId !== undefined && item.sizeName
                         const itemToppings = Array.isArray(item.toppings) ? item.toppings : []
 
@@ -419,7 +429,7 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                 >
                                     {item.imageUrl ? (
                                         <img
-                                            src={item.imageUrl}
+                                             src={item.imageUrl}
                                             alt={item.productName || item.name}
                                             className="h-full w-full object-cover"
                                         />
@@ -446,50 +456,66 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
                                         )}
                                     </div>
 
-                                    <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                                         <span>Số lượng: <strong className="text-slate-700">×{item.quantity}</strong></span>
                                         <span>•</span>
-                                        <span>Đơn giá: {formatVnd(item.unitPrice)}</span>
+                                        <span>Đơn giá: <strong className="text-slate-700">{formatVnd(item.unitPrice)}/ly</strong></span>
+                                        {itemToppings.length > 0 && (
+                                            <span className="text-[11px] text-slate-400 italic">
+                                                (đã gồm topping)
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Danh sách topping của món */}
                                     {itemToppings.length > 0 && (
-                                        <div className="mt-1.5 space-y-1 rounded-3xl bg-slate-50 p-2 text-xs">
-                                            {itemToppings.map((t, ti) => (
-                                                <div
-                                                    key={ti}
-                                                    className="flex items-center justify-between text-slate-600"
-                                                >
-                                                    <div className="flex items-center gap-1.5">
-                                                        {t.imageUrl ? (
-                                                            <img
-                                                                src={t.imageUrl}
-                                                                alt={t.toppingName || t.name}
-                                                                className="h-4 w-4 rounded-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <span className="text-[10px] text-sky-700">+</span>
-                                                        )}
-                                                        <span>{t.toppingName || t.name}</span>
-                                                        <span className="font-bold text-sky-800">
-                                                            ×{t.quantity} {t.unit || 'phần'}
+                                        <div className="mt-1.5 space-y-1 rounded-2xl bg-slate-50 p-2 text-xs border border-slate-100">
+                                            <div className="flex items-center justify-between text-[11px] text-slate-400 pb-0.5">
+                                                <span>Topping thêm (cho mỗi ly):</span>
+                                            </div>
+                                            {itemToppings.map((t, ti) => {
+                                                const qty = Number(t.quantity) || 1
+                                                const totalPrice = Number(t.unitPrice ?? t.price ?? 0)
+                                                const unitPrice = qty > 1 ? Math.round(totalPrice / qty) : totalPrice
+
+                                                return (
+                                                    <div
+                                                        key={ti}
+                                                        className="flex items-center justify-between text-slate-600 bg-white/60 px-2 py-1 rounded-lg border border-slate-200/50"
+                                                    >
+                                                        <div className="flex items-center gap-1.5 min-w-0">
+                                                            {t.imageUrl ? (
+                                                                <img
+                                                                    src={t.imageUrl}
+                                                                    alt={t.toppingName || t.name}
+                                                                    className="h-4 w-4 rounded-full object-cover shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <span className="text-[10px] text-sky-700 font-bold">+</span>
+                                                            )}
+                                                            <span className="truncate">{t.toppingName || t.name}</span>
+                                                            <span className="font-bold text-sky-800 shrink-0">
+                                                                ×{qty} {t.unit || 'phần'}
+                                                            </span>
+                                                            {qty > 1 && (
+                                                                <span className="text-[10px] text-slate-400 shrink-0">
+                                                                    ({formatVnd(unitPrice)}/phần)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="font-semibold text-slate-700 shrink-0 ml-2">
+                                                            +{formatVnd(totalPrice)} / ly
                                                         </span>
                                                     </div>
-                                                    <span className="font-medium text-slate-700">
-                                                        {formatVnd((t.unitPrice ?? t.price ?? 0) * (t.quantity || 1))}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     )}
 
                                     {/* Nút Đánh giá món khi đơn đã giao thành công */}
                                     {isCompleted && item.productId && (
                                         <div className="mt-2 flex items-center">
-                                            {Boolean(
-                                                item.isReviewed ||
-                                                (item.orderDetailId && reviewedMap?.[item.orderDetailId])
-                                            ) ? (
+                                            {(item.isReviewed || (item.orderDetailId && reviewedMap?.[item.orderDetailId])) ? (
                                                 <span className="inline-flex items-center gap-1 rounded-2xl bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
                                                     <span>✓</span>
                                                     <span>Đã đánh giá</span>
@@ -519,14 +545,45 @@ export default function OrderCard({ order, onCancel, cancelling, onReviewClick, 
 
                                 {/* Tổng tiền dòng (Line Total: lấy trực tiếp totalItemPrice) */}
                                 <div className="text-right shrink-0">
-                                    <span className="text-sm font-extrabold text-sky-900">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Thành tiền</span>
+                                    <span className="text-sm font-extrabold text-sky-900 block leading-tight">
                                         {formatVnd(item.totalItemPrice ?? (item.unitPrice * item.quantity))}
                                     </span>
+                                    {item.quantity > 1 && (
+                                        <span className="text-[11px] text-slate-400 block mt-0.5 font-medium">
+                                            {item.quantity} ly × {formatVnd(item.unitPrice)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         )
                     })}
                 </div>
+
+                {/* Nút Xem thêm / Thu gọn danh sách món */}
+                {hasMoreItems && (
+                    <div className="mt-3.5 pt-2 border-t border-dashed border-slate-200">
+                        {!expanded ? (
+                            <button
+                                type="button"
+                                onClick={() => setExpanded(true)}
+                                className="group w-full py-2.5 px-3 flex items-center justify-center gap-1.5 text-xs font-bold text-sky-800 bg-sky-50/70 hover:bg-sky-100 rounded-2xl border border-sky-200/80 transition-all cursor-pointer shadow-2xs"
+                            >
+                                <span>Xem thêm {remainingCount} món khác (Tổng {orderItems.length} món)</span>
+                                <span className="text-[10px] transition-transform group-hover:translate-y-0.5">▼</span>
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setExpanded(false)}
+                                className="w-full py-1.5 px-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200/60 transition-all cursor-pointer"
+                            >
+                                <span>Thu gọn danh sách món</span>
+                                <span className="text-[10px]">▲</span>
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {/* Ghi chú của đơn (nếu có) */}
                 {note && (

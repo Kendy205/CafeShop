@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -16,7 +17,7 @@ namespace CafeShop.Model
         [StringLength(50)]
         public string? Status { get; set; }
         public int ChangedBy { get; set; }
-        public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
+        public DateTime ChangedAt { get; set; } = DateTimeHelper.VietnamNow;
         public string? Note { get; set; }
 
         [ForeignKey("OrderId")]

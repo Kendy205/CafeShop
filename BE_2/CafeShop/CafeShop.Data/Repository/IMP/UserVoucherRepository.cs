@@ -1,4 +1,4 @@
-﻿using CafeShop.Data.Repository.IRepository;
+using CafeShop.Data.Repository.IRepository;
 using CafeShop.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -27,7 +27,7 @@ namespace CafeShop.Data.Repository.IMP
 
         public async Task<UserVoucher?> GetActiveUserVoucherAsync(int userId, int voucherId)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = CafeShop.Uitls.DateTimeHelper.VietnamNow;
             return await _context.UserVouchers
                 .Include(uv => uv.Voucher)
                 .FirstOrDefaultAsync(uv =>

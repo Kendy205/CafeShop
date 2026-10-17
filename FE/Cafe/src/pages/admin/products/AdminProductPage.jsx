@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Modal, Table, Button, Input, Card, Tag, Space, Switch, Select, Checkbox, message } from 'antd'
+import { Modal, Tag, Switch, Select, message } from 'antd'
 import AdminTooltip from '../../../components/admin/common/AdminTooltip'
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, PictureOutlined, CoffeeOutlined } from '@ant-design/icons'
 import {
@@ -26,7 +26,7 @@ import AppSearchBox from '../../../components/common/AppSearchBox'
  */
 export default function AdminProductPage() {
     const dispatch = useDispatch()
-    const { items, total, totalPages, pageSize, loading } = useSelector((s) => s.admin.product)
+    const { items, total, pageSize, loading } = useSelector((s) => s.admin.product)
     const { items: categories } = useSelector((s) => s.admin.category)
     const { items: masterSizes } = useSelector((s) => s.admin.size)
     const { items: masterToppings } = useSelector((s) => s.admin.topping)
@@ -77,6 +77,21 @@ export default function AdminProductPage() {
     useEffect(() => {
         loadData(currentPage)
     }, [currentPage, loadData])
+
+    const handleResetFilters = () => {
+        setKeyword('')
+        setCategoryId(null)
+        setMinPrice('')
+        setMaxPrice('')
+        setIsAvailable('ALL')
+        setOutOfStock(false)
+        setSortBy('')
+        setCurrentPage(1)
+    }
+
+    const isFiltered = Boolean(
+        keyword || categoryId || minPrice !== '' || maxPrice !== '' || isAvailable !== 'ALL' || outOfStock || sortBy
+    )
 
     const handleSearch = () => {
         if (currentPage === 1) loadData(1)
@@ -293,90 +308,132 @@ export default function AdminProductPage() {
                 }
             />
 
-            {/* Filter Toolbar */}
-            <div className="flex flex-col gap-4 bg-white/70 backdrop-blur-md p-4 rounded-3xl border border-slate-200/80 shadow-xs mb-6">
-                {/* Hàng 1: Tìm kiếm & Phân loại cơ bản */}
-                <div className="flex flex-wrap items-center gap-3">
+            {/* Apple App Store Category Pills Bar */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 mb-4 select-none">
+                <button
+                    type="button"
+                    onClick={() => { setCategoryId(null); setCurrentPage(1); }}
+                    className={`h-[36px] px-4 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                        categoryId === null 
+                            ? 'bg-[#1D1D1F] text-white shadow-sm scale-[1.02]' 
+                            : 'bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.04]'
+                    }`}
+                >
+                    <span>☕ Tất cả món</span>
+                </button>
+                {categories.map((c) => {
+                    const isSelected = categoryId === c.categoryId
+                    return (
+                        <button
+                            key={c.categoryId}
+                            type="button"
+                            onClick={() => { setCategoryId(isSelected ? null : c.categoryId); setCurrentPage(1); }}
+                            className={`h-[36px] px-4 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                                isSelected 
+                                    ? 'bg-[#1D1D1F] text-white shadow-sm scale-[1.02]' 
+                                    : 'bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.08] border border-black/[0.04]'
+                            }`}
+                        >
+                            <span>{c.name}</span>
+                        </button>
+                    )
+                })}
+            </div>
+
+            {/* Apple Style Filter Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white/80 backdrop-blur-xl p-4 sm:p-5 rounded-[24px] border border-black/[0.06] shadow-apple mb-6 transition-all">
+                {/* Trái: Tìm kiếm & Khoảng giá & Sắp xếp */}
+                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
                     <AppSearchBox
                         initialValue={keyword}
                         placeholder="Tìm kiếm theo tên..."
                         onSearch={(val) => { setKeyword(val); setCurrentPage(1); }}
-                        className="flex-1 min-w-[200px] max-w-sm"
+                        className="flex-1 min-w-[200px] max-w-xs"
                     />
 
-                    <Select
-                        placeholder="Tất cả danh mục"
-                        allowClear
-                        value={categoryId}
-                        onChange={(val) => { setCategoryId(val); }}
-                        className="min-w-[160px]"
-                        options={categories.map((c) => ({ value: c.categoryId, label: c.name }))}
-                    />
+                    {/* Cụm khoảng giá Capsule */}
+                    <div className="flex items-center gap-1.5 bg-black/[0.03] p-1 rounded-[16px] border border-black/[0.06] shadow-2xs">
+                        <span className="text-[11px] font-bold text-[#86868B] px-2">₫</span>
+                        <input
+                            type="number"
+                            placeholder="Giá từ"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            className="w-20 sm:w-24 bg-white rounded-[10px] border border-black/[0.06] h-[30px] px-2 text-xs font-semibold text-[#1D1D1F] text-center placeholder:text-[#86868B] placeholder:font-normal outline-none focus:border-[#0071E3]/50 focus:ring-1 focus:ring-[#0071E3]/20 transition-all shadow-2xs"
+                        />
+                        <span className="text-[#86868B] text-xs font-bold">—</span>
+                        <input
+                            type="number"
+                            placeholder="Đến"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            className="w-20 sm:w-24 bg-white rounded-[10px] border border-black/[0.06] h-[30px] px-2 text-xs font-semibold text-[#1D1D1F] text-center placeholder:text-[#86868B] placeholder:font-normal outline-none focus:border-[#0071E3]/50 focus:ring-1 focus:ring-[#0071E3]/20 transition-all shadow-2xs"
+                        />
+                    </div>
 
+                    {/* Sắp xếp */}
                     <Select
                         value={sortBy}
                         onChange={(val) => setSortBy(val)}
-                        className="min-w-[160px]"
+                        className="apple-select min-w-[175px]"
+                        popupClassName="apple-select-dropdown"
                         options={[
-                            { value: '', label: 'Mới nhất (Mặc định)' },
-                            { value: 'name_asc', label: 'Tên A-Z' },
-                            { value: 'price_asc', label: 'Giá tăng dần' },
-                            { value: 'price_desc', label: 'Giá giảm dần' },
-                            { value: 'stock_asc', label: 'Tồn kho ít nhất' },
-                            { value: 'stock_desc', label: 'Tồn kho nhiều nhất' }
+                            { value: '', label: '⚡ Mới nhất (Mặc định)' },
+                            { value: 'name_asc', label: '🔤 Tên A-Z' },
+                            { value: 'price_asc', label: '📈 Giá tăng dần' },
+                            { value: 'price_desc', label: '📉 Giá giảm dần' },
+                            { value: 'stock_asc', label: '📦 Tồn kho ít nhất' },
+                            { value: 'stock_desc', label: '📦 Tồn kho nhiều nhất' }
                         ]}
                     />
+
+                    {/* Dropdown Trạng thái - min-w-[175px] không bao giờ bị cắt chữ */}
+                    <Select
+                        value={isAvailable}
+                        onChange={setIsAvailable}
+                        className="apple-select min-w-[175px]"
+                        popupClassName="apple-select-dropdown"
+                        options={[
+                            { value: 'ALL', label: 'Tất cả trạng thái' },
+                            { value: 'true', label: '🟢 Đang bán' },
+                            { value: 'false', label: '⚫ Đã ẩn' }
+                        ]}
+                    />
+
+                    {/* Apple Filter Chip: Hết hàng */}
+                    <button
+                        type="button"
+                        onClick={() => setOutOfStock(!outOfStock)}
+                        className={`h-[38px] px-3.5 rounded-[16px] text-xs font-bold border transition-all cursor-pointer flex items-center gap-2 select-none shadow-2xs ${
+                            outOfStock 
+                                ? 'border-rose-300 bg-rose-50 text-rose-600 ring-2 ring-rose-200 shadow-xs' 
+                                : 'border-black/[0.08] bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.08]'
+                        }`}
+                    >
+                        <span className={`w-2 h-2 rounded-full ${outOfStock ? 'bg-rose-500 animate-pulse' : 'bg-slate-300'}`} />
+                        <span>Hết hàng</span>
+                    </button>
                 </div>
 
-                {/* Hàng 2: Bộ lọc nâng cao */}
-                <div className="flex flex-wrap items-center gap-4 py-2 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-500">Giá:</span>
-                        <Input
-                            type="number"
-                            placeholder="Từ (VNĐ)"
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(e.target.value)}
-                            className="w-24 text-xs"
-                        />
-                        <span className="text-slate-400">-</span>
-                        <Input
-                            type="number"
-                            placeholder="Đến (VNĐ)"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                            className="w-24 text-xs"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-500">Trạng thái:</span>
-                        <Select
-                            value={isAvailable}
-                            onChange={setIsAvailable}
-                            className="w-[120px]"
-                            options={[
-                                { value: 'ALL', label: 'Tất cả' },
-                                { value: 'true', label: 'Đang bán' },
-                                { value: 'false', label: 'Đã ẩn' }
-                            ]}
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-2">
-                        <Checkbox checked={outOfStock} onChange={(e) => setOutOfStock(e.target.checked)}>
-                            <span className="text-xs font-semibold text-rose-600">Hết hàng</span>
-                        </Checkbox>
-                    </div>
-
-                    <div className="ml-auto">
+                {/* Phải: Nút hành động */}
+                <div className="flex items-center gap-2 ml-auto">
+                    {isFiltered && (
                         <button
-                            onClick={handleSearch}
-                            className="rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-6 py-2 text-xs font-bold transition-all cursor-pointer"
+                            type="button"
+                            onClick={handleResetFilters}
+                            className="h-[38px] px-3.5 rounded-[16px] text-xs font-semibold text-[#86868B] hover:text-[#1D1D1F] hover:bg-black/[0.05] transition-all cursor-pointer"
                         >
-                            Lọc dữ liệu
+                            Đặt lại
                         </button>
-                    </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={handleSearch}
+                        className="h-[38px] px-5 rounded-[16px] bg-[#0071E3] hover:bg-[#0077ED] text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0"
+                    >
+                        <SearchOutlined className="text-xs" />
+                        <span>Lọc dữ liệu</span>
+                    </button>
                 </div>
             </div>
 

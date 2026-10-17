@@ -28,13 +28,18 @@ export default function MapboxLocationPicker({
     const mapRef = useRef(null)
     const markerRef = useRef(null)
     const debounceRef = useRef(null)
+    const markerAddedRef = useRef(Boolean(initialLat && initialLng))
 
     const [searchText, setSearchText] = useState(initialAddress)
     const [suggestions, setSuggestions] = useState([])
     const [showDrop, setShowDrop] = useState(false)
     const [locating, setLocating] = useState(false)
     const [mapReady, setMapReady] = useState(false)
-    const [error, setError] = useState('')
+    const [error, setError] = useState(
+        !MAPBOX_TOKEN || MAPBOX_TOKEN.includes('YOUR_MAPBOX')
+            ? '⚠️ Chưa cấu hình VITE_MAPBOX_TOKEN trong file .env'
+            : ''
+    )
 
     const [selectedInfo, setSelectedInfo] = useState(
         initialLat && initialLng
@@ -42,10 +47,44 @@ export default function MapboxLocationPicker({
             : null
     )
 
+    // Lưu lựa chọn
+    const commitSelection = useCallback((address, lat, lng) => {
+        const info = { address, lat, lng }
+        setSelectedInfo(info)
+        setSearchText(address)
+    }, [])
+
+    // Reverse geocode
+    const reverseGeocode = useCallback(async (lng, lat) => {
+        try {
+            const res = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=vi&types=address,poi,neighborhood,locality`
+            )
+            const json = await res.json()
+            const place = json.features?.[0]
+            const address = place?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+            commitSelection(address, lat, lng)
+        } catch {
+            commitSelection(`${lat.toFixed(5)}, ${lng.toFixed(5)}`, lat, lng)
+        }
+    }, [commitSelection])
+
+    // Bay tới vị trí
+    const flyTo = useCallback((lng, lat, zoom = 16) => {
+        const map = mapRef.current
+        if (!map || !markerRef.current) return
+        
+        map.flyTo({ center: [lng, lat], zoom, speed: 1.4 })
+        markerRef.current.setLngLat([lng, lat])
+        if (!markerAddedRef.current || !markerRef.current.getElement()?.parentElement) {
+            markerRef.current.addTo(map)
+            markerAddedRef.current = true
+        }
+    }, [])
+
     // Khởi tạo map
     useEffect(() => {
         if (!MAPBOX_TOKEN || MAPBOX_TOKEN.includes('YOUR_MAPBOX')) {
-            setError('⚠️ Chưa cấu hình VITE_MAPBOX_TOKEN trong file .env')
             return
         }
 
@@ -78,6 +117,7 @@ export default function MapboxLocationPicker({
             
             if (initialLat && initialLng) {
                 markerRef.current.setLngLat([initialLng, initialLat]).addTo(map)
+                markerAddedRef.current = true
             }
 
             markerRef.current.on('dragstart', () => {
@@ -92,10 +132,12 @@ export default function MapboxLocationPicker({
 
         map.on('click', (e) => {
             const { lng, lat } = e.lngLat
-            if (!markerRef.current.getLngLat()) {
-                markerRef.current.addTo(map)
-            }
+            if (!markerRef.current) return
             markerRef.current.setLngLat([lng, lat])
+            if (!markerAddedRef.current || !markerRef.current.getElement()?.parentElement) {
+                markerRef.current.addTo(map)
+                markerAddedRef.current = true
+            }
             reverseGeocode(lng, lat)
         })
 
@@ -105,40 +147,6 @@ export default function MapboxLocationPicker({
             map.remove()
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Reverse geocode
-    const reverseGeocode = useCallback(async (lng, lat) => {
-        try {
-            const res = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&language=vi&types=address,poi,neighborhood,locality`
-            )
-            const json = await res.json()
-            const place = json.features?.[0]
-            const address = place?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
-            commitSelection(address, lat, lng)
-        } catch {
-            commitSelection(`${lat.toFixed(5)}, ${lng.toFixed(5)}`, lat, lng)
-        }
-    }, [onLocationSelected]) // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Lưu lựa chọn
-    const commitSelection = useCallback((address, lat, lng) => {
-        const info = { address, lat, lng }
-        setSelectedInfo(info)
-        setSearchText(address)
-    }, [])
-
-    // Bay tới vị trí
-    const flyTo = useCallback((lng, lat, zoom = 16) => {
-        const map = mapRef.current
-        if (!map) return
-        
-        map.flyTo({ center: [lng, lat], zoom, speed: 1.4 })
-        if (!markerRef.current.getLngLat()) {
-            markerRef.current.addTo(map)
-        }
-        markerRef.current.setLngLat([lng, lat])
-    }, [])
 
     // Lấy GPS
     const handleGetLocation = () => {
@@ -205,6 +213,12 @@ export default function MapboxLocationPicker({
 
     return (
         <div className="w-full font-sans relative">
+            {label && (
+                <label className="font-semibold text-[13px] text-gray-700 block mb-2 tracking-wide">
+                    {label}
+                </label>
+            )}
+
             {/* Action buttons */}
             <div className="flex gap-2 mb-2.5 flex-wrap">
                 <button

@@ -187,5 +187,18 @@ namespace CafeShop.Repositories.Repository
                 .Take(count)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Product>> GetRelatedProductsAsync(int productId, int categoryId, int count)
+        {
+            return await dbSet
+                .Where(p => p.CategoryId == categoryId && p.ProductId != productId && p.IsAvailable && !p.IsDeleted)
+                .OrderByDescending(p => p.ProductId)
+                .Take(count)
+                .Include(p => p.Category)
+                .Include(p => p.ProductSizes).ThenInclude(ps => ps.Size)
+                .Include(p => p.Feedbacks)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CafeShop.Uitls;
 
 namespace CafeShop.Model
 {
@@ -27,7 +28,7 @@ namespace CafeShop.Model
         public bool IsDeleted { get; set; } = false;
         public double Latitude { get; set; }  // Vĩ độ
         public double Longitude { get; set; } // Kinh độ
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTimeHelper.VietnamNow;
         // ── Navigation Properties ──────────────────────────────
         [ForeignKey("UserId")]
         public virtual User? User { get; set; }

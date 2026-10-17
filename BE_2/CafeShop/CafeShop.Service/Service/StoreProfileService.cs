@@ -3,6 +3,7 @@ using CafeShop.Data.Repository.UnitOfWork;
 using CafeShop.DTO.StoreProfile;
 using CafeShop.Model;
 using CafeShop.Service.IService;
+using CafeShop.Uitls;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,15 +34,19 @@ namespace CafeShop.Service.Service
                     IsAcceptingOrders = true,
                     IsRealtimeNotificationEnabled = true,
                     IsMaintenanceMode = false,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    OpenTime = new TimeSpan(7, 0, 0),
+                    CloseTime = new TimeSpan(22, 0, 0),
+                    CreatedAt = DateTimeHelper.VietnamNow,
+                    UpdatedAt = DateTimeHelper.VietnamNow
                 };
                 
                 await _unitOfWork.StoreProfile.AddAsync(profile);
                 await _unitOfWork.SaveAsync();
             }
 
-            return _mapper.Map<StoreProfileDto>(profile);
+            var result = _mapper.Map<StoreProfileDto>(profile);
+            result.IsOpenNow = profile.CheckCanAcceptOrders().CanAccept;
+            return result;
         }
 
         public async Task<StoreProfileDto> UpdateStoreProfileAsync(UpdateStoreProfileDto dto)
@@ -52,17 +57,19 @@ namespace CafeShop.Service.Service
             {
                 profile = new StoreProfile
                 {
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.VietnamNow
                 };
                 await _unitOfWork.StoreProfile.AddAsync(profile);
             }
 
             _mapper.Map(dto, profile);
-            profile.UpdatedAt = DateTime.UtcNow;
+            profile.UpdatedAt = DateTimeHelper.VietnamNow;
 
             await _unitOfWork.SaveAsync();
 
-            return _mapper.Map<StoreProfileDto>(profile);
+            var result = _mapper.Map<StoreProfileDto>(profile);
+            result.IsOpenNow = profile.CheckCanAcceptOrders().CanAccept;
+            return result;
         }
     }
 }
